@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::env;
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 struct Board {
     name: String,
     desc: String,
@@ -17,8 +18,7 @@ struct Board {
     starred: bool,
     closed: bool,
     subscribed: bool,
-    // TODO: Figure out how to map to a snake_case name
-    labelNames: HashMap<String, String>,
+    label_names: HashMap<String, String>,
 }
 
 fn get_boards(token: &str, key: &str) -> Vec<Board> {
