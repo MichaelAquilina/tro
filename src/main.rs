@@ -16,22 +16,26 @@ struct Board {
 }
 
 
-fn main() {
-    let token = env::var("TRELLO_API_TOKEN").unwrap();
-    let key = env::var("TRELLO_API_DEVELOPER_KEY").unwrap();
-
+fn get_boards(token: &str, key: &str) -> Vec<Board> {
     let url = Url::parse_with_params(
         "https://api.trello.com/1/members/me/boards",
         &[("key", &key), ("token", &token)],
     ).unwrap();
 
-    println!("Requesting user board data");
-
     let mut resp = reqwest::get(url).unwrap();
     let text = resp.text().unwrap();
 
-    let data: Vec<Board> = serde_json::from_str(&text).unwrap();
-    for board in data {
+    return serde_json::from_str(&text).unwrap();
+}
+
+
+fn main() {
+    let token = env::var("TRELLO_API_TOKEN").unwrap();
+    let key = env::var("TRELLO_API_DEVELOPER_KEY").unwrap();
+
+    let boards = get_boards(&token, &key);
+
+    for board in boards {
         println!("{}", board.name);
     }
 }
