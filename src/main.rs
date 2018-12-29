@@ -76,6 +76,15 @@ fn get_cards(board_id: &str, token: &str, key: &str) -> Vec<Card> {
     return resp.json().unwrap();
 }
 
+fn create_card(list_id: &str, token: &str, key: &str) {
+    let url = Url::parse_with_params(
+        "https://api.trello.com/1/cards",
+        &[("token", token), ("key", key), ("idList", list_id)],
+    ).unwrap();
+    let client = reqwest::Client::new();
+    client.post(url).send().unwrap();
+}
+
 fn main() {
     let token = env::var("TRELLO_API_TOKEN").unwrap();
     let key = env::var("TRELLO_API_DEVELOPER_KEY").unwrap();
