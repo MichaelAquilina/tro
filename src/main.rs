@@ -22,6 +22,16 @@ struct Board {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct List {
+    id: String,
+    name: String,
+    closed: bool,
+    id_board: String,
+    subscribed: bool,
+}
+
+#[derive(Deserialize, Debug)]
 struct Label {
     id: String,
     name: String,
@@ -48,6 +58,15 @@ fn get_boards(token: &str, key: &str) -> Vec<Board> {
     return resp.json().unwrap();
 }
 
+fn get_lists(board_id: &str, token: &str, key: &str) -> Vec<List> {
+    let mut resp = get_resource(
+        &format!("https://api.trello.com/1/boards/{}/lists", board_id),
+        token,
+        key,
+    );
+    return resp.json().unwrap();
+}
+
 fn get_cards(board_id: &str, token: &str, key: &str) -> Vec<Card> {
     let mut resp = get_resource(
         &format!("https://api.trello.com/1/boards/{}/cards", board_id),
@@ -66,6 +85,11 @@ fn main() {
     for (index, b) in boards.iter().enumerate() {
         if b.name == "TODO" {
             println!("{}: {}", index, b.name);
+            let lists = get_lists(&b.id, &token, &key);
+            for l in lists {
+                println!("{} ({})", l.name, l.id);
+            }
+
             let cards = get_cards(&b.id, &token, &key);
             for c in cards {
                 let labels: Vec<&String> = c.labels.iter().map(|l| &l.name).collect();
