@@ -3,6 +3,9 @@ mod trello;
 #[macro_use]
 extern crate serde_derive;
 
+extern crate console;
+
+use console::StyledObject;
 use std::env;
 
 fn main() {
@@ -21,7 +24,9 @@ fn main() {
 
             let cards = trello::get_cards(&b.id, &token, &key);
             for c in cards {
-                let labels: Vec<&String> = c.labels.iter().map(|l| &l.name).collect();
+                let labels: Vec<StyledObject<&String>> = c.labels.iter().map(
+                    |l| l.get_colored_name().bold()
+                    ).collect();
 
                 println!("{} {:?}", c.name, labels);
             }

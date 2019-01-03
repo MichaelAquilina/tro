@@ -1,7 +1,9 @@
+extern crate console;
 extern crate reqwest;
 
 use std::collections::HashMap;
 
+use console::{style, StyledObject};
 use reqwest::{Response, Url};
 
 #[derive(Deserialize, Debug)]
@@ -32,6 +34,13 @@ pub struct Label {
     pub id: String,
     pub name: String,
     pub color: String,
+}
+
+impl Label {
+    // TODO: Use Label color attribute to determine the color generated
+    pub fn get_colored_name(&self) -> StyledObject<&String> {
+        return style(&self.name).cyan();
+    }
 }
 
 #[derive(Deserialize, Debug)]
