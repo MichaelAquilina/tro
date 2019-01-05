@@ -37,17 +37,6 @@ fn cards(board_name: &str, token: &str, key: &str) {
 }
 
 fn main() {
-    let token = env::var("TRELLO_API_TOKEN");
-    let key = env::var("TRELLO_API_DEVELOPER_KEY");
-
-    if token.is_err() || key.is_err() {
-        println!("TRELLO_API_TOKEN and TRELLO_API_DEVELOPER_KEY environment variables must be set");
-        return;
-    }
-
-    let token = token.unwrap();
-    let key = key.unwrap();
-
     let app = App::new("trello-rst").subcommand(
         SubCommand::with_name("cards")
             .about("View cards in target Board")
@@ -59,6 +48,18 @@ fn main() {
             ),
     );
     let matches = app.get_matches();
+
+    let token = env::var("TRELLO_API_TOKEN");
+    let key = env::var("TRELLO_API_DEVELOPER_KEY");
+
+    if token.is_err() || key.is_err() {
+        println!("TRELLO_API_TOKEN and TRELLO_API_DEVELOPER_KEY environment variables must be set");
+        return;
+    }
+
+    let token = token.unwrap();
+    let key = key.unwrap();
+
 
     if let Some(matches) = matches.subcommand_matches("cards") {
         let board_name = matches.value_of("board").unwrap().to_lowercase();
