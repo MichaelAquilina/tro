@@ -1,0 +1,30 @@
+version: 2
+
+jobs:
+  lint:
+    docker:
+      - image: "circleci/rust:1.31"
+    steps:
+      - checkout
+      - run:
+          name: install rustfmt
+          command: rustup component add rustfmt
+      - run:
+          name: run rustfmt
+          command: rustfmt **/*.rs --check
+
+  test:
+    docker:
+      - image: "circleci/rust:1.31"
+    steps:
+      - checkout
+      - run:
+          name: build project
+          command: cargo build
+
+workflows:
+  version: 2
+  trello_test:
+    jobs:
+      - lint
+      - test
