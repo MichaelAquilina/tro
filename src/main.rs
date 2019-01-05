@@ -9,8 +9,16 @@ use console::StyledObject;
 use std::env;
 
 fn main() {
-    let token = env::var("TRELLO_API_TOKEN").unwrap();
-    let key = env::var("TRELLO_API_DEVELOPER_KEY").unwrap();
+    let token = env::var("TRELLO_API_TOKEN");
+    let key = env::var("TRELLO_API_DEVELOPER_KEY");
+
+    if token.is_err() || key.is_err() {
+        println!("TRELLO_API_TOKEN and TRELLO_API_DEVELOPER_KEY environment variables must be set");
+        return;
+    }
+
+    let token = token.unwrap();
+    let key = key.unwrap();
 
     let boards = trello::get_boards(&token, &key);
 
