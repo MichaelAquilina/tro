@@ -14,5 +14,7 @@ To begin, you must set the following two environment variables:
 
 You can retrieve these values from https://trello.com/app-key/
 
+Once those are set, simply run with ``cargo run``.
+
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/trello-rs
