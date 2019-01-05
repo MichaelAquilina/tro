@@ -32,9 +32,11 @@ fn main() {
 
             let cards = trello::get_cards(&b.id, &token, &key);
             for c in cards {
-                let labels: Vec<StyledObject<&String>> = c.labels.iter().map(
-                    |l| l.get_colored_name().bold()
-                    ).collect();
+                let labels: Vec<StyledObject<&String>> = c
+                    .labels
+                    .iter()
+                    .map(|l| l.get_colored_name().bold())
+                    .collect();
 
                 println!("{} {:?}", c.name, labels);
             }
