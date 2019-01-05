@@ -5,9 +5,11 @@ extern crate serde_derive;
 
 extern crate clap;
 extern crate console;
+extern crate indoc;
 
 use clap::{App, Arg, SubCommand};
 use console::StyledObject;
+use indoc::indoc;
 use std::env;
 
 fn cards(board_name: &str, token: &str, key: &str) {
@@ -37,16 +39,29 @@ fn cards(board_name: &str, token: &str, key: &str) {
 }
 
 fn main() {
-    let app = App::new("trello-rst").subcommand(
-        SubCommand::with_name("cards")
-            .about("View cards in target Board")
-            .arg(
-                Arg::with_name("board")
-                    .help("Name of the board")
-                    .index(1)
-                    .required(true),
-            ),
-    );
+    let app = App::new("trello-rs")
+        .about(indoc!(
+            "
+
+            Trello command line tool.
+
+            Begin by setting the environment variables:
+            * TRELLO_API_TOKEN
+            * TRELLO_API_DEVELOPER_KEY
+
+            These can be retrieved from https://trello.com/app-key/
+            "
+        ))
+        .subcommand(
+            SubCommand::with_name("cards")
+                .about("View cards in target Board")
+                .arg(
+                    Arg::with_name("board")
+                        .help("Name of the board")
+                        .index(1)
+                        .required(true),
+                ),
+        );
     let matches = app.get_matches();
 
     let token = env::var("TRELLO_API_TOKEN");
