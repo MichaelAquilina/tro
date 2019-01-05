@@ -60,7 +60,6 @@ fn main() {
     let token = token.unwrap();
     let key = key.unwrap();
 
-
     if let Some(matches) = matches.subcommand_matches("cards") {
         let board_name = matches.value_of("board").unwrap().to_lowercase();
         cards(&board_name, &token, &key);
