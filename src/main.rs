@@ -12,19 +12,22 @@ use console::StyledObject;
 use indoc::indoc;
 use std::env;
 
+fn print_header(text: &str, header_char: &str) {
+    println!("{}", text);
+    println!("{}", header_char.repeat(text.len()));
+}
+
 fn cards(board_name: &str, token: &str, key: &str) {
     let boards = trello::get_boards(token, key);
 
     for (index, b) in boards.iter().enumerate() {
         if b.name.to_lowercase() == board_name {
-            println!("{}: {}", index, b.name);
+            print_header(&format!("{}: {} ({})", index, b.name, b.id), "=");
+
             let lists = trello::get_lists(&b.id, token, key);
             for l in lists {
                 println!("");
-                let title = format!("{} ({})", l.name, l.id);
-
-                println!("{}", title);
-                println!("{}", "-".repeat(title.chars().count()));
+                print_header(&format!("{} ({})", l.name, l.id), "-");
 
                 if let Some(cards) = l.cards {
                     for c in cards {
@@ -34,7 +37,7 @@ fn cards(board_name: &str, token: &str, key: &str) {
                             .map(|l| l.get_colored_name().bold())
                             .collect();
 
-                        println!("{} {:?}", c.name, labels);
+                        println!("{} ({}) {:?}", c.name, c.id, labels);
                     }
                 }
             }
