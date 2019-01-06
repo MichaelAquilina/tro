@@ -17,7 +17,7 @@ fn print_header(text: &str, header_char: &str) {
     println!("{}", header_char.repeat(text.len()));
 }
 
-fn cards(board_name: &str, token: &str, key: &str) {
+fn board(board_name: &str, token: &str, key: &str) {
     let boards = trello::get_boards(token, key);
 
     for (index, b) in boards.iter().enumerate() {
@@ -86,6 +86,6 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("board") {
         let board_name = matches.value_of("board_name").unwrap().to_lowercase();
-        cards(&board_name, &token, &key);
+        board(&board_name, &token, &key);
     }
 }
