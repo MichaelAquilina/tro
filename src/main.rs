@@ -18,7 +18,7 @@ fn print_header(text: &str, header_char: &str) {
 }
 
 fn boards(token: &str, key: &str) {
-    let boards = trello::get_boards(token, key);
+    let boards = trello::Board::get_all(token, key);
 
     for b in boards {
         let text = &format!("{} ({})", b.name, b.id);
@@ -33,9 +33,9 @@ fn boards(token: &str, key: &str) {
 fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &str) {
     let board;
     if let Some(board_id) = board_id {
-        board = Some(trello::get_board(board_id, token, key));
+        board = Some(trello::Board::get(board_id, token, key));
     } else if let Some(board_name) = board_name {
-        board = trello::get_board_by_name(board_name, token, key);
+        board = trello::Board::get_by_name(board_name, token, key);
     } else {
         println!("You must supply either a board id (--id) or a board name (--name)");
         return
@@ -59,7 +59,7 @@ fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &st
         println!("{}", desc_data);
     }
 
-    let lists = trello::get_lists(&board.id, token, key);
+    let lists = trello::List::get_all(&board.id, token, key);
     for l in lists {
         println!("");
         print_header(&format!("{} ({})", l.name, l.id), "-");

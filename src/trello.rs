@@ -6,6 +6,12 @@ use std::collections::HashMap;
 use console::{style, StyledObject};
 use reqwest::{Response, Url};
 
+fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Response {
+    let url = Url::parse_with_params(url, params).unwrap();
+
+    return reqwest::get(url).unwrap();
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Board {
@@ -19,6 +25,34 @@ pub struct Board {
     pub label_names: HashMap<String, String>,
 }
 
+impl Board {
+    pub fn get(board_id: &str, token: &str, key: &str) -> Board {
+        let mut resp = get_resource(
+            &format!("https://api.trello.com/1/boards/{}", board_id),
+            &vec![("key", key), ("token", token), ("fields", "all")],
+        );
+        return resp.json().unwrap();
+    }
+
+    pub fn get_by_name(board_name: &str, token: &str, key: &str) -> Option<Board> {
+        let boards = Board::get_all(token, key);
+        for b in boards {
+            if b.name.to_lowercase() == board_name.to_lowercase() {
+                return Some(b);
+            }
+        }
+        return None
+    }
+
+    pub fn get_all(token: &str, key: &str) -> Vec<Board> {
+        let mut resp = get_resource(
+            "https://api.trello.com/1/members/me/boards",
+            &vec![("key", key), ("token", token), ("filter", "open")],
+        );
+        return resp.json().unwrap();
+    }
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct List {
@@ -28,6 +62,16 @@ pub struct List {
     pub id_board: String,
     pub subscribed: bool,
     pub cards: Option<Vec<Card>>,
+}
+
+impl List {
+    pub fn get_all(board_id: &str, token: &str, key: &str) -> Vec<List> {
+        let mut resp = get_resource(
+            &format!("https://api.trello.com/1/boards/{}/lists", board_id),
+            &vec![("key", key), ("token", token), ("cards", "open")],
+        );
+        return resp.json().unwrap();
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -70,44 +114,4 @@ pub struct Card {
     pub name: String,
     pub url: String,
     pub labels: Vec<Label>,
-}
-
-fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Response {
-    let url = Url::parse_with_params(url, params).unwrap();
-
-    return reqwest::get(url).unwrap();
-}
-
-pub fn get_board(board_id: &str, token: &str, key: &str) -> Board {
-    let mut resp = get_resource(
-        &format!("https://api.trello.com/1/boards/{}", board_id),
-        &vec![("key", key), ("token", token), ("fields", "all")],
-    );
-    return resp.json().unwrap();
-}
-
-pub fn get_board_by_name(board_name: &str, token: &str, key: &str) -> Option<Board> {
-    let boards = get_boards(token, key);
-    for b in boards {
-        if b.name.to_lowercase() == board_name.to_lowercase() {
-            return Some(b);
-        }
-    }
-    return None
-}
-
-pub fn get_boards(token: &str, key: &str) -> Vec<Board> {
-    let mut resp = get_resource(
-        "https://api.trello.com/1/members/me/boards",
-        &vec![("key", key), ("token", token), ("filter", "open")],
-    );
-    return resp.json().unwrap();
-}
-
-pub fn get_lists(board_id: &str, token: &str, key: &str) -> Vec<List> {
-    let mut resp = get_resource(
-        &format!("https://api.trello.com/1/boards/{}/lists", board_id),
-        &vec![("key", key), ("token", token), ("cards", "open")],
-    );
-    return resp.json().unwrap();
 }
