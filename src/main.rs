@@ -35,6 +35,7 @@ fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &st
     if let Some(board_id) = board_id {
         board = trello::Board::get(board_id, token, key);
     } else if let Some(board_name) = board_name {
+        // TODO: Should be handling case where board is not found gracefully
         board = trello::Board::get_by_name(board_name, token, key).unwrap();
     } else {
         println!("You must supply either a board id (--id) or a board name (--name)");
@@ -69,6 +70,20 @@ fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &st
     }
 }
 
+fn card(card_id: Option<&str>, token: &str, key: &str) {
+    let card;
+    if let Some(card_id) = card_id {
+        card = trello::Card::get(card_id, token, key);
+    } else {
+        println!("You must supply a card id (--id)");
+        return;
+    }
+
+    print_header(&card.name, "=");
+
+    println!("{}", &card.desc);
+}
+
 fn main() {
     let app = App::new("trello-rs")
         .about(indoc!(
@@ -99,7 +114,16 @@ fn main() {
                         .long("name")
                         .takes_value(true),
                 ),
+        )
+        .subcommand(
+            SubCommand::with_name("card").about("View target card").arg(
+                Arg::with_name("card_id")
+                    .short("i")
+                    .long("id")
+                    .takes_value(true),
+            ),
         );
+
     let matches = app.get_matches();
 
     let token = env::var("TRELLO_API_TOKEN");
@@ -120,5 +144,9 @@ fn main() {
         let board_name = matches.value_of("board_name");
 
         board(board_id, board_name, &token, &key);
+    } else if let Some(matches) = matches.subcommand_matches("card") {
+        let card_id = matches.value_of("card_id");
+
+        card(card_id, &token, &key);
     }
 }

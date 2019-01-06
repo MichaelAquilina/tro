@@ -115,3 +115,13 @@ pub struct Card {
     pub url: String,
     pub labels: Vec<Label>,
 }
+
+impl Card {
+    pub fn get(card_id: &str, token: &str, key: &str) -> Card {
+        let mut resp = get_resource(
+            &format!("https://api.trello.com/1/cards/{}", card_id),
+            &vec![("token", token), ("key", key)],
+        );
+        return resp.json().unwrap();
+    }
+}
