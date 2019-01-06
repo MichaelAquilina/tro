@@ -12,9 +12,71 @@ use console::{style, StyledObject};
 use indoc::indoc;
 use std::env;
 
-fn print_header(text: &str, header_char: &str) {
-    println!("{}", text);
-    println!("{}", header_char.repeat(text.len()));
+fn main() {
+    let app = App::new("trello-rs")
+        .about(indoc!(
+            "
+
+            Trello command line tool.
+
+            Begin by setting the environment variables:
+            * TRELLO_API_TOKEN
+            * TRELLO_API_DEVELOPER_KEY
+
+            These can be retrieved from https://trello.com/app-key/
+            "
+        ))
+        .subcommand(SubCommand::with_name("boards").about("List all available boards"))
+        .subcommand(
+            SubCommand::with_name("board")
+                .about("View target Board")
+                .arg(
+                    Arg::with_name("board_id")
+                        .short("i")
+                        .long("id")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("board_name")
+                        .short("n")
+                        .long("name")
+                        .takes_value(true),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("card").about("View target card").arg(
+                Arg::with_name("card_id")
+                    .short("i")
+                    .long("id")
+                    .takes_value(true),
+            ),
+        );
+
+    let matches = app.get_matches();
+
+    let token = env::var("TRELLO_API_TOKEN");
+    let key = env::var("TRELLO_API_DEVELOPER_KEY");
+
+    if token.is_err() || key.is_err() {
+        println!("TRELLO_API_TOKEN and TRELLO_API_DEVELOPER_KEY environment variables must be set");
+        return;
+    }
+
+    let token = token.unwrap();
+    let key = key.unwrap();
+
+    if let Some(_) = matches.subcommand_matches("boards") {
+        boards(&token, &key);
+    } else if let Some(matches) = matches.subcommand_matches("board") {
+        let board_id = matches.value_of("board_id");
+        let board_name = matches.value_of("board_name");
+
+        board(board_id, board_name, &token, &key);
+    } else if let Some(matches) = matches.subcommand_matches("card") {
+        let card_id = matches.value_of("card_id");
+
+        card(card_id, &token, &key);
+    }
 }
 
 fn boards(token: &str, key: &str) {
@@ -84,69 +146,7 @@ fn card(card_id: Option<&str>, token: &str, key: &str) {
     println!("{}", &card.desc);
 }
 
-fn main() {
-    let app = App::new("trello-rs")
-        .about(indoc!(
-            "
-
-            Trello command line tool.
-
-            Begin by setting the environment variables:
-            * TRELLO_API_TOKEN
-            * TRELLO_API_DEVELOPER_KEY
-
-            These can be retrieved from https://trello.com/app-key/
-            "
-        ))
-        .subcommand(SubCommand::with_name("boards").about("List all available boards"))
-        .subcommand(
-            SubCommand::with_name("board")
-                .about("View target Board")
-                .arg(
-                    Arg::with_name("board_id")
-                        .short("i")
-                        .long("id")
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("board_name")
-                        .short("n")
-                        .long("name")
-                        .takes_value(true),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("card").about("View target card").arg(
-                Arg::with_name("card_id")
-                    .short("i")
-                    .long("id")
-                    .takes_value(true),
-            ),
-        );
-
-    let matches = app.get_matches();
-
-    let token = env::var("TRELLO_API_TOKEN");
-    let key = env::var("TRELLO_API_DEVELOPER_KEY");
-
-    if token.is_err() || key.is_err() {
-        println!("TRELLO_API_TOKEN and TRELLO_API_DEVELOPER_KEY environment variables must be set");
-        return;
-    }
-
-    let token = token.unwrap();
-    let key = key.unwrap();
-
-    if let Some(_) = matches.subcommand_matches("boards") {
-        boards(&token, &key);
-    } else if let Some(matches) = matches.subcommand_matches("board") {
-        let board_id = matches.value_of("board_id");
-        let board_name = matches.value_of("board_name");
-
-        board(board_id, board_name, &token, &key);
-    } else if let Some(matches) = matches.subcommand_matches("card") {
-        let card_id = matches.value_of("card_id");
-
-        card(card_id, &token, &key);
-    }
+fn print_header(text: &str, header_char: &str) {
+    println!("{}", text);
+    println!("{}", header_char.repeat(text.len()));
 }
