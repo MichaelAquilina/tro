@@ -20,19 +20,21 @@ fn cards(board_name: &str, token: &str, key: &str) {
             println!("{}: {}", index, b.name);
             let lists = trello::get_lists(&b.id, token, key);
             for l in lists {
+                println!("");
                 println!("{} ({})", l.name, l.id);
+                println!("----------------------");
+
+                for c in l.cards.unwrap() {
+                    let labels: Vec<StyledObject<&String>> = c
+                        .labels
+                        .iter()
+                        .map(|l| l.get_colored_name().bold())
+                        .collect();
+
+                    println!("{} {:?}", c.name, labels);
+                }
             }
 
-            let cards = trello::get_cards(&b.id, token, key);
-            for c in cards {
-                let labels: Vec<StyledObject<&String>> = c
-                    .labels
-                    .iter()
-                    .map(|l| l.get_colored_name().bold())
-                    .collect();
-
-                println!("{} {:?}", c.name, labels);
-            }
             break;
         }
     }
