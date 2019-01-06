@@ -21,8 +21,10 @@ fn cards(board_name: &str, token: &str, key: &str) {
             let lists = trello::get_lists(&b.id, token, key);
             for l in lists {
                 println!("");
-                println!("{} ({})", l.name, l.id);
-                println!("----------------------");
+                let title = format!("{} ({})", l.name, l.id);
+
+                println!("{}", title);
+                println!("{}", "-".repeat(title.chars().count()));
 
                 for c in l.cards.unwrap() {
                     let labels: Vec<StyledObject<&String>> = c
@@ -55,10 +57,10 @@ fn main() {
             "
         ))
         .subcommand(
-            SubCommand::with_name("cards")
-                .about("View cards in target Board")
+            SubCommand::with_name("board")
+                .about("View target Board")
                 .arg(
-                    Arg::with_name("board")
+                    Arg::with_name("board_name")
                         .help("Name of the board")
                         .index(1)
                         .required(true),
@@ -77,8 +79,8 @@ fn main() {
     let token = token.unwrap();
     let key = key.unwrap();
 
-    if let Some(matches) = matches.subcommand_matches("cards") {
-        let board_name = matches.value_of("board").unwrap().to_lowercase();
+    if let Some(matches) = matches.subcommand_matches("board") {
+        let board_name = matches.value_of("board_name").unwrap().to_lowercase();
         cards(&board_name, &token, &key);
     }
 }
