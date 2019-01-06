@@ -86,6 +86,16 @@ pub fn get_board(board_id: &str, token: &str, key: &str) -> Board {
     return resp.json().unwrap();
 }
 
+pub fn get_board_by_name(board_name: &str, token: &str, key: &str) -> Option<Board> {
+    let boards = get_boards(token, key);
+    for b in boards {
+        if b.name.to_lowercase() == board_name.to_lowercase() {
+            return Some(b);
+        }
+    }
+    return None
+}
+
 pub fn get_boards(token: &str, key: &str) -> Vec<Board> {
     let mut resp = get_resource(
         "https://api.trello.com/1/members/me/boards",

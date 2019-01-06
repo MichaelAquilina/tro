@@ -30,8 +30,18 @@ fn boards(token: &str, key: &str) {
     }
 }
 
-fn board(board_id: &str, token: &str, key: &str) {
-    let board = trello::get_board(board_id, token, key);
+fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &str) {
+    let board;
+    if let Some(board_id) = board_id {
+        board = Some(trello::get_board(board_id, token, key));
+    } else if let Some(board_name) = board_name {
+        board = trello::get_board_by_name(board_name, token, key);
+    } else {
+        println!("You must supply either a board id (--id) or a board name (--name)");
+        return
+    }
+
+    let board = board.unwrap();
 
     let mut title = String::new();
 
@@ -49,7 +59,7 @@ fn board(board_id: &str, token: &str, key: &str) {
         println!("{}", desc_data);
     }
 
-    let lists = trello::get_lists(board_id, token, key);
+    let lists = trello::get_lists(&board.id, token, key);
     for l in lists {
         println!("");
         print_header(&format!("{} ({})", l.name, l.id), "-");
@@ -86,7 +96,8 @@ fn main() {
         .subcommand(
             SubCommand::with_name("board")
                 .about("View target Board")
-                .arg(Arg::with_name("board_id").index(1).required(true)),
+                .arg(Arg::with_name("board_id").short("i").long("id").takes_value(true))
+                .arg(Arg::with_name("board_name").short("n").long("name").takes_value(true))
         );
     let matches = app.get_matches();
 
@@ -104,7 +115,9 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("boards") {
         boards(&token, &key);
     } else if let Some(matches) = matches.subcommand_matches("board") {
-        let board_id = matches.value_of("board_id").unwrap();
-        board(&board_id, &token, &key);
+        let board_id = matches.value_of("board_id");
+        let board_name = matches.value_of("board_name");
+
+        board(board_id, board_name, &token, &key);
     }
 }
