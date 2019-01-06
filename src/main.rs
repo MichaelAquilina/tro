@@ -26,14 +26,16 @@ fn cards(board_name: &str, token: &str, key: &str) {
                 println!("{}", title);
                 println!("{}", "-".repeat(title.chars().count()));
 
-                for c in l.cards.unwrap() {
-                    let labels: Vec<StyledObject<&String>> = c
-                        .labels
-                        .iter()
-                        .map(|l| l.get_colored_name().bold())
-                        .collect();
+                if let Some(cards) = l.cards {
+                    for c in cards {
+                        let labels: Vec<StyledObject<&String>> = c
+                            .labels
+                            .iter()
+                            .map(|l| l.get_colored_name().bold())
+                            .collect();
 
-                    println!("{} {:?}", c.name, labels);
+                        println!("{} {:?}", c.name, labels);
+                    }
                 }
             }
 
