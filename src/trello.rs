@@ -41,7 +41,7 @@ impl Board {
                 return Some(b);
             }
         }
-        return None
+        return None;
     }
 
     pub fn get_all(token: &str, key: &str) -> Vec<Board> {

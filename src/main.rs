@@ -26,34 +26,25 @@ fn boards(token: &str, key: &str) {
         if b.starred {
             output = output.yellow();
         }
-        println!("{}", output);
+        println!("* {}", output);
     }
 }
 
 fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &str) {
     let board;
     if let Some(board_id) = board_id {
-        board = Some(trello::Board::get(board_id, token, key));
+        board = trello::Board::get(board_id, token, key);
     } else if let Some(board_name) = board_name {
-        board = trello::Board::get_by_name(board_name, token, key);
+        board = trello::Board::get_by_name(board_name, token, key).unwrap();
     } else {
         println!("You must supply either a board id (--id) or a board name (--name)");
-        return
+        return;
     }
 
-    let board = board.unwrap();
-
-    let mut title = String::new();
-
-    if board.starred {
-        title.push_str("★ ");
-    }
-
-    title.push_str(&format!("{} ({})", board.name, board.id));
-
+    let title = format!("{} ({})", board.name, board.id);
     print_header(&title, "=");
 
-    println!("{}", board.url);
+    println!("{}", style(&board.url).bold().underlined());
 
     if let Some(desc_data) = board.desc_data {
         println!("{}", desc_data);
@@ -72,7 +63,7 @@ fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &st
                     .map(|l| l.get_colored_name().bold())
                     .collect();
 
-                println!("{} ({}) {:?}", c.name, c.id, labels);
+                println!("* {} ({}) {:?}", c.name, c.id, labels);
             }
         }
     }
@@ -96,8 +87,18 @@ fn main() {
         .subcommand(
             SubCommand::with_name("board")
                 .about("View target Board")
-                .arg(Arg::with_name("board_id").short("i").long("id").takes_value(true))
-                .arg(Arg::with_name("board_name").short("n").long("name").takes_value(true))
+                .arg(
+                    Arg::with_name("board_id")
+                        .short("i")
+                        .long("id")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("board_name")
+                        .short("n")
+                        .long("name")
+                        .takes_value(true),
+                ),
         );
     let matches = app.get_matches();
 
