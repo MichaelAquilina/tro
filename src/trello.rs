@@ -37,9 +37,28 @@ pub struct Label {
 }
 
 impl Label {
-    // TODO: Use Label color attribute to determine the color generated
     pub fn get_colored_name(&self) -> StyledObject<&String> {
-        return style(&self.name).cyan();
+        let result = style(&self.name);
+
+        // TODO: Use match instead of if statements
+        // TODO: Use wider palette range
+        if self.color == "red" {
+            return result.red();
+        } else if self.color == "yellow" {
+            return result.yellow();
+        } else if self.color == "green" {
+            return result.green();
+        } else if self.color == "purple" {
+            return result.magenta();
+        } else if self.color == "orange" {
+            return result.yellow();
+        } else if self.color == "pink" {
+            return result.red();
+        } else if self.color == "lime" {
+            return result.green();
+        }
+
+        return result;
     }
 }
 
