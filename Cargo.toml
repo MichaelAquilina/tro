@@ -3,6 +3,9 @@ name = "trello-rs"
 version = "0.1.0"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
 edition = "2018"
+description = "A Trello API client for the command line"
+license = "GPL-3.0-only"
+repository = "https://www.github.com/MichaelAquilina/trello-rs.git"
 
 [dependencies]
 reqwest = "0.9.5"
