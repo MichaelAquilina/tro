@@ -8,7 +8,7 @@ extern crate console;
 extern crate indoc;
 
 use clap::{App, Arg, SubCommand};
-use console::StyledObject;
+use console::{style, StyledObject};
 use indoc::indoc;
 use std::env;
 
@@ -21,36 +21,49 @@ fn boards(token: &str, key: &str) {
     let boards = trello::get_boards(token, key);
 
     for b in boards {
-        println!("{} ({})", b.name, b.id);
+        let text = &format!("{} ({})", b.name, b.id);
+        let mut output = style(&text);
+        if b.starred {
+            output = output.yellow();
+        }
+        println!("{}", output);
     }
 }
 
-fn board(board_name: &str, token: &str, key: &str) {
-    let boards = trello::get_boards(token, key);
+fn board(board_id: &str, token: &str, key: &str) {
+    let board = trello::get_board(board_id, token, key);
 
-    for (index, b) in boards.iter().enumerate() {
-        if b.name.to_lowercase() == board_name {
-            print_header(&format!("{}: {} ({})", index, b.name, b.id), "=");
+    let mut title = String::new();
 
-            let lists = trello::get_lists(&b.id, token, key);
-            for l in lists {
-                println!("");
-                print_header(&format!("{} ({})", l.name, l.id), "-");
+    if board.starred {
+        title.push_str("★ ");
+    }
 
-                if let Some(cards) = l.cards {
-                    for c in cards {
-                        let labels: Vec<StyledObject<&String>> = c
-                            .labels
-                            .iter()
-                            .map(|l| l.get_colored_name().bold())
-                            .collect();
+    title.push_str(&format!("{} ({})", board.name, board.id));
 
-                        println!("{} ({}) {:?}", c.name, c.id, labels);
-                    }
-                }
+    print_header(&title, "=");
+
+    println!("{}", board.url);
+
+    if let Some(desc_data) = board.desc_data {
+        println!("{}", desc_data);
+    }
+
+    let lists = trello::get_lists(board_id, token, key);
+    for l in lists {
+        println!("");
+        print_header(&format!("{} ({})", l.name, l.id), "-");
+
+        if let Some(cards) = l.cards {
+            for c in cards {
+                let labels: Vec<StyledObject<&String>> = c
+                    .labels
+                    .iter()
+                    .map(|l| l.get_colored_name().bold())
+                    .collect();
+
+                println!("{} ({}) {:?}", c.name, c.id, labels);
             }
-
-            break;
         }
     }
 }
@@ -73,12 +86,7 @@ fn main() {
         .subcommand(
             SubCommand::with_name("board")
                 .about("View target Board")
-                .arg(
-                    Arg::with_name("board_name")
-                        .help("Name of the board")
-                        .index(1)
-                        .required(true),
-                ),
+                .arg(Arg::with_name("board_id").index(1).required(true)),
         );
     let matches = app.get_matches();
 
@@ -96,7 +104,7 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("boards") {
         boards(&token, &key);
     } else if let Some(matches) = matches.subcommand_matches("board") {
-        let board_name = matches.value_of("board_name").unwrap().to_lowercase();
-        board(&board_name, &token, &key);
+        let board_id = matches.value_of("board_id").unwrap();
+        board(&board_id, &token, &key);
     }
 }

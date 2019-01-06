@@ -78,10 +78,18 @@ fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Response {
     return reqwest::get(url).unwrap();
 }
 
+pub fn get_board(board_id: &str, token: &str, key: &str) -> Board {
+    let mut resp = get_resource(
+        &format!("https://api.trello.com/1/boards/{}", board_id),
+        &vec![("key", key), ("token", token), ("fields", "all")],
+    );
+    return resp.json().unwrap();
+}
+
 pub fn get_boards(token: &str, key: &str) -> Vec<Board> {
     let mut resp = get_resource(
         "https://api.trello.com/1/members/me/boards",
-        &vec![("key", key), ("token", token)],
+        &vec![("key", key), ("token", token), ("filter", "open")],
     );
     return resp.json().unwrap();
 }
