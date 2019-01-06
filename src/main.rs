@@ -17,6 +17,14 @@ fn print_header(text: &str, header_char: &str) {
     println!("{}", header_char.repeat(text.len()));
 }
 
+fn boards(token: &str, key: &str) {
+    let boards = trello::get_boards(token, key);
+
+    for b in boards {
+        println!("{} ({})", b.name, b.id);
+    }
+}
+
 fn board(board_name: &str, token: &str, key: &str) {
     let boards = trello::get_boards(token, key);
 
@@ -61,6 +69,7 @@ fn main() {
             These can be retrieved from https://trello.com/app-key/
             "
         ))
+        .subcommand(SubCommand::with_name("boards").about("List all available boards"))
         .subcommand(
             SubCommand::with_name("board")
                 .about("View target Board")
@@ -84,7 +93,9 @@ fn main() {
     let token = token.unwrap();
     let key = key.unwrap();
 
-    if let Some(matches) = matches.subcommand_matches("board") {
+    if let Some(_) = matches.subcommand_matches("boards") {
+        boards(&token, &key);
+    } else if let Some(matches) = matches.subcommand_matches("board") {
         let board_name = matches.value_of("board_name").unwrap().to_lowercase();
         board(&board_name, &token, &key);
     }
