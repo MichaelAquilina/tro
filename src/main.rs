@@ -7,7 +7,7 @@ extern crate clap;
 extern crate console;
 extern crate indoc;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, ArgMatches, SubCommand};
 use console::{style, StyledObject};
 use indoc::indoc;
 use std::env;
@@ -74,16 +74,11 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("boards") {
         boards(&token, &key);
     } else if let Some(matches) = matches.subcommand_matches("board") {
-        let board_id = matches.value_of("board_id");
-        let board_name = matches.value_of("board_name");
-        board(board_id, board_name, &token, &key);
+        board(&matches, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("card") {
-        let card_id = matches.value_of("card_id");
-        card(card_id, &token, &key);
+        card(&matches, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("close") {
-        let target_type = matches.value_of("target_type").unwrap();
-        let target_id = matches.value_of("target_id").unwrap();
-        close(&target_type, &target_id, &token, &key);
+        close(&matches, &token, &key);
     } else {
         println!("No subcommand specified. Use help to for more information.");
     }
@@ -99,7 +94,10 @@ fn boards(token: &str, key: &str) {
     }
 }
 
-fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &str) {
+fn board(matches: &ArgMatches, token: &str, key: &str) {
+    let board_id = matches.value_of("board_id");
+    let board_name = matches.value_of("board_name");
+
     let board;
     if let Some(board_id) = board_id {
         board = trello::Board::get(board_id, token, key);
@@ -139,7 +137,9 @@ fn board(board_id: Option<&str>, board_name: Option<&str>, token: &str, key: &st
     }
 }
 
-fn card(card_id: Option<&str>, token: &str, key: &str) {
+fn card(matches: &ArgMatches, token: &str, key: &str) {
+    let card_id = matches.value_of("card_id");
+
     let card;
     if let Some(card_id) = card_id {
         card = trello::Card::get(card_id, token, key);
@@ -153,7 +153,10 @@ fn card(card_id: Option<&str>, token: &str, key: &str) {
     println!("{}", &card.desc);
 }
 
-fn close(target_type: &str, target_id: &str, token: &str, key: &str) {
+fn close(matches: &ArgMatches, token: &str, key: &str) {
+    let target_type = matches.value_of("target_type").unwrap();
+    let target_id = matches.value_of("target_id").unwrap();
+
     if target_type == "card" {
         trello::Card::close(target_id, token, key);
     } else if target_type == "board" {
