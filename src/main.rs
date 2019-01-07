@@ -76,6 +76,8 @@ fn main() {
         let card_id = matches.value_of("card_id");
 
         card(card_id, &token, &key);
+    } else {
+        println!("No subcommand specified. Use help to for more information.");
     }
 }
 
