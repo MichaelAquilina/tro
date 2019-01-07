@@ -26,7 +26,11 @@ fn main() {
             These can be retrieved from https://trello.com/app-key/
             "
         ))
-        .subcommand(SubCommand::with_name("boards").about("List all available boards"))
+        .subcommand(
+            SubCommand::with_name("boards")
+                .about("List all available boards")
+                .arg(Arg::with_name("starred").short("s").long("starred")),
+        )
         .subcommand(
             SubCommand::with_name("board")
                 .about("View target Board")
@@ -71,8 +75,8 @@ fn main() {
     let token = token.unwrap();
     let key = key.unwrap();
 
-    if let Some(_) = matches.subcommand_matches("boards") {
-        boards(&token, &key);
+    if let Some(matches) = matches.subcommand_matches("boards") {
+        boards(&matches, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("board") {
         board(&matches, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("card") {
@@ -84,10 +88,17 @@ fn main() {
     }
 }
 
-fn boards(token: &str, key: &str) {
+fn boards(matches: &ArgMatches, token: &str, key: &str) {
+    let starred = matches.is_present("starred");
+
     let boards = trello::Board::get_all(token, key);
 
     for b in boards {
+        // TODO: Should be able to pass this directly as a filter to the API
+        if starred && !b.starred {
+            continue;
+        }
+
         let text = &format!("{} ({})", b.name, b.id);
         let output = style(&text);
         println!("* {}", output);
