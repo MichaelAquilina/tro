@@ -50,6 +50,12 @@ fn main() {
                     .long("id")
                     .takes_value(true),
             ),
+        )
+        .subcommand(
+            SubCommand::with_name("close")
+                .about("Close target trello item")
+                .arg(Arg::with_name("target_type").index(1).required(true))
+                .arg(Arg::with_name("target_id").index(2).required(true)),
         );
 
     let matches = app.get_matches();
@@ -70,12 +76,14 @@ fn main() {
     } else if let Some(matches) = matches.subcommand_matches("board") {
         let board_id = matches.value_of("board_id");
         let board_name = matches.value_of("board_name");
-
         board(board_id, board_name, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("card") {
         let card_id = matches.value_of("card_id");
-
         card(card_id, &token, &key);
+    } else if let Some(matches) = matches.subcommand_matches("close") {
+        let target_type = matches.value_of("target_type").unwrap();
+        let target_id = matches.value_of("target_id").unwrap();
+        close(&target_type, &target_id, &token, &key);
     } else {
         println!("No subcommand specified. Use help to for more information.");
     }
@@ -86,10 +94,7 @@ fn boards(token: &str, key: &str) {
 
     for b in boards {
         let text = &format!("{} ({})", b.name, b.id);
-        let mut output = style(&text);
-        if b.starred {
-            output = output.yellow();
-        }
+        let output = style(&text);
         println!("* {}", output);
     }
 }
@@ -146,6 +151,18 @@ fn card(card_id: Option<&str>, token: &str, key: &str) {
     print_header(&card.name, "=");
 
     println!("{}", &card.desc);
+}
+
+fn close(target_type: &str, target_id: &str, token: &str, key: &str) {
+    if target_type == "card" {
+        trello::Card::close(target_id, token, key);
+    } else if target_type == "board" {
+        trello::Board::close(target_id, token, key);
+    } else if target_type == "list" {
+        trello::List::close(target_id, token, key);
+    } else {
+        println!("Unknown target type");
+    }
 }
 
 fn print_header(text: &str, header_char: &str) {

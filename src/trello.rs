@@ -4,7 +4,7 @@ extern crate reqwest;
 use std::collections::HashMap;
 
 use console::{style, StyledObject};
-use reqwest::{Response, Url};
+use reqwest::{Client, Response, Url};
 
 fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Response {
     let url = Url::parse_with_params(url, params).unwrap();
@@ -51,6 +51,16 @@ impl Board {
         );
         return resp.json().unwrap();
     }
+
+    pub fn close(board_id: &str, token: &str, key: &str) {
+        let url = Url::parse_with_params(
+            &format!("https://api.trello.com/1/board/{}/closed", board_id),
+            &[("token", token), ("key", key), ("value", "true")],
+        )
+        .unwrap();
+        let client = Client::new();
+        client.put(url).send().unwrap();
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -71,6 +81,16 @@ impl List {
             &vec![("key", key), ("token", token), ("cards", "open")],
         );
         return resp.json().unwrap();
+    }
+
+    pub fn close(list_id: &str, token: &str, key: &str) {
+        let url = Url::parse_with_params(
+            &format!("https://api.trello.com/1/list/{}/close", list_id),
+            &[("token", token), ("key", key), ("value", "true")],
+        )
+        .unwrap();
+        let client = Client::new();
+        client.put(url).send().unwrap();
     }
 }
 
@@ -123,5 +143,15 @@ impl Card {
             &vec![("token", token), ("key", key)],
         );
         return resp.json().unwrap();
+    }
+
+    pub fn close(card_id: &str, token: &str, key: &str) {
+        let url = Url::parse_with_params(
+            &format!("https://api.trello.com/1/cards/{}/closed", card_id),
+            &[("token", token), ("key", key), ("value", "true")],
+        )
+        .unwrap();
+        let client = Client::new();
+        client.put(url).send().unwrap();
     }
 }
