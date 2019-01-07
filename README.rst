@@ -1,7 +1,7 @@
 Trello-RS
 =========
 
-|CircleCI|
+|CircleCI| |CratesIO|
 
 Trello API client for the command line written in rust.
 
@@ -18,3 +18,6 @@ Once those are set, simply run with ``cargo run``.
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/trello-rs
+
+.. |CratesIO| image:: https://img.shields.io/crates/v/trello-rs.svg
+   :target: https://crates.io/crates/trello-rs
