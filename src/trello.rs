@@ -4,7 +4,7 @@ extern crate reqwest;
 use std::collections::HashMap;
 
 use console::{style, StyledObject};
-use reqwest::{Client, Response, Url, Error};
+use reqwest::{Client, Error, Response, Url};
 
 fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Result<Response, Error> {
     let url = Url::parse_with_params(url, params).unwrap();
@@ -24,7 +24,6 @@ pub struct Board {
     pub subscribed: Option<bool>,
     pub label_names: HashMap<String, String>,
 }
-
 
 impl Board {
     pub fn get(board_id: &str, token: &str, key: &str) -> Result<Board, Error> {
@@ -88,7 +87,8 @@ impl List {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/list/{}/close", list_id),
             &[("token", token), ("key", key), ("value", "true")],
-        ).unwrap();
+        )
+        .unwrap();
         let client = Client::new();
         let mut resp = client.put(url).send()?;
         return resp.json();

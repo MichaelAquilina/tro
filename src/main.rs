@@ -97,7 +97,7 @@ fn boards(matches: &ArgMatches, token: &str, key: &str) {
             println!("Could not retrieve boards");
             println!("{}", e);
             return;
-        },
+        }
     };
 
     for b in boards {
@@ -124,7 +124,7 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
                 println!("Could not retrieve board");
                 println!("{}", e);
                 return;
-            },
+            }
         };
     } else if let Some(board_name) = board_name {
         // TODO: Should be handling case where board is not found gracefully
@@ -134,7 +134,7 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
                 println!("Could not retrieve board");
                 println!("{}", e);
                 return;
-            },
+            }
         };
     } else {
         println!("You must supply either a board id (--id) or a board name (--name)");
@@ -156,7 +156,7 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
             println!("Unable to retrieve board lists");
             println!("{}", e);
             return;
-        },
+        }
     };
 
     for l in lists {
@@ -188,7 +188,7 @@ fn card(matches: &ArgMatches, token: &str, key: &str) {
                 println!("Unable to retrieve card");
                 println!("{}", e);
                 return;
-            },
+            }
         };
     } else {
         println!("You must supply a card id (--id)");
@@ -211,7 +211,7 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
                 println!("An error occurred while closing the card");
                 println!("{}", e);
                 return;
-            },
+            }
         };
         println!("Closed '{}'", card.name);
     } else if target_type == "board" {
@@ -221,7 +221,7 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
                 println!("An error occurred while closing the board");
                 println!("{}", e);
                 return;
-            },
+            }
         };
         println!("Closed '{}'", board.name);
     } else if target_type == "list" {
@@ -231,7 +231,7 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
                 println!("An error occurred while closing the list");
                 println!("{}", e);
                 return;
-            },
+            }
         };
         println!("Closed '{}'", list.name);
     } else {
