@@ -150,7 +150,15 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
         println!("{}", desc_data);
     }
 
-    let lists = trello::List::get_all(&board.id, token, key);
+    let lists = match trello::List::get_all(&board.id, token, key) {
+        Ok(l) => l,
+        Err(e) => {
+            println!("Unable to retrieve board lists");
+            println!("{}", e);
+            return;
+        },
+    };
+
     for l in lists {
         println!("");
         print_header(&format!("{} ({})", l.name, l.id), "-");
@@ -203,7 +211,14 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
         };
         println!("Closed '{}'", board.name);
     } else if target_type == "list" {
-        let list = trello::List::close(target_id, token, key);
+        let list = match trello::List::close(target_id, token, key) {
+            Ok(l) => l,
+            Err(e) => {
+                println!("An error occurred while closing the list");
+                println!("{}", e);
+                return;
+            },
+        };
         println!("Closed '{}'", list.name);
     } else {
         println!("Unknown target type");

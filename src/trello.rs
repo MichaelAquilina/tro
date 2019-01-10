@@ -76,23 +76,22 @@ pub struct List {
 }
 
 impl List {
-    pub fn get_all(board_id: &str, token: &str, key: &str) -> Vec<List> {
+    pub fn get_all(board_id: &str, token: &str, key: &str) -> Result<Vec<List>, Error> {
         let mut resp = get_resource(
             &format!("https://api.trello.com/1/boards/{}/lists", board_id),
             &vec![("key", key), ("token", token), ("cards", "open")],
         );
-        return resp.json().unwrap();
+        return resp.json();
     }
 
-    pub fn close(list_id: &str, token: &str, key: &str) -> List {
+    pub fn close(list_id: &str, token: &str, key: &str) -> Result<List, Error> {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/list/{}/close", list_id),
             &[("token", token), ("key", key), ("value", "true")],
-        )
-        .unwrap();
+        ).unwrap();
         let client = Client::new();
-        let mut resp = client.put(url).send().unwrap();
-        return resp.json().unwrap();
+        let mut resp = client.put(url).send()?;
+        return resp.json();
     }
 }
 
