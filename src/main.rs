@@ -95,7 +95,7 @@ fn boards(matches: &ArgMatches, token: &str, key: &str) {
 
     for b in boards {
         // TODO: Should be able to pass this directly as a filter to the API
-        if starred && !b.starred {
+        if starred && !b.starred.unwrap() {
             continue;
         }
 
@@ -169,11 +169,14 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
     let target_id = matches.value_of("target_id").unwrap();
 
     if target_type == "card" {
-        trello::Card::close(target_id, token, key);
+        let card = trello::Card::close(target_id, token, key);
+        println!("Closed '{}'", card.name);
     } else if target_type == "board" {
-        trello::Board::close(target_id, token, key);
+        let board = trello::Board::close(target_id, token, key);
+        println!("Closed '{}'", board.name);
     } else if target_type == "list" {
-        trello::List::close(target_id, token, key);
+        let list = trello::List::close(target_id, token, key);
+        println!("Closed '{}'", list.name);
     } else {
         println!("Unknown target type");
     }

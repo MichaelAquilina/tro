@@ -19,9 +19,9 @@ pub struct Board {
     pub desc_data: Option<String>,
     pub url: String,
     pub id: String,
-    pub starred: bool,
-    pub closed: bool,
-    pub subscribed: bool,
+    pub starred: Option<bool>,
+    pub closed: Option<bool>,
+    pub subscribed: Option<bool>,
     pub label_names: HashMap<String, String>,
 }
 
@@ -52,14 +52,14 @@ impl Board {
         return resp.json().unwrap();
     }
 
-    pub fn close(board_id: &str, token: &str, key: &str) {
+    pub fn close(board_id: &str, token: &str, key: &str) -> Board {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/board/{}/closed", board_id),
             &[("token", token), ("key", key), ("value", "true")],
         )
         .unwrap();
         let client = Client::new();
-        client.put(url).send().unwrap();
+        return client.put(url).send().unwrap().json().unwrap();
     }
 }
 
@@ -83,14 +83,15 @@ impl List {
         return resp.json().unwrap();
     }
 
-    pub fn close(list_id: &str, token: &str, key: &str) {
+    pub fn close(list_id: &str, token: &str, key: &str) -> List {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/list/{}/close", list_id),
             &[("token", token), ("key", key), ("value", "true")],
         )
         .unwrap();
         let client = Client::new();
-        client.put(url).send().unwrap();
+        let mut resp = client.put(url).send().unwrap();
+        return resp.json().unwrap();
     }
 }
 
@@ -145,13 +146,13 @@ impl Card {
         return resp.json().unwrap();
     }
 
-    pub fn close(card_id: &str, token: &str, key: &str) {
+    pub fn close(card_id: &str, token: &str, key: &str) -> Card {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/cards/{}/closed", card_id),
             &[("token", token), ("key", key), ("value", "true")],
         )
         .unwrap();
         let client = Client::new();
-        client.put(url).send().unwrap();
+        return client.put(url).send().unwrap().json().unwrap();
     }
 }
