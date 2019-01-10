@@ -4,7 +4,7 @@ extern crate reqwest;
 use std::collections::HashMap;
 
 use console::{style, StyledObject};
-use reqwest::{Client, Response, Url};
+use reqwest::{Client, Response, Url, Error};
 
 fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Response {
     let url = Url::parse_with_params(url, params).unwrap();
@@ -25,41 +25,42 @@ pub struct Board {
     pub label_names: HashMap<String, String>,
 }
 
+
 impl Board {
-    pub fn get(board_id: &str, token: &str, key: &str) -> Board {
+    pub fn get(board_id: &str, token: &str, key: &str) -> Result<Board, Error> {
         let mut resp = get_resource(
             &format!("https://api.trello.com/1/boards/{}", board_id),
             &vec![("key", key), ("token", token), ("fields", "all")],
         );
-        return resp.json().unwrap();
+        return resp.json();
     }
 
-    pub fn get_by_name(board_name: &str, token: &str, key: &str) -> Option<Board> {
-        let boards = Board::get_all(token, key);
+    pub fn get_by_name(board_name: &str, token: &str, key: &str) -> Result<Option<Board>, Error> {
+        let boards = Board::get_all(token, key)?;
         for b in boards {
             if b.name.to_lowercase() == board_name.to_lowercase() {
-                return Some(b);
+                return Ok(Some(b));
             }
         }
-        return None;
+        return Ok(None);
     }
 
-    pub fn get_all(token: &str, key: &str) -> Vec<Board> {
+    pub fn get_all(token: &str, key: &str) -> Result<Vec<Board>, Error> {
         let mut resp = get_resource(
             "https://api.trello.com/1/members/me/boards",
             &vec![("key", key), ("token", token), ("filter", "open")],
         );
-        return resp.json().unwrap();
+        return resp.json();
     }
 
-    pub fn close(board_id: &str, token: &str, key: &str) -> Board {
+    pub fn close(board_id: &str, token: &str, key: &str) -> Result<Board, Error> {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/board/{}/closed", board_id),
             &[("token", token), ("key", key), ("value", "true")],
         )
         .unwrap();
         let client = Client::new();
-        return client.put(url).send().unwrap().json().unwrap();
+        return client.put(url).send()?.json();
     }
 }
 

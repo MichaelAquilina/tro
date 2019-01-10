@@ -91,7 +91,14 @@ fn main() {
 fn boards(matches: &ArgMatches, token: &str, key: &str) {
     let starred = matches.is_present("starred");
 
-    let boards = trello::Board::get_all(token, key);
+    let boards = match trello::Board::get_all(token, key) {
+        Ok(b) => b,
+        Err(e) => {
+            println!("Could not retrieve boards");
+            println!("{}", e);
+            return;
+        },
+    };
 
     for b in boards {
         // TODO: Should be able to pass this directly as a filter to the API
@@ -111,10 +118,24 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
 
     let board;
     if let Some(board_id) = board_id {
-        board = trello::Board::get(board_id, token, key);
+        board = match trello::Board::get(board_id, token, key) {
+            Ok(b) => b,
+            Err(e) => {
+                println!("Could not retrieve board");
+                println!("{}", e);
+                return;
+            },
+        };
     } else if let Some(board_name) = board_name {
         // TODO: Should be handling case where board is not found gracefully
-        board = trello::Board::get_by_name(board_name, token, key).unwrap();
+        board = match trello::Board::get_by_name(board_name, token, key) {
+            Ok(b) => b.unwrap(),
+            Err(e) => {
+                println!("Could not retrieve board");
+                println!("{}", e);
+                return;
+            },
+        };
     } else {
         println!("You must supply either a board id (--id) or a board name (--name)");
         return;
@@ -172,7 +193,14 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
         let card = trello::Card::close(target_id, token, key);
         println!("Closed '{}'", card.name);
     } else if target_type == "board" {
-        let board = trello::Board::close(target_id, token, key);
+        let board = match trello::Board::close(target_id, token, key) {
+            Ok(b) => b,
+            Err(e) => {
+                println!("An error occurred while closing the board");
+                println!("{}", e);
+                return;
+            },
+        };
         println!("Closed '{}'", board.name);
     } else if target_type == "list" {
         let list = trello::List::close(target_id, token, key);
