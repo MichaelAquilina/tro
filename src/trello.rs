@@ -138,21 +138,22 @@ pub struct Card {
 }
 
 impl Card {
-    pub fn get(card_id: &str, token: &str, key: &str) -> Card {
+    pub fn get(card_id: &str, token: &str, key: &str) -> Result<Card, Error> {
         let mut resp = get_resource(
             &format!("https://api.trello.com/1/cards/{}", card_id),
             &vec![("token", token), ("key", key)],
         );
-        return resp.json().unwrap();
+        return resp.json();
     }
 
-    pub fn close(card_id: &str, token: &str, key: &str) -> Card {
+    pub fn close(card_id: &str, token: &str, key: &str) -> Result<Card, Error> {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/cards/{}/closed", card_id),
             &[("token", token), ("key", key), ("value", "true")],
         )
         .unwrap();
         let client = Client::new();
-        return client.put(url).send().unwrap().json().unwrap();
+        let mut resp = client.put(url).send()?;
+        return resp.json();
     }
 }

@@ -182,7 +182,14 @@ fn card(matches: &ArgMatches, token: &str, key: &str) {
 
     let card;
     if let Some(card_id) = card_id {
-        card = trello::Card::get(card_id, token, key);
+        card = match trello::Card::get(card_id, token, key) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("Unable to retrieve card");
+                println!("{}", e);
+                return;
+            },
+        };
     } else {
         println!("You must supply a card id (--id)");
         return;
@@ -198,7 +205,14 @@ fn close(matches: &ArgMatches, token: &str, key: &str) {
     let target_id = matches.value_of("target_id").unwrap();
 
     if target_type == "card" {
-        let card = trello::Card::close(target_id, token, key);
+        let card = match trello::Card::close(target_id, token, key) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("An error occurred while closing the card");
+                println!("{}", e);
+                return;
+            },
+        };
         println!("Closed '{}'", card.name);
     } else if target_type == "board" {
         let board = match trello::Board::close(target_id, token, key) {
