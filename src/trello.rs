@@ -9,7 +9,7 @@ use reqwest::{Client, Error, Response, Url};
 fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Result<Response, Error> {
     let url = Url::parse_with_params(url, params).unwrap();
 
-    return reqwest::get(url);
+    return reqwest::get(url)?.error_for_status();
 }
 
 #[derive(Deserialize, Debug)]
