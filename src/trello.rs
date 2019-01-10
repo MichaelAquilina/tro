@@ -6,10 +6,10 @@ use std::collections::HashMap;
 use console::{style, StyledObject};
 use reqwest::{Client, Response, Url, Error};
 
-fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Response {
+fn get_resource(url: &str, params: &Vec<(&str, &str)>) -> Result<Response, Error> {
     let url = Url::parse_with_params(url, params).unwrap();
 
-    return reqwest::get(url).unwrap();
+    return reqwest::get(url);
 }
 
 #[derive(Deserialize, Debug)]
@@ -31,7 +31,7 @@ impl Board {
         let mut resp = get_resource(
             &format!("https://api.trello.com/1/boards/{}", board_id),
             &vec![("key", key), ("token", token), ("fields", "all")],
-        );
+        )?;
         return resp.json();
     }
 
@@ -49,7 +49,7 @@ impl Board {
         let mut resp = get_resource(
             "https://api.trello.com/1/members/me/boards",
             &vec![("key", key), ("token", token), ("filter", "open")],
-        );
+        )?;
         return resp.json();
     }
 
@@ -80,7 +80,7 @@ impl List {
         let mut resp = get_resource(
             &format!("https://api.trello.com/1/boards/{}/lists", board_id),
             &vec![("key", key), ("token", token), ("cards", "open")],
-        );
+        )?;
         return resp.json();
     }
 
@@ -142,7 +142,7 @@ impl Card {
         let mut resp = get_resource(
             &format!("https://api.trello.com/1/cards/{}", card_id),
             &vec![("token", token), ("key", key)],
-        );
+        )?;
         return resp.json();
     }
 
