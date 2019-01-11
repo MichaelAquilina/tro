@@ -70,7 +70,7 @@ pub struct List {
     pub name: String,
     pub closed: bool,
     pub id_board: String,
-    pub subscribed: bool,
+    pub subscribed: Option<bool>,
     pub cards: Option<Vec<Card>>,
 }
 
@@ -85,7 +85,7 @@ impl List {
 
     pub fn close(list_id: &str, token: &str, key: &str) -> Result<List, Error> {
         let url = Url::parse_with_params(
-            &format!("https://api.trello.com/1/list/{}/close", list_id),
+            &format!("https://api.trello.com/1/list/{}/closed", list_id),
             &[("token", token), ("key", key), ("value", "true")],
         )
         .unwrap();
