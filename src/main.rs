@@ -56,8 +56,15 @@ fn main() {
             ),
         )
         .subcommand(
+            SubCommand::with_name("create")
+                .about("Create a Trello item")
+                .arg(Arg::with_name("target_type").index(1).required(true))
+                .arg(Arg::with_name("parent_id").index(2).required(true))
+                .arg(Arg::with_name("name").index(3).required(true)),
+        )
+        .subcommand(
             SubCommand::with_name("close")
-                .about("Close target trello item")
+                .about("Close target Trello item")
                 .arg(Arg::with_name("target_type").index(1).required(true))
                 .arg(Arg::with_name("target_id").index(2).required(true)),
         );
@@ -81,6 +88,8 @@ fn main() {
         board(&matches, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("card") {
         card(&matches, &token, &key);
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        create(&matches, &token, &key);
     } else if let Some(matches) = matches.subcommand_matches("close") {
         close(&matches, &token, &key);
     } else {
@@ -198,6 +207,33 @@ fn card(matches: &ArgMatches, token: &str, key: &str) {
     print_header(&card.name, "=");
 
     println!("{}", &card.desc);
+}
+
+fn create(matches: &ArgMatches, token: &str, key: &str) {
+    let target_type = matches.value_of("target_type").unwrap();
+    let parent_id = matches.value_of("parent_id").unwrap();
+    let name = matches.value_of("name").unwrap();
+
+    if target_type == "card" {
+        let card = trello::Card {
+            id: String::from(""),
+            name: String::from(name),
+            desc: String::from(""),
+            url: String::from(""),
+            labels: vec![],
+        };
+
+        match trello::Card::create(&card, parent_id, token, key) {
+            Ok(c) => {
+                println!("Created card '{}' ({})", c.name, c.id);
+            }
+            Err(e) => {
+                println!("There was an issue when creating the card");
+                println!("{}", e);
+                return;
+            }
+        }
+    }
 }
 
 fn close(matches: &ArgMatches, token: &str, key: &str) {

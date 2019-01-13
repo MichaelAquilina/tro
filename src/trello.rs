@@ -146,6 +146,23 @@ impl Card {
         return resp.json();
     }
 
+    pub fn create(card: &Card, list_id: &str, token: &str, key: &str) -> Result<Card, Error> {
+        let url = Url::parse_with_params(
+            &format!("https://api.trello.com/1/cards"),
+            &[
+                ("token", token),
+                ("key", key),
+                ("idList", list_id),
+                ("name", &card.name),
+                ("desc", &card.desc),
+            ],
+        )
+        .unwrap();
+        let client = Client::new();
+        let mut resp = client.post(url).send()?;
+        return resp.json();
+    }
+
     pub fn close(card_id: &str, token: &str, key: &str) -> Result<Card, Error> {
         let url = Url::parse_with_params(
             &format!("https://api.trello.com/1/cards/{}/closed", card_id),
