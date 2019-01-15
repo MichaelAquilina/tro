@@ -153,8 +153,6 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
     let title = format!("{} ({})", board.name, board.id);
     print_header(&title, "=");
 
-    println!("{}", style(&board.url).bold().underlined());
-
     if let Some(desc_data) = board.desc_data {
         println!("{}", desc_data);
     }
