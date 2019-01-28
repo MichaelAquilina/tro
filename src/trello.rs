@@ -106,25 +106,17 @@ impl Label {
     pub fn get_colored_name(&self) -> StyledObject<&String> {
         let result = style(&self.name);
 
-        // TODO: Use match instead of if statements
         // TODO: Use wider palette range
-        if self.color == "red" {
-            return result.red();
-        } else if self.color == "yellow" {
-            return result.yellow();
-        } else if self.color == "green" {
-            return result.green();
-        } else if self.color == "purple" {
-            return result.magenta();
-        } else if self.color == "orange" {
-            return result.yellow();
-        } else if self.color == "pink" {
-            return result.red();
-        } else if self.color == "lime" {
-            return result.green();
+        return match self.color.as_str() {
+            "red" => result.red(),
+            "yellow" => result.yellow(),
+            "green" => result.green(),
+            "purple" => result.magenta(),
+            "orange" => result.yellow(),
+            "pink" => result.red(),
+            "lime" => result.green(),
+            _ => result,
         }
-
-        return result;
     }
 }
 
