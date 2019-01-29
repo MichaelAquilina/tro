@@ -116,7 +116,7 @@ impl Label {
             "pink" => result.red(),
             "lime" => result.green(),
             _ => result,
-        }
+        };
     }
 }
 
