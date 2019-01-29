@@ -29,11 +29,13 @@ fn main() {
         .subcommand(
             SubCommand::with_name("boards")
                 .about("List all available boards")
-                .arg(Arg::with_name("starred").short("s").long("starred")),
+                .arg(Arg::with_name("starred").short("s").long("starred"))
+                .arg(Arg::with_name("show_ids").long("ids")),
         )
         .subcommand(
             SubCommand::with_name("board")
                 .about("View target Board")
+                .arg(Arg::with_name("show_ids").long("ids"))
                 .arg(
                     Arg::with_name("board_id")
                         .short("i")
@@ -99,6 +101,7 @@ fn main() {
 
 fn boards(matches: &ArgMatches, token: &str, key: &str) {
     let starred = matches.is_present("starred");
+    let show_ids = matches.is_present("show_ids");
 
     let boards = match trello::Board::get_all(token, key) {
         Ok(b) => b,
@@ -115,15 +118,20 @@ fn boards(matches: &ArgMatches, token: &str, key: &str) {
             continue;
         }
 
-        let text = &format!("{} ({})", b.name, b.id);
+        let text = &format!("{}", b.name);
         let output = style(&text);
-        println!("* {}", output);
+        if show_ids {
+            println!("* {} ({})", output, b.id);
+        } else {
+            println!("* {}", output);
+        }
     }
 }
 
 fn board(matches: &ArgMatches, token: &str, key: &str) {
     let board_id = matches.value_of("board_id");
     let board_name = matches.value_of("board_name");
+    let show_ids = matches.is_present("show_ids");
 
     let board;
     if let Some(board_id) = board_id {
@@ -150,7 +158,7 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
         return;
     }
 
-    let title = format!("{} ({})", board.name, board.id);
+    let title = format!("{}", board.name);
     print_header(&title, "=");
 
     if let Some(desc_data) = board.desc_data {
@@ -168,7 +176,7 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
 
     for l in lists {
         println!("");
-        print_header(&format!("{} ({})", l.name, l.id), "-");
+        print_header(&format!("{}", l.name), "-");
 
         if let Some(cards) = l.cards {
             for c in cards {
@@ -178,7 +186,11 @@ fn board(matches: &ArgMatches, token: &str, key: &str) {
                     .map(|l| l.get_colored_name().bold())
                     .collect();
 
-                println!("* {} ({}) {:?}", c.name, c.id, labels);
+                if show_ids {
+                    println!("* {} ({}) {:?}", c.name, c.id, labels);
+                } else {
+                    println!("* {} {:?}", c.name, labels);
+                }
             }
         }
     }
