@@ -109,6 +109,7 @@ impl Label {
         // TODO: Use wider palette range
         return match self.color.as_str() {
             "red" => result.red(),
+            "blue" => result.blue(),
             "yellow" => result.yellow(),
             "green" => result.green(),
             "purple" => result.magenta(),
