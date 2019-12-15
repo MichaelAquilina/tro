@@ -1293,7 +1293,7 @@ dependencies = [
 
 [[package]]
 name = "trello-rs"
-version = "0.3.0"
+version = "1.0.0"
 dependencies = [
  "mockito 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.9.24 (registry+https://github.com/rust-lang/crates.io-index)",
