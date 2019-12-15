@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = trello::Client::new(&config.host, &config.token, &config.key);
 
     for board in client.get_all_boards()? {
-        println!("{}", board.name);
+        println!("{} - {}", board.name, board.url);
     }
 
     Ok(())
