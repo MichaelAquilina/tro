@@ -25,19 +25,19 @@ impl Client {
         }
     }
 
-    pub fn get_all_boards(self) -> Result<Vec<Board>, Box<dyn Error>> {
+    pub fn get_all_boards(&self) -> Result<Vec<Board>, Box<dyn Error>> {
         let url = self.get_trello_url("/1/members/me/boards", &vec![("filter", "open")])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn get_board(self, board_id: &str) -> Result<Board, Box<dyn Error>> {
+    pub fn get_board(&self, board_id: &str) -> Result<Board, Box<dyn Error>> {
         let url = self.get_trello_url(&format!("/1/boards/{}", board_id), &vec![])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    fn get_trello_url(self, path: &str, params: &Vec<(&str, &str)>) -> Result<Url, Box<dyn Error>> {
+    fn get_trello_url(&self, path: &str, params: &Vec<(&str, &str)>) -> Result<Url, Box<dyn Error>> {
         let mut final_params = vec![("key", self.key.as_str()), ("token", self.token.as_str())];
         final_params.extend(params);
 
