@@ -26,21 +26,24 @@ impl Client {
     }
 
     pub fn get_all_boards(self) -> Result<Vec<Board>, Box<dyn Error>> {
-        let url = self.get_trello_url("/1/members/me/boards")?;
+        let url = self.get_trello_url("/1/members/me/boards", &vec![("filter", "open")])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
     pub fn get_board(self, board_id: &str) -> Result<Board, Box<dyn Error>> {
-        let url = self.get_trello_url(&format!("/1/boards/{}", board_id))?;
+        let url = self.get_trello_url(&format!("/1/boards/{}", board_id), &vec![])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    fn get_trello_url(self, path: &str) -> Result<Url, Box<dyn Error>> {
+    fn get_trello_url(self, path: &str, params: &Vec<(&str, &str)>) -> Result<Url, Box<dyn Error>> {
+        let mut final_params = vec![("key", self.key.as_str()), ("token", self.token.as_str())];
+        final_params.extend(params);
+
         return Ok(Url::parse_with_params(
             &format!("{}{}", self.host, path),
-            &[("key", &self.key), ("token", &self.token)],
+            &final_params,
         )?);
     }
 }
@@ -54,7 +57,7 @@ mod tests {
     #[test]
     fn test_get_trello_url() -> Result<(), Box<dyn Error>> {
         let client = Client::new("https://api.trello.com", "some-secret-token", "some-key");
-        let result = client.get_trello_url("/foo/bar/")?.to_string();
+        let result = client.get_trello_url("/foo/bar/", &vec![])?.to_string();
 
         // FIXME: this is not technically correct, should fix it
         // * parameter order should not make a difference
@@ -69,7 +72,7 @@ mod tests {
     fn test_get_all_boards() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/members/me/boards?key=some-key&token=some-secret-token",
+            "/1/members/me/boards?key=some-key&token=some-secret-token&filter=open",
         )
         .with_status(200)
         .with_body(
