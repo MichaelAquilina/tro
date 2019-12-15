@@ -12,10 +12,4 @@ name = "tro"
 path = "src/main.rs"
 
 [dependencies]
-reqwest = "0.9.5"
-serde = "1.0"
-serde_json = "1.0"
-serde_derive = "1.0"
-console = "0.7.2"
-clap = "2.32.0"
-indoc = "0.3"
+reqwest = "0.9.24"
