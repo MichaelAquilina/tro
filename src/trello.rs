@@ -1,4 +1,3 @@
-// TODO: Create generic Trello client that authenticates on its own
 use reqwest::Url;
 use serde::Deserialize;
 use std::error::Error;
