@@ -3,7 +3,7 @@ version: 2
 jobs:
   lint:
     docker:
-      - image: "circleci/rust:1.31"
+      - image: "circleci/rust:1.38"
     steps:
       - checkout
       - run:
@@ -15,12 +15,15 @@ jobs:
 
   test:
     docker:
-      - image: "circleci/rust:1.31"
+      - image: "circleci/rust:1.38"
     steps:
       - checkout
       - run:
           name: build project
           command: cargo build
+      - run:
+          name: run tests
+          command: cargo test
 
 workflows:
   version: 2

@@ -7,9 +7,15 @@ description = "A Trello API client for the command line"
 license = "GPL-3.0-only"
 repository = "https://www.github.com/MichaelAquilina/trello-rs.git"
 
+
 [[bin]]
 name = "tro"
 path = "src/main.rs"
 
 [dependencies]
 reqwest = "0.9.24"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+mockito = "0.22.0"
