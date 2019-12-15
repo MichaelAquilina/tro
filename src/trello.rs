@@ -37,7 +37,11 @@ impl Client {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    fn get_trello_url(&self, path: &str, params: &Vec<(&str, &str)>) -> Result<Url, Box<dyn Error>> {
+    fn get_trello_url(
+        &self,
+        path: &str,
+        params: &Vec<(&str, &str)>,
+    ) -> Result<Url, Box<dyn Error>> {
         let mut final_params = vec![("key", self.key.as_str()), ("token", self.token.as_str())];
         final_params.extend(params);
 
@@ -86,7 +90,7 @@ mod tests {
 
         let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
         let result = client.get_all_boards()?;
-        let expected: Vec<Board> = vec![
+        let expected = vec![
             Board {
                 name: String::from("TODO"),
                 id: String::from("abc-def"),
