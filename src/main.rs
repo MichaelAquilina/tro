@@ -29,13 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     .setting(AppSettings::SubcommandRequiredElseHelp)
     .get_matches();
 
-    let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
-    config_path.push("tro/config.toml");
-
-    let contents = fs::read_to_string(config_path.to_str().unwrap())?;
-
-    let config: Config = toml::from_str(&contents)?;
-
+    let config = load_config()?;
     let client = Client::new(&config.host, &config.token, &config.key);
 
     if let Some(matches) = matches.subcommand_matches("board") {
@@ -43,6 +37,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
+
+
+fn load_config() -> Result<Config, Box<dyn Error>> {
+    let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
+    config_path.push("tro/config.toml");
+
+    let contents = fs::read_to_string(config_path.to_str().unwrap())?;
+
+    Ok(toml::from_str(&contents)?)
+}
+
 
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
