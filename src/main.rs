@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("board") {
         board_subcommand(&client, &matches)?;
     }
-    return Ok(());
+    Ok(())
 }
 
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
@@ -52,7 +52,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     } else {
         println!("You must specify a filter");
     }
-    return Ok(());
+    Ok(())
 }
 
 // TODO Consider making this a trait for each Trello struct
@@ -68,5 +68,5 @@ fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<d
             return Ok(Some(board));
         }
     }
-    return Ok(None);
+    Ok(None)
 }

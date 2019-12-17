@@ -19,7 +19,7 @@ impl Client {
     pub fn get_trello_url(
         &self,
         path: &str,
-        params: &Vec<(&str, &str)>,
+        params: &[(&str, &str)],
     ) -> Result<Url, Box<dyn Error>> {
         let mut final_params = vec![("key", self.key.as_str()), ("token", self.token.as_str())];
         final_params.extend(params);
