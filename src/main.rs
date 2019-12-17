@@ -5,7 +5,7 @@ use clap::{AppSettings, ArgMatches};
 use serde::Deserialize;
 use std::error::Error;
 use std::fs;
-use trello::{Board, Client};
+use trello::{Board, Client, List};
 
 #[derive(Deserialize, Debug)]
 struct Config {
@@ -21,7 +21,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         (about: "Trello CLI interface")
         (@subcommand board =>
             (about: "Commands related to Trello boards")
-            (@arg name: -n --name +takes_value "specify board name")
+            (@subcommand get =>
+                (@arg name: -n --name +takes_value "specify board name")
+            )
         )
     )
     .setting(AppSettings::SubcommandRequiredElseHelp)
@@ -43,21 +45,29 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
-    if let Some(board_name) = matches.value_of("name") {
-        if let Some(board) = get_board_by_name(&client, board_name)? {
-            render_board(&board);
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(board_name) = matches.value_of("name") {
+            if let Some(board) = get_board_by_name(&client, board_name)? {
+                let list = List::get_all(client, &board.id)?;
+
+                render_board(&board, &list);
+            } else {
+                println!("Could not find target board: '{}'", board_name);
+            }
         } else {
-            println!("Could not find target board: '{}'", board_name);
+            println!("You must specify a filter");
         }
-    } else {
-        println!("You must specify a filter");
     }
     Ok(())
 }
 
 // TODO Consider making this a trait for each Trello struct
-fn render_board(board: &Board) {
+fn render_board(board: &Board, lists: &Vec<List>) {
     println!("{}", board.name);
+
+    for list in lists {
+        println!("* {}", list.name);
+    }
 }
 
 fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
