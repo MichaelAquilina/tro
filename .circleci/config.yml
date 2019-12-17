@@ -23,7 +23,7 @@ jobs:
           command: rustup component add clippy
       - run:
           name: run clippy
-          command: cargo clippy
+          command: cargo clippy -- -D warnings
 
   test:
     docker:
