@@ -1,54 +1,26 @@
-use reqwest::Url;
+use super::client::Client;
 use serde::Deserialize;
 use std::error::Error;
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Board {
-    pub name: String,
     pub id: String,
+    pub name: String,
     pub url: String,
 }
 
-pub struct Client {
-    pub host: String,
-    pub token: String,
-    pub key: String,
-}
-
-impl Client {
-    pub fn new(host: &str, token: &str, key: &str) -> Client {
-        Client {
-            host: String::from(host),
-            token: String::from(token),
-            key: String::from(key),
-        }
-    }
-
-    pub fn get_all_boards(&self) -> Result<Vec<Board>, Box<dyn Error>> {
-        let url = self.get_trello_url("/1/members/me/boards", &vec![("filter", "open")])?;
+impl Board {
+    pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
+        let url = client.get_trello_url("/1/members/me/boards", &vec![("filter", "open")])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn get_board(&self, board_id: &str) -> Result<Board, Box<dyn Error>> {
-        let url = self.get_trello_url(&format!("/1/boards/{}", board_id), &vec![])?;
+    pub fn get(client: &Client, board_id: &str) -> Result<Board, Box<dyn Error>> {
+        let url = client.get_trello_url(&format!("/1/boards/{}", board_id), &vec![])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
-    }
-
-    fn get_trello_url(
-        &self,
-        path: &str,
-        params: &Vec<(&str, &str)>,
-    ) -> Result<Url, Box<dyn Error>> {
-        let mut final_params = vec![("key", self.key.as_str()), ("token", self.token.as_str())];
-        final_params.extend(params);
-
-        return Ok(Url::parse_with_params(
-            &format!("{}{}", self.host, path),
-            &final_params,
-        )?);
     }
 }
 
@@ -59,21 +31,7 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn test_get_trello_url() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("https://api.trello.com", "some-secret-token", "some-key");
-        let result = client.get_trello_url("/foo/bar/", &vec![])?.to_string();
-
-        // FIXME: this is not technically correct, should fix it
-        // * parameter order should not make a difference
-        assert_eq!(
-            result,
-            "https://api.trello.com/foo/bar/?key=some-key&token=some-secret-token"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_get_all_boards() -> Result<(), Box<dyn Error>> {
+    fn test_get_all() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
             "/1/members/me/boards?key=some-key&token=some-secret-token&filter=open",
@@ -89,7 +47,7 @@ mod tests {
         .create();
 
         let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
-        let result = client.get_all_boards()?;
+        let result = Board::get_all(&client)?;
         let expected = vec![
             Board {
                 name: String::from("TODO"),
@@ -108,7 +66,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_board() -> Result<(), Box<dyn Error>> {
+    fn test_get() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock("GET", "/1/boards/some-board-id?key=KEY&token=TOKEN")
             .with_status(200)
             .with_body(
@@ -121,8 +79,8 @@ mod tests {
             )
             .create();
 
-        let result =
-            Client::new(&mockito::server_url(), "TOKEN", "KEY").get_board("some-board-id")?;
+        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
+        let result = Board::get(&client, "some-board-id")?;
         let expected = Board {
             name: String::from("My Favourite Board"),
             id: String::from("some-board-id"),

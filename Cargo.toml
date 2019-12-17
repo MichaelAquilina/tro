@@ -7,6 +7,9 @@ description = "A Trello API client for the command line"
 license = "GPL-3.0-only"
 repository = "https://www.github.com/MichaelAquilina/trello-rs.git"
 
+[lib]
+name = "trello"
+test = true
 
 [[bin]]
 name = "tro"

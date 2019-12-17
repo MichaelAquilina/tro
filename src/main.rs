@@ -1,12 +1,11 @@
 #[macro_use]
 extern crate clap;
 
-mod trello;
-
 use clap::{AppSettings, ArgMatches};
 use serde::Deserialize;
-use std::fs;
 use std::error::Error;
+use std::fs;
+use trello::{Board, Client};
 
 #[derive(Deserialize, Debug)]
 struct Config {
@@ -24,29 +23,29 @@ fn main() -> Result<(), Box<dyn Error>> {
             (about: "Commands related to Trello boards")
             (@arg name: -n --name +takes_value "specify board name")
         )
-    ).setting(AppSettings::SubcommandRequiredElseHelp).get_matches();
+    )
+    .setting(AppSettings::SubcommandRequiredElseHelp)
+    .get_matches();
 
-    let mut config_path = dirs::config_dir().expect(
-        "Unable to determine config directory"
-    );
+    let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
     config_path.push("tro/config.toml");
 
     let contents = fs::read_to_string(config_path.to_str().unwrap())?;
 
     let config: Config = toml::from_str(&contents)?;
 
-    let client = trello::Client::new(&config.host, &config.token, &config.key);
+    let client = Client::new(&config.host, &config.token, &config.key);
 
     if let Some(matches) = matches.subcommand_matches("board") {
-       board_subcommand(&client, &matches)?;
+        board_subcommand(&client, &matches)?;
     }
     return Ok(());
 }
 
-fn board_subcommand(client: &trello::Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     if let Some(board_name) = matches.value_of("name") {
         if let Some(board) = get_board_by_name(&client, board_name)? {
-            println!("{:?}", board);
+            render_board(&board);
         } else {
             println!("Could not find target board: '{}'", board_name);
         }
@@ -56,8 +55,13 @@ fn board_subcommand(client: &trello::Client, matches: &ArgMatches) -> Result<(),
     return Ok(());
 }
 
-fn get_board_by_name(client: &trello::Client, name: &str) -> Result<Option<trello::Board>, Box<dyn Error>> {
-    let boards = client.get_all_boards()?;
+// TODO Consider making this a trait for each Trello struct
+fn render_board(board: &Board) {
+    println!("{}", board.name);
+}
+
+fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
+    let boards = Board::get_all(&client)?;
 
     for board in boards {
         if board.name == name {
