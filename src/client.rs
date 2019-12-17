@@ -21,12 +21,14 @@ impl Client {
         path: &str,
         params: &[(&str, &str)],
     ) -> Result<Url, Box<dyn Error>> {
-        let mut final_params = vec![("key", self.key.as_str()), ("token", self.token.as_str())];
-        final_params.extend(params);
+        let auth_params = &[
+            ("key", self.key.as_str()),
+            ("token", self.token.as_str())
+        ];
 
         Ok(Url::parse_with_params(
             &format!("{}{}", self.host, path),
-            &final_params,
+            &[auth_params, params].concat(),
         )?)
     }
 }
