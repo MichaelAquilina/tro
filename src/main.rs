@@ -1,5 +1,9 @@
+#[macro_use]
+extern crate clap;
+
 mod trello;
 
+use clap::{AppSettings, ArgMatches};
 use serde::Deserialize;
 use std::fs;
 use std::error::Error;
@@ -12,6 +16,16 @@ struct Config {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let matches = clap_app!(myapp =>
+        (version: "1.0")
+        (author: "Michael Aquilina")
+        (about: "Trello CLI interface")
+        (@subcommand board =>
+            (about: "Commands related to Trello boards")
+            (@arg name: -n --name +takes_value "specify board name")
+        )
+    ).setting(AppSettings::SubcommandRequiredElseHelp).get_matches();
+
     let mut config_path = dirs::config_dir().expect(
         "Unable to determine config directory"
     );
@@ -23,14 +37,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let client = trello::Client::new(&config.host, &config.token, &config.key);
 
-    let board_name = "TODO";
-
-    if let Some(board) = get_board_by_name(&client, board_name)? {
-        println!("{:?}", board);
-    } else {
-        println!("Could not find target board: '{}'", board_name);
+    if let Some(matches) = matches.subcommand_matches("board") {
+       board_subcommand(&client, &matches)?;
     }
+    return Ok(());
+}
 
+fn board_subcommand(client: &trello::Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    if let Some(board_name) = matches.value_of("name") {
+        if let Some(board) = get_board_by_name(&client, board_name)? {
+            println!("{:?}", board);
+        } else {
+            println!("Could not find target board: '{}'", board_name);
+        }
+    } else {
+        println!("You must specify a filter");
+    }
     return Ok(());
 }
 
