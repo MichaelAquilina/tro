@@ -13,7 +13,7 @@ impl List {
     pub fn get_all(client: &Client, board_id: &str) -> Result<Vec<List>, Box<dyn Error>> {
         let url = client.get_trello_url(
             &format!("/1/boards/{}/lists", board_id),
-            &vec![("cards", "open")],
+            &[("cards", "open")],
         )?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)

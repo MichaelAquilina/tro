@@ -21,10 +21,7 @@ impl Client {
         path: &str,
         params: &[(&str, &str)],
     ) -> Result<Url, Box<dyn Error>> {
-        let auth_params = &[
-            ("key", self.key.as_str()),
-            ("token", self.token.as_str())
-        ];
+        let auth_params = &[("key", self.key.as_str()), ("token", self.token.as_str())];
 
         Ok(Url::parse_with_params(
             &format!("{}{}", self.host, path),

@@ -12,13 +12,13 @@ pub struct Board {
 
 impl Board {
     pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
-        let url = client.get_trello_url("/1/members/me/boards", &vec![("filter", "open")])?;
+        let url = client.get_trello_url("/1/members/me/boards", &[("filter", "open")])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
     pub fn get(client: &Client, board_id: &str) -> Result<Board, Box<dyn Error>> {
-        let url = client.get_trello_url(&format!("/1/boards/{}", board_id), &vec![])?;
+        let url = client.get_trello_url(&format!("/1/boards/{}", board_id), &[])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }

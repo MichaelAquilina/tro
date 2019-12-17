@@ -38,7 +38,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-
 fn load_config() -> Result<Config, Box<dyn Error>> {
     let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
     config_path.push("tro/config.toml");
@@ -47,7 +46,6 @@ fn load_config() -> Result<Config, Box<dyn Error>> {
 
     Ok(toml::from_str(&contents)?)
 }
-
 
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
@@ -67,7 +65,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
 }
 
 // TODO Consider making this a trait for each Trello struct
-fn render_board(board: &Board, lists: &Vec<List>) {
+fn render_board(board: &Board, lists: &[List]) {
     println!("{}", board.name);
 
     for list in lists {
