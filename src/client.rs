@@ -16,6 +16,24 @@ impl Client {
         }
     }
 
+    /// Gets the resultant URL of the Trello Client given some path and additoinal
+    /// parameters. The authentication credentials provided will be included as part
+    /// of the generated URL
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = trello::Client {
+    ///     host: String::from("https://api.trello.com"),
+    ///     token: String::from("some-token"),
+    ///     key: String::from("some-key"),
+    /// };
+    /// let url = client.get_trello_url("/1/me/boards/", &[])?;
+    /// assert_eq!(
+    ///     url.to_string(),
+    ///     "https://api.trello.com/1/me/boards/?key=some-key&token=some-token"
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn get_trello_url(
         &self,
         path: &str,
@@ -27,24 +45,5 @@ impl Client {
             &format!("{}{}", self.host, path),
             &[auth_params, params].concat(),
         )?)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_get_trello_url() -> Result<(), Box<dyn Error>> {
-        let client = Client::new("https://api.trello.com", "some-secret-token", "some-key");
-        let result = client.get_trello_url("/foo/bar/", &vec![])?.to_string();
-
-        // FIXME: this is not technically correct, should fix it
-        // * parameter order should not make a difference
-        assert_eq!(
-            result,
-            "https://api.trello.com/foo/bar/?key=some-key&token=some-secret-token"
-        );
-        Ok(())
     }
 }
