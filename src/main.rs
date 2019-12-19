@@ -27,13 +27,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             )
             (@subcommand get =>
                 (about: "Get details for a specific board")
-                (@arg name: -n --name +takes_value "specify board name")
+                (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
                 (@subcommand list =>
                     (about: "Interact with board lists")
-                    (@arg name: -n --name +takes_value "specify list name")
+                    (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
                     (@subcommand card =>
                         (about: "Interact with list cards")
-                        (@arg name: -n --name +takes_value "specify card name")
+                        (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
                     )
                 )
             )
@@ -72,6 +72,8 @@ fn card_subcommand(
         } else {
             println!("Could not find a card with the name: {}", card_name);
         }
+    } else {
+        println!("{}", matches.usage());
     }
     Ok(())
 }
@@ -91,7 +93,10 @@ fn list_subcommand(
         } else {
             println!("Could not find a list with the name: {}", list_name);
         }
+    } else {
+        println!("{}", matches.usage());
     }
+
     Ok(())
 }
 
@@ -123,6 +128,8 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         for board in boards {
             println!("{}", board.name);
         }
+    } else {
+        println!("{}", matches.usage());
     }
     Ok(())
 }
