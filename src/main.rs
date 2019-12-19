@@ -6,6 +6,7 @@ use serde::Deserialize;
 use std::error::Error;
 use std::fs;
 use trello::{Board, Card, Client, List};
+use regex::Regex;
 
 #[derive(Deserialize, Debug)]
 struct Config {
@@ -159,8 +160,10 @@ fn get_card_by_name(
 ) -> Result<Option<Card>, Box<dyn Error>> {
     let cards = List::get_all_cards(client, list_id)?;
 
+    let re = Regex::new(name).unwrap();
+
     for card in cards {
-        if card.name == name {
+        if re.is_match(&card.name) {
             return Ok(Some(card));
         }
     }
@@ -174,8 +177,10 @@ fn get_list_by_name(
 ) -> Result<Option<List>, Box<dyn Error>> {
     let lists = Board::get_all_lists(client, board_id)?;
 
+    let re = Regex::new(name).unwrap();
+
     for list in lists {
-        if list.name == name {
+        if re.is_match(&list.name) {
             return Ok(Some(list));
         }
     }
@@ -185,8 +190,10 @@ fn get_list_by_name(
 fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
     let boards = Board::get_all(client)?;
 
+    let re = Regex::new(name).unwrap();
+
     for board in boards {
-        if board.name == name {
+        if re.is_match(&board.name) {
             return Ok(Some(board));
         }
     }
