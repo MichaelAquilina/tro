@@ -17,7 +17,7 @@ mod test_get_board_by_name {
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
 
-        let result = get_board_by_name(&client, "foobar").expect("");
+        let result = get_board_by_name(&client, "foobar", false).expect("");
 
         assert_eq!(result, None);
     }
@@ -42,7 +42,7 @@ mod test_get_board_by_name {
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
 
-        let result = get_board_by_name(&client, "foobar").expect("");
+        let result = get_board_by_name(&client, "foobar", false).expect("");
 
         assert_eq!(result, None);
     }
@@ -75,7 +75,7 @@ mod test_get_board_by_name {
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
 
-        let result = get_board_by_name(&client, "red");
+        let result = get_board_by_name(&client, "red", false);
 
         // TODO How do I correctly assert type of Error and value?
         assert!(result.is_err());
@@ -83,6 +83,46 @@ mod test_get_board_by_name {
 
     #[test]
     fn test_found() {
+        let _m = mockito::mock(
+            "GET",
+            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
+        )
+        .with_status(200)
+        .with_body(
+            json!([
+                {
+                    "name": "red",
+                    "id": "R35",
+                    "url": "",
+                    "closed": false,
+                },
+                {
+                    "name": "Red",
+                    "id": "320",
+                    "url": "",
+                    "closed": false,
+                }
+            ])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
+
+        let result = get_board_by_name(&client, "red", false).expect("");
+
+        let expected = Board {
+            name: "red".to_string(),
+            id: "R35".to_string(),
+            url: "".to_string(),
+            closed: false,
+            lists: None,
+        };
+        assert_eq!(result, Some(expected));
+    }
+
+    #[test]
+    fn test_case_insensitive() {
         let _m = mockito::mock(
             "GET",
             "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
@@ -101,7 +141,7 @@ mod test_get_board_by_name {
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
 
-        let result = get_board_by_name(&client, "red").expect("");
+        let result = get_board_by_name(&client, "RED", true).expect("");
 
         let expected = Board {
             name: "red".to_string(),
@@ -133,7 +173,7 @@ mod test_get_board_by_name {
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
 
-        let result = get_board_by_name(&client, "Red .*").expect("");
+        let result = get_board_by_name(&client, "Red .*", false).expect("");
 
         let expected = Board {
             name: "Red Green Blue 🖌️".to_string(),

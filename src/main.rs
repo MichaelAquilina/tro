@@ -7,7 +7,7 @@ extern crate simple_error;
 mod test_main;
 
 use clap::ArgMatches;
-use regex::Regex;
+use regex::RegexBuilder;
 use serde::Deserialize;
 use std::error::Error;
 use std::fs;
@@ -37,6 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@subcommand get =>
                 (about: "Get details for a specific board")
                 (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
+                (@arg ignore_case: -i --("ignore-case") "Ignore case when searching by board name.")
                 (@subcommand close =>
                     (about: "Close the board")
                 )
@@ -52,6 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     (@subcommand get =>
                         (about: "Get details for a specific list")
                         (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
+                        (@arg ignore_case: -i --("ignore-case") "Ignore case when searching by list name.")
                         (@subcommand close =>
                             (about: "Close the list")
                         )
@@ -67,6 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             (@subcommand get =>
                                 (about: "Get details for a specific card")
                                 (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
+                                (@arg ignore_case: -i --("ignore-case") "Ignore case when searching by card name.")
                                 (@subcommand close =>
                                     (about: "Close the card")
                                 )
@@ -106,7 +109,8 @@ fn card_subcommand(
 ) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(card_name) = matches.value_of("name") {
-            if let Some(mut card) = get_card_by_name(&client, list_id, card_name)? {
+            let ignore_case = matches.is_present("ignore_case");
+            if let Some(mut card) = get_card_by_name(&client, list_id, card_name, ignore_case)? {
                 if matches.subcommand_matches("close").is_some() {
                     card.closed = true;
                     Card::update(client, &card)?;
@@ -142,7 +146,8 @@ fn list_subcommand(
 ) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(list_name) = matches.value_of("name") {
-            if let Some(mut list) = get_list_by_name(&client, board_id, list_name)? {
+            let ignore_case = matches.is_present("ignore_case");
+            if let Some(mut list) = get_list_by_name(&client, board_id, list_name, ignore_case)? {
                 if let Some(matches) = matches.subcommand_matches("cards") {
                     card_subcommand(client, matches, &list.id)?;
                 } else if matches.subcommand_matches("close").is_some() {
@@ -177,7 +182,9 @@ fn list_subcommand(
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
-            if let Some(mut board) = get_board_by_name(&client, board_name)? {
+            let ignore_case = matches.is_present("ignore_case");
+
+            if let Some(mut board) = get_board_by_name(&client, board_name, ignore_case)? {
                 if let Some(matches) = matches.subcommand_matches("lists") {
                     list_subcommand(client, matches, &board.id)?;
                 } else if matches.subcommand_matches("close").is_some() {
@@ -250,10 +257,14 @@ fn get_card_by_name(
     client: &Client,
     list_id: &str,
     name: &str,
+    ignore_case: bool,
 ) -> Result<Option<Card>, Box<dyn Error>> {
     let cards = List::get_all_cards(client, list_id)?;
 
-    let re = Regex::new(name).unwrap();
+    let re = RegexBuilder::new(name)
+        .case_insensitive(ignore_case)
+        .build()
+        .expect("Invalid Regex");
 
     let mut cards = cards
         .into_iter()
@@ -267,17 +278,20 @@ fn get_card_by_name(
     } else {
         Ok(None)
     }
-
 }
 
 fn get_list_by_name(
     client: &Client,
     board_id: &str,
     name: &str,
+    ignore_case: bool,
 ) -> Result<Option<List>, Box<dyn Error>> {
     let lists = Board::get_all_lists(client, board_id)?;
 
-    let re = Regex::new(name).unwrap();
+    let re = RegexBuilder::new(name)
+        .case_insensitive(ignore_case)
+        .build()
+        .expect("Invalid Regex");
 
     let mut lists = lists
         .into_iter()
@@ -293,10 +307,17 @@ fn get_list_by_name(
     }
 }
 
-fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
+fn get_board_by_name(
+    client: &Client,
+    name: &str,
+    ignore_case: bool,
+) -> Result<Option<Board>, Box<dyn Error>> {
     let boards = Board::get_all(client)?;
 
-    let re = Regex::new(name).unwrap();
+    let re = RegexBuilder::new(name)
+        .case_insensitive(ignore_case)
+        .build()
+        .expect("Invalid Regex");
 
     let mut boards = boards
         .into_iter()
