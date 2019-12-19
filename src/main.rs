@@ -1,5 +1,10 @@
 #[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate simple_error;
+
+#[cfg(test)]
+mod test_main;
 
 use clap::ArgMatches;
 use regex::Regex;
@@ -280,10 +285,16 @@ fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<d
 
     let re = Regex::new(name).unwrap();
 
-    for board in boards {
-        if re.is_match(&board.name) {
-            return Ok(Some(board));
-        }
+    let mut boards = boards
+        .into_iter()
+        .filter(|b| re.is_match(&b.name))
+        .collect::<Vec<Board>>();
+
+    if boards.len() == 1 {
+        Ok(boards.pop())
+    } else if boards.len() > 1 {
+        bail!("More than one board found");
+    } else {
+        Ok(None)
     }
-    Ok(None)
 }

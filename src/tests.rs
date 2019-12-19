@@ -241,7 +241,7 @@ mod board_tests {
     fn test_get_all() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/members/me/boards?key=some-key&token=some-secret-token&filter=open",
+            "/1/members/me/boards/?key=some-key&token=some-secret-token&filter=open",
         )
         .with_status(200)
         .with_body(

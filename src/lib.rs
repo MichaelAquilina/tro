@@ -120,7 +120,7 @@ impl Board {
     }
 
     pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
-        let url = client.get_trello_url("/1/members/me/boards", &[("filter", "open")])?;
+        let url = client.get_trello_url("/1/members/me/boards/", &[("filter", "open")])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
