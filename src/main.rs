@@ -117,7 +117,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         } else {
             println!("You must specify a filter");
         }
-    } else if let Some(_) = matches.subcommand_matches("ls") {
+    } else if matches.subcommand_matches("ls").is_some() {
         let boards = Board::get_all(&client)?;
         for board in boards {
             println!("{}", board.name);
