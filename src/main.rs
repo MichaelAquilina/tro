@@ -5,7 +5,7 @@ use clap::{AppSettings, ArgMatches};
 use serde::Deserialize;
 use std::error::Error;
 use std::fs;
-use trello::{Board, Client, List};
+use trello::{Board, Card, Client, List};
 
 #[derive(Deserialize, Debug)]
 struct Config {
@@ -25,6 +25,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 (@arg name: -n --name +takes_value "specify board name")
             )
         )
+        (@subcommand card =>
+            (about: "Commands related to Trello cards")
+            (@subcommand get =>
+                (@arg name: -n --name +takes_value "specify card name")
+            )
+        )
     )
     .setting(AppSettings::SubcommandRequiredElseHelp)
     .get_matches();
@@ -34,6 +40,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if let Some(matches) = matches.subcommand_matches("board") {
         board_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("card") {
+        card_subcommand(&client, &matches)?;
     }
     Ok(())
 }
@@ -47,13 +55,30 @@ fn load_config() -> Result<Config, Box<dyn Error>> {
     Ok(toml::from_str(&contents)?)
 }
 
+fn card_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(card_name) = matches.value_of("name") {
+            if let Some(card) = get_card_by_name(&client, card_name)? {
+                render_card(&card);
+            }
+        }
+    }
+    Ok(())
+}
+
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
             if let Some(board) = get_board_by_name(&client, board_name)? {
-                let list = List::get_all(client, &board.id)?;
+                let lists = Board::get_all_lists(client, &board.id)?;
 
-                render_board(&board, &list);
+                render_board(&board);
+                println!("");
+
+                for list in lists {
+                    render_list(&list);
+                    println!("");
+                }
             } else {
                 println!("Could not find target board: '{}'", board_name);
             }
@@ -65,13 +90,31 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
 }
 
 // TODO Consider making this a trait for each Trello struct
-fn render_board(board: &Board, lists: &[List]) {
+fn render_board(board: &Board) {
     println!("{}", board.name);
+    println!("===");
+}
 
-    for list in lists {
-        println!("* {}", list.name);
+fn render_list(list: &List) {
+    println!("{}", list.name);
+    println!("---");
+
+    if let Some(cards) = &list.cards {
+        for card in cards {
+            render_card(&card);
+        }
     }
 }
+
+fn render_card(card: &Card) {
+    println!("{}", card.name);
+}
+
+
+fn get_card_by_name(client: &Client, name: &str) -> Result<Option<Card>, Box<dyn Error>> {
+    Ok(None)
+}
+
 
 fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
     let boards = Board::get_all(&client)?;
