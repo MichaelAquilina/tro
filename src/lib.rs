@@ -23,6 +23,7 @@ pub struct List {
     pub id: String,
     pub name: String,
     pub cards: Option<Vec<Card>>,
+    pub closed: bool,
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
@@ -69,6 +70,19 @@ impl List {
 
         Ok(reqwest::Client::new()
             .post(url)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
+    pub fn update(client: &Client, list: &List) -> Result<List, Box<dyn Error>> {
+        let url = client.get_trello_url(
+            &format!("/1/lists/{}/", &list.id),
+            &[("name", &list.name), ("closed", &list.closed.to_string())],
+        )?;
+
+        Ok(reqwest::Client::new()
+            .put(url)
             .send()?
             .error_for_status()?
             .json()?)

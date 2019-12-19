@@ -83,6 +83,7 @@ mod list_tests {
             json!({
                 "name": "Today",
                 "id": "MTLDA",
+                "closed": false,
             })
             .to_string(),
         )
@@ -94,8 +95,40 @@ mod list_tests {
             id: String::from("MTLDA"),
             name: String::from("Today"),
             cards: None,
+            closed: false,
         };
         assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_update() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "PUT",
+            "/1/lists/MY-LIST-ID/?key=some-key&token=some-token&name=Today&closed=true",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "Today",
+                "id": "MY-LIST-ID",
+                "closed": true,
+            })
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+
+        let list = List {
+            id: "MY-LIST-ID".to_string(),
+            name: "Today".to_string(),
+            closed: true,
+            cards: None,
+        };
+
+        let result = List::update(&client, &list)?;
+        assert_eq!(result, list);
         Ok(())
     }
 
@@ -241,8 +274,8 @@ mod board_tests {
         .with_status(200)
         .with_body(
             json!([
-                {"name": "Red", "id": "823-123"},
-                {"name": "Green", "id": "222-222"},
+                {"name": "Red", "id": "823-123", "closed": false},
+                {"name": "Green", "id": "222-222", "closed": false},
             ])
             .to_string(),
         )
@@ -255,11 +288,13 @@ mod board_tests {
                 name: String::from("Red"),
                 id: String::from("823-123"),
                 cards: None,
+                closed: false,
             },
             List {
                 name: String::from("Green"),
                 id: String::from("222-222"),
                 cards: None,
+                closed: false,
             },
         ];
         assert_eq!(result, expected);
