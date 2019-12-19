@@ -116,7 +116,6 @@ mod test_get_board_by_name {
             id: "R35".to_string(),
             url: "".to_string(),
             closed: false,
-            lists: None,
         };
         assert_eq!(result, Some(expected));
     }
@@ -148,7 +147,6 @@ mod test_get_board_by_name {
             id: "R35".to_string(),
             url: "".to_string(),
             closed: false,
-            lists: None,
         };
         assert_eq!(result, Some(expected));
     }
@@ -180,7 +178,6 @@ mod test_get_board_by_name {
             id: "R35".to_string(),
             url: "".to_string(),
             closed: false,
-            lists: None,
         };
         assert_eq!(result, Some(expected));
     }

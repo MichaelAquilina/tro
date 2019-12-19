@@ -232,12 +232,6 @@ fn render_board(board: &Board) {
 fn render_list(list: &List) {
     println!("{}", list.name);
     println!("---");
-
-    if let Some(cards) = &list.cards {
-        for card in cards {
-            render_card(&card, false);
-        }
-    }
 }
 
 fn render_card(card: &Card, detail: bool) {

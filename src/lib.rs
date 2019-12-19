@@ -22,7 +22,6 @@ pub struct Card {
 pub struct List {
     pub id: String,
     pub name: String,
-    pub cards: Option<Vec<Card>>,
     pub closed: bool,
 }
 
@@ -33,7 +32,6 @@ pub struct Board {
     pub name: String,
     pub url: String,
     pub closed: bool,
-    pub lists: Option<Vec<List>>,
 }
 
 impl Card {

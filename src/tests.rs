@@ -94,7 +94,6 @@ mod list_tests {
         let expected = List {
             id: String::from("MTLDA"),
             name: String::from("Today"),
-            cards: None,
             closed: false,
         };
         assert_eq!(result, expected);
@@ -124,7 +123,6 @@ mod list_tests {
             id: "MY-LIST-ID".to_string(),
             name: "Today".to_string(),
             closed: true,
-            cards: None,
         };
 
         let result = List::update(&client, &list)?;
@@ -198,7 +196,6 @@ mod board_tests {
             name: String::from("MY-TEST-BOARD"),
             url: String::from("https://example.com/1/2"),
             closed: false,
-            lists: None,
         };
         assert_eq!(result, expected);
         Ok(())
@@ -229,7 +226,6 @@ mod board_tests {
             name: "TODO".to_string(),
             closed: true,
             url: "https://trello.com/foo".to_string(),
-            lists: None,
         };
 
         let result = Board::update(&client, &board)?;
@@ -261,14 +257,12 @@ mod board_tests {
                 id: String::from("abc-def"),
                 url: String::from("http://bit.ly/12"),
                 closed: false,
-                lists: None,
             },
             Board {
                 name: String::from("foo"),
                 id: String::from("123-456"),
                 url: String::from(""),
                 closed: false,
-                lists: None,
             },
         ];
 
@@ -298,7 +292,6 @@ mod board_tests {
             id: String::from("some-board-id"),
             url: String::from("https://trello.com/boards/some-board-id"),
             closed: false,
-            lists: None,
         };
         assert_eq!(result, expected);
         Ok(())
@@ -326,13 +319,11 @@ mod board_tests {
             List {
                 name: String::from("Red"),
                 id: String::from("823-123"),
-                cards: None,
                 closed: false,
             },
             List {
                 name: String::from("Green"),
                 id: String::from("222-222"),
-                cards: None,
                 closed: false,
             },
         ];
