@@ -33,6 +33,18 @@ pub struct Board {
     pub lists: Option<Vec<List>>,
 }
 
+impl Card {
+    pub fn create(client: &Client, list_id: &str, name: &str) -> Result<Card, Box<dyn Error>> {
+        let url = client.get_trello_url("/1/cards/", &[("name", name), ("idList", list_id)])?;
+
+        Ok(reqwest::Client::new()
+            .post(url)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+}
+
 impl List {
     pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>, Box<dyn Error>> {
         let url = client.get_trello_url(&format!("/1/lists/{}/cards/", list_id), &[])?;

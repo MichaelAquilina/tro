@@ -42,6 +42,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                         (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
                         (@subcommand cards =>
                             (about: "Interact with list cards")
+                            (@subcommand create =>
+                                (about: "Create a new card for this list")
+                                (@arg NAME: +required "Name of the card")
+                            )
                             (@subcommand ls =>
                                 (about: "List all cards in this list")
                             )
@@ -97,6 +101,10 @@ fn card_subcommand(
         for card in cards {
             println!("{}", card.name);
         }
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        let card_name = matches.value_of("NAME").unwrap();
+        let card = Card::create(client, list_id, card_name)?;
+        println!("{:?}", card);
     } else {
         println!("{}", matches.usage());
     }

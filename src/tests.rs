@@ -3,6 +3,38 @@ use mockito;
 use serde_json::json;
 use std::error::Error;
 
+mod card_tests {
+    use super::*;
+
+    #[test]
+    fn test_create() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "POST",
+            "/1/cards/?key=some-key&token=some-token&name=Laundry&idList=FOOBAR",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "Laundry",
+                "desc": "",
+                "id": "88888",
+            })
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = Card::create(&client, "FOOBAR", "Laundry")?;
+        let expected = Card {
+            id: String::from("88888"),
+            name: String::from("Laundry"),
+            desc: String::from(""),
+        };
+        assert_eq!(result, expected);
+        Ok(())
+    }
+}
+
 mod list_tests {
     use super::*;
 
