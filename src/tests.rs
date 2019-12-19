@@ -185,6 +185,7 @@ mod board_tests {
                 "name": "MY-TEST-BOARD",
                 "url": "https://example.com/1/2",
                 "id": "231dgfe4r343",
+                "closed": false,
             })
             .to_string(),
         )
@@ -196,9 +197,43 @@ mod board_tests {
             id: String::from("231dgfe4r343"),
             name: String::from("MY-TEST-BOARD"),
             url: String::from("https://example.com/1/2"),
+            closed: false,
             lists: None,
         };
         assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_update() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "PUT",
+            "/1/boards/MY-BOARD-ID/?key=some-key&token=some-token&name=TODO&closed=true",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "TODO",
+                "id": "MY-BOARD-ID",
+                "url": "https://trello.com/foo",
+                "closed": true,
+            })
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+
+        let board = Board {
+            id: "MY-BOARD-ID".to_string(),
+            name: "TODO".to_string(),
+            closed: true,
+            url: "https://trello.com/foo".to_string(),
+            lists: None,
+        };
+
+        let result = Board::update(&client, &board)?;
+        assert_eq!(result, board);
         Ok(())
     }
 
@@ -211,8 +246,8 @@ mod board_tests {
         .with_status(200)
         .with_body(
             json!([
-                {"name": "TODO", "id": "abc-def", "url": "http://bit.ly/12"},
-                {"name": "foo", "id": "123-456", "url": ""},
+                {"name": "TODO", "id": "abc-def", "url": "http://bit.ly/12", "closed": false},
+                {"name": "foo", "id": "123-456", "url": "", "closed": false},
             ])
             .to_string(),
         )
@@ -225,12 +260,14 @@ mod board_tests {
                 name: String::from("TODO"),
                 id: String::from("abc-def"),
                 url: String::from("http://bit.ly/12"),
+                closed: false,
                 lists: None,
             },
             Board {
                 name: String::from("foo"),
                 id: String::from("123-456"),
                 url: String::from(""),
+                closed: false,
                 lists: None,
             },
         ];
@@ -248,6 +285,7 @@ mod board_tests {
                     "name": "My Favourite Board",
                     "id": "some-board-id",
                     "url": "https://trello.com/boards/some-board-id",
+                    "closed": false,
                 })
                 .to_string(),
             )
@@ -259,6 +297,7 @@ mod board_tests {
             name: String::from("My Favourite Board"),
             id: String::from("some-board-id"),
             url: String::from("https://trello.com/boards/some-board-id"),
+            closed: false,
             lists: None,
         };
         assert_eq!(result, expected);

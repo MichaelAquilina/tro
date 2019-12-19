@@ -32,6 +32,7 @@ pub struct Board {
     pub id: String,
     pub name: String,
     pub url: String,
+    pub closed: bool,
     pub lists: Option<Vec<List>>,
 }
 
@@ -100,6 +101,19 @@ impl Board {
 
         Ok(reqwest::Client::new()
             .post(url)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
+    pub fn update(client: &Client, board: &Board) -> Result<Board, Box<dyn Error>> {
+        let url = client.get_trello_url(
+            &format!("/1/boards/{}/", &board.id),
+            &[("name", &board.name), ("closed", &board.closed.to_string())],
+        )?;
+
+        Ok(reqwest::Client::new()
+            .put(url)
             .send()?
             .error_for_status()?
             .json()?)
