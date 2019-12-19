@@ -10,6 +10,7 @@ use std::error::Error;
 pub struct Card {
     pub id: String,
     pub name: String,
+    pub desc: String,
     pub closed: bool,
 }
 
@@ -31,6 +32,16 @@ pub struct Board {
     pub lists: Option<Vec<List>>,
 }
 
+
+impl List {
+    pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>, Box<dyn Error>> {
+        let url = client.get_trello_url(
+            &format!("/1/lists/{}/cards/", list_id),
+            &[],
+        )?;
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+    }
+}
 
 impl Board {
     pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
