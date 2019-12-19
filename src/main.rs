@@ -34,6 +34,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
                 (@subcommand lists =>
                     (about: "Interact with board lists")
+                    (@subcommand create =>
+                        (about: "Create a new list for this board")
+                        (@arg NAME: +required "Name of the list")
+                    )
                     (@subcommand ls =>
                         (about: "List all lists in this board")
                     )
@@ -135,6 +139,10 @@ fn list_subcommand(
         for list in lists {
             println!("{}", list.name);
         }
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        let list_name = matches.value_of("NAME").unwrap();
+        let list = List::create(client, board_id, list_name)?;
+        println!("{:?}", list);
     } else {
         println!("{}", matches.usage());
     }

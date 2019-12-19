@@ -39,6 +39,33 @@ mod list_tests {
     use super::*;
 
     #[test]
+    fn test_create() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "POST",
+            "/1/lists/?key=some-key&token=some-token&name=Today&idBoard=LEONSK",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "Today",
+                "id": "MTLDA",
+            })
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = List::create(&client, "LEONSK", "Today")?;
+        let expected = List {
+            id: String::from("MTLDA"),
+            name: String::from("Today"),
+            cards: None,
+        };
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
     fn test_get_all_cards() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",

@@ -46,6 +46,16 @@ impl Card {
 }
 
 impl List {
+    pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List, Box<dyn Error>> {
+        let url = client.get_trello_url("/1/lists/", &[("name", name), ("idBoard", board_id)])?;
+
+        Ok(reqwest::Client::new()
+            .post(url)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
     pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>, Box<dyn Error>> {
         let url = client.get_trello_url(&format!("/1/lists/{}/cards/", list_id), &[])?;
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
