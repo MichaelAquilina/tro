@@ -1,7 +1,7 @@
 mod client;
 
 #[cfg(test)]
-mod tests;
+mod test_lib;
 
 pub use client::Client;
 
