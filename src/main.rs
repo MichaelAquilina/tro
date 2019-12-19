@@ -56,7 +56,11 @@ fn load_config() -> Result<Config, Box<dyn Error>> {
     Ok(toml::from_str(&contents)?)
 }
 
-fn card_subcommand(client: &Client, matches: &ArgMatches, list_id: &str) -> Result<(), Box<dyn Error>> {
+fn card_subcommand(
+    client: &Client,
+    matches: &ArgMatches,
+    list_id: &str,
+) -> Result<(), Box<dyn Error>> {
     if let Some(card_name) = matches.value_of("name") {
         if let Some(card) = get_card_by_name(&client, list_id, card_name)? {
             render_card(&card, true);
@@ -67,11 +71,13 @@ fn card_subcommand(client: &Client, matches: &ArgMatches, list_id: &str) -> Resu
     Ok(())
 }
 
-
-fn list_subcommand(client: &Client, matches: &ArgMatches, board_id: &str) -> Result<(), Box<dyn Error>> {
+fn list_subcommand(
+    client: &Client,
+    matches: &ArgMatches,
+    board_id: &str,
+) -> Result<(), Box<dyn Error>> {
     if let Some(list_name) = matches.value_of("name") {
         if let Some(list) = get_list_by_name(&client, board_id, list_name)? {
-
             if let Some(matches) = matches.subcommand_matches("card") {
                 card_subcommand(client, matches, &list.id)?;
             } else {
@@ -88,18 +94,17 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
             if let Some(board) = get_board_by_name(&client, board_name)? {
-
                 if let Some(matches) = matches.subcommand_matches("list") {
                     list_subcommand(client, matches, &board.id)?;
                 } else {
                     let lists = Board::get_all_lists(client, &board.id)?;
 
                     render_board(&board);
-                    println!("");
+                    println!();
 
                     for list in lists {
                         render_list(&list);
-                        println!("");
+                        println!();
                     }
                 }
             } else {
@@ -138,7 +143,11 @@ fn render_card(card: &Card, detail: bool) {
     }
 }
 
-fn get_card_by_name(client: &Client, list_id: &str, name: &str) -> Result<Option<Card>, Box<dyn Error>> {
+fn get_card_by_name(
+    client: &Client,
+    list_id: &str,
+    name: &str,
+) -> Result<Option<Card>, Box<dyn Error>> {
     let cards = List::get_all_cards(client, list_id)?;
 
     for card in cards {
@@ -149,7 +158,11 @@ fn get_card_by_name(client: &Client, list_id: &str, name: &str) -> Result<Option
     Ok(None)
 }
 
-fn get_list_by_name(client: &Client, board_id: &str, name: &str) -> Result<Option<List>, Box<dyn Error>> {
+fn get_list_by_name(
+    client: &Client,
+    board_id: &str,
+    name: &str,
+) -> Result<Option<List>, Box<dyn Error>> {
     let lists = Board::get_all_lists(client, board_id)?;
 
     for list in lists {
@@ -159,7 +172,6 @@ fn get_list_by_name(client: &Client, board_id: &str, name: &str) -> Result<Optio
     }
     Ok(None)
 }
-
 
 fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
     let boards = Board::get_all(client)?;

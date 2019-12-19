@@ -11,9 +11,7 @@ pub struct Card {
     pub id: String,
     pub name: String,
     pub desc: String,
-    pub closed: bool,
 }
-
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -32,13 +30,9 @@ pub struct Board {
     pub lists: Option<Vec<List>>,
 }
 
-
 impl List {
     pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>, Box<dyn Error>> {
-        let url = client.get_trello_url(
-            &format!("/1/lists/{}/cards/", list_id),
-            &[],
-        )?;
+        let url = client.get_trello_url(&format!("/1/lists/{}/cards/", list_id), &[])?;
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 }
@@ -51,10 +45,7 @@ impl Board {
     }
 
     pub fn get(client: &Client, board_id: &str) -> Result<Board, Box<dyn Error>> {
-        let url = client.get_trello_url(
-            &format!("/1/boards/{}", board_id),
-            &[],
-        )?;
+        let url = client.get_trello_url(&format!("/1/boards/{}", board_id), &[])?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
@@ -69,9 +60,50 @@ impl Board {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 }
+#[cfg(test)]
+mod list_tests {
+    use super::*;
+    use mockito;
+    use serde_json::json;
+
+    #[test]
+    fn test_get_all_cards() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "GET",
+            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token",
+        )
+        .with_status(200)
+        .with_body(
+            json!([
+                {"name": "Water the plants", "id": "abc-def", "desc": ""},
+                {"name": "Feed the dog", "id": "123-456", "desc": "for a good boy"},
+            ])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
+        let result = List::get_all_cards(&client, "DEADBEEF")?;
+        let expected = vec![
+            Card {
+                name: String::from("Water the plants"),
+                id: String::from("abc-def"),
+                desc: String::from(""),
+            },
+            Card {
+                name: String::from("Feed the dog"),
+                id: String::from("123-456"),
+                desc: String::from("for a good boy"),
+            },
+        ];
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+}
 
 #[cfg(test)]
-mod tests {
+mod board_tests {
     use super::*;
     use mockito;
     use serde_json::json;
@@ -172,5 +204,4 @@ mod tests {
         assert_eq!(result, expected);
         Ok(())
     }
-
 }
