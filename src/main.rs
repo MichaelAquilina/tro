@@ -21,7 +21,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         (about: "Trello CLI interface")
         (@subcommand board =>
             (about: "Commands related to Trello boards")
+            (@subcommand ls =>
+                (about: "List all available boards")
+            )
             (@subcommand get =>
+                (about: "Get details for a specific board")
                 (@arg name: -n --name +takes_value "specify board name")
                 (@subcommand list =>
                     (about: "Interact with board lists")
@@ -112,6 +116,11 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
             }
         } else {
             println!("You must specify a filter");
+        }
+    } else if let Some(_) = matches.subcommand_matches("ls") {
+        let boards = Board::get_all(&client)?;
+        for board in boards {
+            println!("{}", board.name);
         }
     }
     Ok(())
