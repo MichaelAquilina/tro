@@ -1,12 +1,12 @@
 #[macro_use]
 extern crate clap;
 
-use clap::{AppSettings, ArgMatches};
+use clap::ArgMatches;
+use regex::Regex;
 use serde::Deserialize;
 use std::error::Error;
 use std::fs;
 use trello::{Board, Card, Client, List};
-use regex::Regex;
 
 #[derive(Deserialize, Debug)]
 struct Config {
@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         (version: "1.0")
         (author: "Michael Aquilina")
         (about: "Trello CLI interface")
-        (@subcommand board =>
+        (@subcommand boards =>
             (about: "Commands related to Trello boards")
             (@subcommand ls =>
                 (about: "List all available boards")
@@ -28,26 +28,38 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@subcommand get =>
                 (about: "Get details for a specific board")
                 (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
-                (@subcommand list =>
+                (@subcommand lists =>
                     (about: "Interact with board lists")
-                    (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
-                    (@subcommand card =>
-                        (about: "Interact with list cards")
-                        (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
+                    (@subcommand ls =>
+                        (about: "List all lists in this board")
+                    )
+                    (@subcommand get =>
+                        (about: "Get details for a specific list")
+                        (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
+                        (@subcommand cards =>
+                            (about: "Interact with list cards")
+                            (@subcommand ls =>
+                                (about: "List all cards in this list")
+                            )
+                            (@subcommand get =>
+                                (about: "Get details for a specific card")
+                                (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
+                            )
+                        )
                     )
                 )
             )
         )
-
     )
-    .setting(AppSettings::SubcommandRequiredElseHelp)
     .get_matches();
 
     let config = load_config()?;
     let client = Client::new(&config.host, &config.token, &config.key);
 
-    if let Some(matches) = matches.subcommand_matches("board") {
+    if let Some(matches) = matches.subcommand_matches("boards") {
         board_subcommand(&client, &matches)?;
+    } else {
+        println!("{}", matches.usage());
     }
     Ok(())
 }
@@ -66,11 +78,20 @@ fn card_subcommand(
     matches: &ArgMatches,
     list_id: &str,
 ) -> Result<(), Box<dyn Error>> {
-    if let Some(card_name) = matches.value_of("name") {
-        if let Some(card) = get_card_by_name(&client, list_id, card_name)? {
-            render_card(&card, true);
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(card_name) = matches.value_of("name") {
+            if let Some(card) = get_card_by_name(&client, list_id, card_name)? {
+                render_card(&card, true);
+            } else {
+                println!("Could not find a card with the name: {}", card_name);
+            }
         } else {
-            println!("Could not find a card with the name: {}", card_name);
+            println!("Must specify a filter to target card");
+        }
+    } else if matches.subcommand_matches("ls").is_some() {
+        let cards = List::get_all_cards(&client, list_id)?;
+        for card in cards {
+            println!("{}", card.name);
         }
     } else {
         println!("{}", matches.usage());
@@ -83,15 +104,24 @@ fn list_subcommand(
     matches: &ArgMatches,
     board_id: &str,
 ) -> Result<(), Box<dyn Error>> {
-    if let Some(list_name) = matches.value_of("name") {
-        if let Some(list) = get_list_by_name(&client, board_id, list_name)? {
-            if let Some(matches) = matches.subcommand_matches("card") {
-                card_subcommand(client, matches, &list.id)?;
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(list_name) = matches.value_of("name") {
+            if let Some(list) = get_list_by_name(&client, board_id, list_name)? {
+                if let Some(matches) = matches.subcommand_matches("cards") {
+                    card_subcommand(client, matches, &list.id)?;
+                } else {
+                    render_list(&list);
+                }
             } else {
-                render_list(&list);
+                println!("Could not find a list with the name: {}", list_name);
             }
         } else {
-            println!("Could not find a list with the name: {}", list_name);
+            println!("Must specify a filter to target list");
+        }
+    } else if matches.subcommand_matches("ls").is_some() {
+        let lists = Board::get_all_lists(client, board_id)?;
+        for list in lists {
+            println!("{}", list.name);
         }
     } else {
         println!("{}", matches.usage());
@@ -104,7 +134,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
             if let Some(board) = get_board_by_name(&client, board_name)? {
-                if let Some(matches) = matches.subcommand_matches("list") {
+                if let Some(matches) = matches.subcommand_matches("lists") {
                     list_subcommand(client, matches, &board.id)?;
                 } else {
                     let lists = Board::get_all_lists(client, &board.id)?;
@@ -156,7 +186,11 @@ fn render_card(card: &Card, detail: bool) {
 
     if detail {
         println!("---");
-        println!("{}", card.desc);
+        if card.desc.is_empty() {
+            println!("<No Description>");
+        } else {
+            println!("{}", card.desc);
+        }
     }
 }
 
