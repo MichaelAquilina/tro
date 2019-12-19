@@ -5,16 +5,45 @@ Trello-RS
 
 Trello API client for the command line written in rust.
 
-To begin, you must set the following two environment variables:
+To begin, create a configuration file at the path ``~/.config/tro/config.toml``.
+Set the values for ``host``, ``key`` and ``token``:
 
 ::
 
-    export TRELLO_API_DEVELOPER_KEY="<MYKEY>"
-    export TRELLO_API_TOKEN="<MYTOKEN>"
+    host = "https://api.trello.com"
+    key = "<MYKEY>"
+    token = "<MYTOKEN>"
 
-You can retrieve these values from https://trello.com/app-key/
+You can retrieve the values for key and token from https://trello.com/app-key/
 
 Once those are set, simply run with ``cargo run``.
+
+Some examples of commands you can run:
+
+**List all open boards**
+::
+
+    $ cargo run boards ls
+    TODO
+    Groceries
+    Recipes
+
+
+**List all open lists within a board**
+::
+
+    $ cargo run boards get -n "TODO" lists ls
+    Today
+    Tomorrow
+
+
+**List all open cards within a list**
+::
+
+    $ cargo run boards get -n "TODO" lists get -n "Today" cards ls
+    Wash Dishes
+    Walk Dog
+    Learn some Rust
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/trello-rs
