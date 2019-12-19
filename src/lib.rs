@@ -14,6 +14,7 @@ pub struct Card {
     pub id: String,
     pub name: String,
     pub desc: String,
+    pub closed: bool,
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
@@ -39,6 +40,23 @@ impl Card {
 
         Ok(reqwest::Client::new()
             .post(url)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
+    pub fn update(client: &Client, card: &Card) -> Result<Card, Box<dyn Error>> {
+        let url = client.get_trello_url(
+            &format!("/1/cards/{}/", &card.id),
+            &[
+                ("name", &card.name),
+                ("desc", &card.desc),
+                ("closed", &card.closed.to_string()),
+            ],
+        )?;
+
+        Ok(reqwest::Client::new()
+            .put(url)
             .send()?
             .error_for_status()?
             .json()?)

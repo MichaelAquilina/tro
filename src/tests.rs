@@ -18,6 +18,7 @@ mod card_tests {
                 "name": "Laundry",
                 "desc": "",
                 "id": "88888",
+                "closed": false,
             })
             .to_string(),
         )
@@ -29,8 +30,41 @@ mod card_tests {
             id: String::from("88888"),
             name: String::from("Laundry"),
             desc: String::from(""),
+            closed: false,
         };
         assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_update() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "PUT",
+            "/1/cards/MY-CARD-ID/?key=some-key&token=some-token&name=Laundry&desc=hello&closed=true",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "Laundry",
+                "desc": "hello",
+                "id": "MY-CARD-ID",
+                "closed": true,
+            })
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+
+        let card = Card {
+            id: "MY-CARD-ID".to_string(),
+            name: "Laundry".to_string(),
+            desc: "hello".to_string(),
+            closed: true,
+        };
+
+        let result = Card::update(&client, &card)?;
+        assert_eq!(result, card);
         Ok(())
     }
 }
@@ -74,8 +108,8 @@ mod list_tests {
         .with_status(200)
         .with_body(
             json!([
-                {"name": "Water the plants", "id": "abc-def", "desc": ""},
-                {"name": "Feed the dog", "id": "123-456", "desc": "for a good boy"},
+                {"name": "Water the plants", "id": "abc-def", "desc": "", "closed": false},
+                {"name": "Feed the dog", "id": "123-456", "desc": "for a good boy", "closed": false},
             ])
             .to_string(),
         )
@@ -88,11 +122,13 @@ mod list_tests {
                 name: String::from("Water the plants"),
                 id: String::from("abc-def"),
                 desc: String::from(""),
+                closed: false,
             },
             Card {
                 name: String::from("Feed the dog"),
                 id: String::from("123-456"),
                 desc: String::from("for a good boy"),
+                closed: false,
             },
         ];
 
