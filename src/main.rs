@@ -32,6 +32,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@subcommand get =>
                 (about: "Get details for a specific board")
                 (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
+                (@subcommand close =>
+                    (about: "Close the board")
+                )
                 (@subcommand lists =>
                     (about: "Interact with board lists")
                     (@subcommand create =>
@@ -44,6 +47,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     (@subcommand get =>
                         (about: "Get details for a specific list")
                         (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
+                        (@subcommand close =>
+                            (about: "Close the list")
+                        )
                         (@subcommand cards =>
                             (about: "Interact with list cards")
                             (@subcommand create =>
@@ -56,6 +62,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                             (@subcommand get =>
                                 (about: "Get details for a specific card")
                                 (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
+                                (@subcommand close =>
+                                    (about: "Close the card")
+                                )
                             )
                         )
                     )
@@ -92,8 +101,14 @@ fn card_subcommand(
 ) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(card_name) = matches.value_of("name") {
-            if let Some(card) = get_card_by_name(&client, list_id, card_name)? {
-                render_card(&card, true);
+            if let Some(mut card) = get_card_by_name(&client, list_id, card_name)? {
+                if matches.subcommand_matches("close").is_some() {
+                    card.closed = true;
+                    Card::update(client, &card)?;
+                    println!("Closed card {} with id {}", card.name, card.id);
+                } else {
+                    render_card(&card, true);
+                }
             } else {
                 println!("Could not find a card with the name: {}", card_name);
             }
@@ -122,9 +137,13 @@ fn list_subcommand(
 ) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(list_name) = matches.value_of("name") {
-            if let Some(list) = get_list_by_name(&client, board_id, list_name)? {
+            if let Some(mut list) = get_list_by_name(&client, board_id, list_name)? {
                 if let Some(matches) = matches.subcommand_matches("cards") {
                     card_subcommand(client, matches, &list.id)?;
+                } else if matches.subcommand_matches("close").is_some() {
+                    list.closed = true;
+                    List::update(client, &list)?;
+                    println!("Closed list {} with id {}", list.name, list.id);
                 } else {
                     render_list(&list);
                 }
@@ -153,9 +172,13 @@ fn list_subcommand(
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
-            if let Some(board) = get_board_by_name(&client, board_name)? {
+            if let Some(mut board) = get_board_by_name(&client, board_name)? {
                 if let Some(matches) = matches.subcommand_matches("lists") {
                     list_subcommand(client, matches, &board.id)?;
+                } else if matches.subcommand_matches("close").is_some() {
+                    board.closed = true;
+                    Board::update(client, &board)?;
+                    println!("Closed board {} with id {}", board.id, board.name);
                 } else {
                     let lists = Board::get_all_lists(client, &board.id)?;
 
