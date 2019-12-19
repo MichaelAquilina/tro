@@ -46,6 +46,35 @@ mod board_tests {
     use super::*;
 
     #[test]
+    fn test_create() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "POST",
+            "/1/boards/?key=some-key&token=some-token&name=MY-TEST-BOARD",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "MY-TEST-BOARD",
+                "url": "https://example.com/1/2",
+                "id": "231dgfe4r343",
+            })
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = Board::create(&client, "MY-TEST-BOARD")?;
+        let expected = Board {
+            id: String::from("231dgfe4r343"),
+            name: String::from("MY-TEST-BOARD"),
+            url: String::from("https://example.com/1/2"),
+            lists: None,
+        };
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
     fn test_get_all() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",

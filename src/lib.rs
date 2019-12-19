@@ -41,6 +41,16 @@ impl List {
 }
 
 impl Board {
+    pub fn create(client: &Client, name: &str) -> Result<Board, Box<dyn Error>> {
+        let url = client.get_trello_url("/1/boards/", &[("name", name)])?;
+
+        Ok(reqwest::Client::new()
+            .post(url)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
     pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
         let url = client.get_trello_url("/1/members/me/boards", &[("filter", "open")])?;
 

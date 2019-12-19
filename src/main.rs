@@ -22,6 +22,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         (about: "Trello CLI interface")
         (@subcommand boards =>
             (about: "Commands related to Trello boards")
+            (@subcommand create =>
+                (about: "Create a new board")
+                (@arg NAME: +required "Name of the board")
+            )
             (@subcommand ls =>
                 (about: "List all available boards")
             )
@@ -158,6 +162,10 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         for board in boards {
             println!("{}", board.name);
         }
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        let board_name = matches.value_of("NAME").unwrap();
+        let board = Board::create(&client, board_name)?;
+        println!("{:?}", board);
     } else {
         println!("{}", matches.usage());
     }
