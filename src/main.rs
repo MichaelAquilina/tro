@@ -255,12 +255,19 @@ fn get_card_by_name(
 
     let re = Regex::new(name).unwrap();
 
-    for card in cards {
-        if re.is_match(&card.name) {
-            return Ok(Some(card));
-        }
+    let mut cards = cards
+        .into_iter()
+        .filter(|c| re.is_match(&c.name))
+        .collect::<Vec<Card>>();
+
+    if cards.len() == 1 {
+        Ok(cards.pop())
+    } else if cards.len() > 1 {
+        bail!("More than one Card found. Specify a more precise filter.");
+    } else {
+        Ok(None)
     }
-    Ok(None)
+
 }
 
 fn get_list_by_name(
