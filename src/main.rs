@@ -1,291 +1,266 @@
-mod trello;
-
 #[macro_use]
-extern crate serde_derive;
-
 extern crate clap;
-extern crate console;
-extern crate indoc;
 
-use clap::{App, Arg, ArgMatches, SubCommand};
-use console::{style, StyledObject};
-use indoc::indoc;
-use std::env;
+use clap::ArgMatches;
+use regex::Regex;
+use serde::Deserialize;
+use std::error::Error;
+use std::fs;
+use trello::{Board, Card, Client, List};
 
-fn main() {
-    let app = App::new("trello-rs")
-        .about(indoc!(
-            "
+#[derive(Deserialize, Debug)]
+struct Config {
+    host: String,
+    token: String,
+    key: String,
+}
 
-            Trello command line tool.
-
-            Begin by setting the environment variables:
-            * TRELLO_API_TOKEN
-            * TRELLO_API_DEVELOPER_KEY
-
-            These can be retrieved from https://trello.com/app-key/
-            "
-        ))
-        .subcommand(
-            SubCommand::with_name("boards")
-                .about("List all available boards")
-                .arg(Arg::with_name("starred").short("s").long("starred"))
-                .arg(Arg::with_name("show_ids").long("ids")),
-        )
-        .subcommand(
-            SubCommand::with_name("board")
-                .about("View target Board")
-                .arg(Arg::with_name("show_ids").long("ids"))
-                .arg(
-                    Arg::with_name("board_id")
-                        .short("i")
-                        .long("id")
-                        .takes_value(true),
+fn main() -> Result<(), Box<dyn Error>> {
+    let matches = clap_app!(myapp =>
+        (version: "1.0")
+        (author: "Michael Aquilina")
+        (about: "Trello CLI interface")
+        (@subcommand boards =>
+            (about: "Commands related to Trello boards")
+            (@subcommand create =>
+                (about: "Create a new board")
+                (@arg NAME: +required "Name of the board")
+            )
+            (@subcommand ls =>
+                (about: "List all available boards")
+            )
+            (@subcommand get =>
+                (about: "Get details for a specific board")
+                (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
+                (@subcommand lists =>
+                    (about: "Interact with board lists")
+                    (@subcommand create =>
+                        (about: "Create a new list for this board")
+                        (@arg NAME: +required "Name of the list")
+                    )
+                    (@subcommand ls =>
+                        (about: "List all lists in this board")
+                    )
+                    (@subcommand get =>
+                        (about: "Get details for a specific list")
+                        (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
+                        (@subcommand cards =>
+                            (about: "Interact with list cards")
+                            (@subcommand create =>
+                                (about: "Create a new card for this list")
+                                (@arg NAME: +required "Name of the card")
+                            )
+                            (@subcommand ls =>
+                                (about: "List all cards in this list")
+                            )
+                            (@subcommand get =>
+                                (about: "Get details for a specific card")
+                                (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
+                            )
+                        )
+                    )
                 )
-                .arg(
-                    Arg::with_name("board_name")
-                        .short("n")
-                        .long("name")
-                        .takes_value(true),
-                ),
+            )
         )
-        .subcommand(
-            SubCommand::with_name("card").about("View target card").arg(
-                Arg::with_name("card_id")
-                    .short("i")
-                    .long("id")
-                    .takes_value(true),
-            ),
-        )
-        .subcommand(
-            SubCommand::with_name("create")
-                .about("Create a Trello item")
-                .arg(Arg::with_name("target_type").index(1).required(true))
-                .arg(Arg::with_name("parent_id").index(2).required(true))
-                .arg(Arg::with_name("name").index(3).required(true)),
-        )
-        .subcommand(
-            SubCommand::with_name("close")
-                .about("Close target Trello item")
-                .arg(Arg::with_name("target_type").index(1).required(true))
-                .arg(Arg::with_name("target_id").index(2).required(true)),
-        );
+    )
+    .get_matches();
 
-    let matches = app.get_matches();
-
-    let token = env::var("TRELLO_API_TOKEN");
-    let key = env::var("TRELLO_API_DEVELOPER_KEY");
-
-    if token.is_err() || key.is_err() {
-        println!("TRELLO_API_TOKEN and TRELLO_API_DEVELOPER_KEY environment variables must be set");
-        return;
-    }
-
-    let token = token.unwrap();
-    let key = key.unwrap();
+    let config = load_config()?;
+    let client = Client::new(&config.host, &config.token, &config.key);
 
     if let Some(matches) = matches.subcommand_matches("boards") {
-        boards(&matches, &token, &key);
-    } else if let Some(matches) = matches.subcommand_matches("board") {
-        board(&matches, &token, &key);
-    } else if let Some(matches) = matches.subcommand_matches("card") {
-        card(&matches, &token, &key);
-    } else if let Some(matches) = matches.subcommand_matches("create") {
-        create(&matches, &token, &key);
-    } else if let Some(matches) = matches.subcommand_matches("close") {
-        close(&matches, &token, &key);
+        board_subcommand(&client, &matches)?;
     } else {
-        println!("No subcommand specified. Use help to for more information.");
+        println!("{}", matches.usage());
     }
+    Ok(())
 }
 
-fn boards(matches: &ArgMatches, token: &str, key: &str) {
-    let starred = matches.is_present("starred");
-    let show_ids = matches.is_present("show_ids");
+fn load_config() -> Result<Config, Box<dyn Error>> {
+    let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
+    config_path.push("tro/config.toml");
 
-    let boards = match trello::Board::get_all(token, key) {
-        Ok(b) => b,
-        Err(e) => {
-            println!("Could not retrieve boards");
-            println!("{}", e);
-            return;
-        }
-    };
+    let contents = fs::read_to_string(config_path.to_str().unwrap())?;
 
-    for b in boards {
-        // TODO: Should be able to pass this directly as a filter to the API
-        if starred && !b.starred.unwrap() {
-            continue;
-        }
+    Ok(toml::from_str(&contents)?)
+}
 
-        let text = &format!("{}", b.name);
-        let output = style(&text);
-        if show_ids {
-            println!("* {} ({})", output, b.id);
+fn card_subcommand(
+    client: &Client,
+    matches: &ArgMatches,
+    list_id: &str,
+) -> Result<(), Box<dyn Error>> {
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(card_name) = matches.value_of("name") {
+            if let Some(card) = get_card_by_name(&client, list_id, card_name)? {
+                render_card(&card, true);
+            } else {
+                println!("Could not find a card with the name: {}", card_name);
+            }
         } else {
-            println!("* {}", output);
+            println!("Must specify a filter to target card");
         }
+    } else if matches.subcommand_matches("ls").is_some() {
+        let cards = List::get_all_cards(&client, list_id)?;
+        for card in cards {
+            println!("{}", card.name);
+        }
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        let card_name = matches.value_of("NAME").unwrap();
+        let card = Card::create(client, list_id, card_name)?;
+        println!("{:?}", card);
+    } else {
+        println!("{}", matches.usage());
     }
+    Ok(())
 }
 
-fn board(matches: &ArgMatches, token: &str, key: &str) {
-    let board_id = matches.value_of("board_id");
-    let board_name = matches.value_of("board_name");
-    let show_ids = matches.is_present("show_ids");
-
-    let board;
-    if let Some(board_id) = board_id {
-        board = match trello::Board::get(board_id, token, key) {
-            Ok(b) => b,
-            Err(e) => {
-                println!("Could not retrieve board");
-                println!("{}", e);
-                return;
-            }
-        };
-    } else if let Some(board_name) = board_name {
-        // TODO: Should be handling case where board is not found gracefully
-        board = match trello::Board::get_by_name(board_name, token, key) {
-            Ok(b) => b.unwrap(),
-            Err(e) => {
-                println!("Could not retrieve board");
-                println!("{}", e);
-                return;
-            }
-        };
-    } else {
-        println!("You must supply either a board id (--id) or a board name (--name)");
-        return;
-    }
-
-    let title = format!("{}", board.name);
-    print_header(&title, "=");
-
-    if let Some(desc_data) = board.desc_data {
-        println!("{}", desc_data);
-    }
-
-    let lists = match trello::List::get_all(&board.id, token, key) {
-        Ok(l) => l,
-        Err(e) => {
-            println!("Unable to retrieve board lists");
-            println!("{}", e);
-            return;
-        }
-    };
-
-    for l in lists {
-        println!("");
-        print_header(&format!("{}", l.name), "-");
-
-        if let Some(cards) = l.cards {
-            for c in cards {
-                let labels: Vec<StyledObject<&String>> = c
-                    .labels
-                    .iter()
-                    .map(|l| l.get_colored_name().bold())
-                    .collect();
-
-                if show_ids {
-                    println!("* {} ({}) {:?}", c.name, c.id, labels);
+fn list_subcommand(
+    client: &Client,
+    matches: &ArgMatches,
+    board_id: &str,
+) -> Result<(), Box<dyn Error>> {
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(list_name) = matches.value_of("name") {
+            if let Some(list) = get_list_by_name(&client, board_id, list_name)? {
+                if let Some(matches) = matches.subcommand_matches("cards") {
+                    card_subcommand(client, matches, &list.id)?;
                 } else {
-                    println!("* {} {:?}", c.name, labels);
+                    render_list(&list);
                 }
+            } else {
+                println!("Could not find a list with the name: {}", list_name);
             }
+        } else {
+            println!("Must specify a filter to target list");
+        }
+    } else if matches.subcommand_matches("ls").is_some() {
+        let lists = Board::get_all_lists(client, board_id)?;
+        for list in lists {
+            println!("{}", list.name);
+        }
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        let list_name = matches.value_of("NAME").unwrap();
+        let list = List::create(client, board_id, list_name)?;
+        println!("{:?}", list);
+    } else {
+        println!("{}", matches.usage());
+    }
+
+    Ok(())
+}
+
+fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    if let Some(matches) = matches.subcommand_matches("get") {
+        if let Some(board_name) = matches.value_of("name") {
+            if let Some(board) = get_board_by_name(&client, board_name)? {
+                if let Some(matches) = matches.subcommand_matches("lists") {
+                    list_subcommand(client, matches, &board.id)?;
+                } else {
+                    let lists = Board::get_all_lists(client, &board.id)?;
+
+                    render_board(&board);
+                    println!();
+
+                    for list in lists {
+                        render_list(&list);
+                        println!();
+                    }
+                }
+            } else {
+                println!("Could not find target board: '{}'", board_name);
+            }
+        } else {
+            println!("You must specify a filter");
+        }
+    } else if matches.subcommand_matches("ls").is_some() {
+        let boards = Board::get_all(&client)?;
+        for board in boards {
+            println!("{}", board.name);
+        }
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        let board_name = matches.value_of("NAME").unwrap();
+        let board = Board::create(&client, board_name)?;
+        println!("{:?}", board);
+    } else {
+        println!("{}", matches.usage());
+    }
+    Ok(())
+}
+
+// TODO Consider making this a trait for each Trello struct
+fn render_board(board: &Board) {
+    println!("{}", board.name);
+    println!("===");
+}
+
+fn render_list(list: &List) {
+    println!("{}", list.name);
+    println!("---");
+
+    if let Some(cards) = &list.cards {
+        for card in cards {
+            render_card(&card, false);
         }
     }
 }
 
-fn card(matches: &ArgMatches, token: &str, key: &str) {
-    let card_id = matches.value_of("card_id");
+fn render_card(card: &Card, detail: bool) {
+    println!("{}", card.name);
 
-    let card;
-    if let Some(card_id) = card_id {
-        card = match trello::Card::get(card_id, token, key) {
-            Ok(c) => c,
-            Err(e) => {
-                println!("Unable to retrieve card");
-                println!("{}", e);
-                return;
-            }
-        };
-    } else {
-        println!("You must supply a card id (--id)");
-        return;
-    }
-
-    print_header(&card.name, "=");
-
-    println!("{}", &card.desc);
-}
-
-fn create(matches: &ArgMatches, token: &str, key: &str) {
-    let target_type = matches.value_of("target_type").unwrap();
-    let parent_id = matches.value_of("parent_id").unwrap();
-    let name = matches.value_of("name").unwrap();
-
-    if target_type == "card" {
-        let card = trello::Card {
-            id: String::from(""),
-            name: String::from(name),
-            desc: String::from(""),
-            url: String::from(""),
-            labels: vec![],
-        };
-
-        match trello::Card::create(&card, parent_id, token, key) {
-            Ok(c) => {
-                println!("Created card '{}' ({})", c.name, c.id);
-            }
-            Err(e) => {
-                println!("There was an issue when creating the card");
-                println!("{}", e);
-                return;
-            }
+    if detail {
+        println!("---");
+        if card.desc.is_empty() {
+            println!("<No Description>");
+        } else {
+            println!("{}", card.desc);
         }
     }
 }
 
-fn close(matches: &ArgMatches, token: &str, key: &str) {
-    let target_type = matches.value_of("target_type").unwrap();
-    let target_id = matches.value_of("target_id").unwrap();
+fn get_card_by_name(
+    client: &Client,
+    list_id: &str,
+    name: &str,
+) -> Result<Option<Card>, Box<dyn Error>> {
+    let cards = List::get_all_cards(client, list_id)?;
 
-    if target_type == "card" {
-        let card = match trello::Card::close(target_id, token, key) {
-            Ok(c) => c,
-            Err(e) => {
-                println!("An error occurred while closing the card");
-                println!("{}", e);
-                return;
-            }
-        };
-        println!("Closed '{}'", card.name);
-    } else if target_type == "board" {
-        let board = match trello::Board::close(target_id, token, key) {
-            Ok(b) => b,
-            Err(e) => {
-                println!("An error occurred while closing the board");
-                println!("{}", e);
-                return;
-            }
-        };
-        println!("Closed '{}'", board.name);
-    } else if target_type == "list" {
-        let list = match trello::List::close(target_id, token, key) {
-            Ok(l) => l,
-            Err(e) => {
-                println!("An error occurred while closing the list");
-                println!("{}", e);
-                return;
-            }
-        };
-        println!("Closed '{}'", list.name);
-    } else {
-        println!("Unknown target type");
+    let re = Regex::new(name).unwrap();
+
+    for card in cards {
+        if re.is_match(&card.name) {
+            return Ok(Some(card));
+        }
     }
+    Ok(None)
 }
 
-fn print_header(text: &str, header_char: &str) {
-    println!("{}", text);
-    println!("{}", header_char.repeat(text.len()));
+fn get_list_by_name(
+    client: &Client,
+    board_id: &str,
+    name: &str,
+) -> Result<Option<List>, Box<dyn Error>> {
+    let lists = Board::get_all_lists(client, board_id)?;
+
+    let re = Regex::new(name).unwrap();
+
+    for list in lists {
+        if re.is_match(&list.name) {
+            return Ok(Some(list));
+        }
+    }
+    Ok(None)
+}
+
+fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
+    let boards = Board::get_all(client)?;
+
+    let re = Regex::new(name).unwrap();
+
+    for board in boards {
+        if re.is_match(&board.name) {
+            return Ok(Some(board));
+        }
+    }
+    Ok(None)
 }
