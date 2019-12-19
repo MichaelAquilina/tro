@@ -272,12 +272,18 @@ fn get_list_by_name(
 
     let re = Regex::new(name).unwrap();
 
-    for list in lists {
-        if re.is_match(&list.name) {
-            return Ok(Some(list));
-        }
+    let mut lists = lists
+        .into_iter()
+        .filter(|l| re.is_match(&l.name))
+        .collect::<Vec<List>>();
+
+    if lists.len() == 1 {
+        Ok(lists.pop())
+    } else if lists.len() > 1 {
+        bail!("More than one List found. Specify a more precise filter.");
+    } else {
+        Ok(None)
     }
-    Ok(None)
 }
 
 fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<dyn Error>> {
@@ -293,7 +299,7 @@ fn get_board_by_name(client: &Client, name: &str) -> Result<Option<Board>, Box<d
     if boards.len() == 1 {
         Ok(boards.pop())
     } else if boards.len() > 1 {
-        bail!("More than one board found");
+        bail!("More than one Board found. Specify a more precise filter");
     } else {
         Ok(None)
     }
