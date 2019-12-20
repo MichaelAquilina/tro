@@ -2,6 +2,9 @@
 extern crate clap;
 #[macro_use]
 extern crate simple_error;
+#[macro_use]
+extern crate log;
+extern crate simplelog;
 
 #[cfg(test)]
 mod test_main;
@@ -9,12 +12,13 @@ mod test_main;
 use clap::ArgMatches;
 use regex::RegexBuilder;
 use serde::Deserialize;
+use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
 use std::fs;
 use trello::{Board, Card, Client, List};
 
 #[derive(Deserialize, Debug)]
-struct Config {
+struct TrelloConfig {
     host: String,
     token: String,
     key: String,
@@ -25,6 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         (version: "1.0")
         (author: "Michael Aquilina")
         (about: "Trello CLI interface")
+        (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
         (@subcommand boards =>
             (about: "Commands related to Trello boards")
             (@subcommand create =>
@@ -82,8 +87,31 @@ fn main() -> Result<(), Box<dyn Error>> {
     )
     .get_matches();
 
+    let log_level = match matches
+        .value_of("log_level")
+        .unwrap()
+        .to_uppercase()
+        .as_str()
+    {
+        "TRACE" => LevelFilter::Trace,
+        "DEBUG" => LevelFilter::Debug,
+        "INFO" => LevelFilter::Info,
+        "ERROR" => LevelFilter::Error,
+        unknown => panic!("Unknown log level '{}'", unknown),
+    };
+
+    CombinedLogger::init(vec![TermLogger::new(
+        log_level,
+        Config::default(),
+        TerminalMode::Mixed,
+    )
+    .unwrap()])
+    .unwrap();
+
     let config = load_config()?;
     let client = Client::new(&config.host, &config.token, &config.key);
+
+    debug!("Loaded configuration: {:?}", config);
 
     if let Some(matches) = matches.subcommand_matches("boards") {
         board_subcommand(&client, &matches)?;
@@ -93,7 +121,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn load_config() -> Result<Config, Box<dyn Error>> {
+fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
     let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
     config_path.push("tro/config.toml");
 
