@@ -151,12 +151,18 @@ impl Board {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn get_all_lists(client: &Client, board_id: &str) -> Result<Vec<List>, Box<dyn Error>> {
-        let url = client.get_trello_url(
-            &format!("/1/boards/{}/lists", board_id),
-            // TODO: Consider whether this makes idiomatic sense
-            &[("cards", "open")],
-        )?;
+    pub fn get_all_lists(
+        client: &Client,
+        board_id: &str,
+        cards: bool,
+    ) -> Result<Vec<List>, Box<dyn Error>> {
+        let mut params = vec![];
+
+        if cards {
+            params.push(("cards", "open"));
+        }
+
+        let url = client.get_trello_url(&format!("/1/boards/{}/lists", board_id), &params)?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }

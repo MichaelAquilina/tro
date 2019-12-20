@@ -295,7 +295,7 @@ mod board_tests {
     fn test_get_all_lists() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/boards/some-board-id/lists?key=some-key&token=some-token&cards=open",
+            "/1/boards/some-board-id/lists?key=some-key&token=some-token",
         )
         .with_status(200)
         .with_body(
@@ -308,7 +308,7 @@ mod board_tests {
         .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-        let result = Board::get_all_lists(&client, "some-board-id")?;
+        let result = Board::get_all_lists(&client, "some-board-id", false)?;
         let expected = vec![
             List {
                 name: String::from("Red"),
@@ -320,6 +320,54 @@ mod board_tests {
                 name: String::from("Green"),
                 id: String::from("222-222"),
                 cards: None,
+                closed: false,
+            },
+        ];
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_all_lists_with_cards() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "GET",
+            "/1/boards/some-board-id/lists?key=some-key&token=some-token&cards=open",
+        )
+        .with_status(200)
+        .with_body(
+            json!([
+                {"name": "Red", "id": "823-123", "closed": false, "cards": []},
+                {
+                    "name": "Green",
+                    "id": "222-222",
+                    "closed": false,
+                    "cards": [
+                        {"id": "card1", "name": "apple", "desc": "", "closed": false},
+                    ],
+                },
+            ])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = Board::get_all_lists(&client, "some-board-id", true)?;
+        let expected = vec![
+            List {
+                name: String::from("Red"),
+                id: String::from("823-123"),
+                cards: Some(vec![]),
+                closed: false,
+            },
+            List {
+                name: String::from("Green"),
+                id: String::from("222-222"),
+                cards: Some(vec![Card {
+                    id: "card1".to_string(),
+                    name: "apple".to_string(),
+                    desc: "".to_string(),
+                    closed: false,
+                }]),
                 closed: false,
             },
         ];

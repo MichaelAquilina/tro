@@ -149,7 +149,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
     if let Some(board) = get_object_by_name(boards, &board_name, false)? {
         if let Some(list_name) = matches.value_of("list_name") {
-            let lists = Board::get_all_lists(client, &board.id)?;
+            let lists = Board::get_all_lists(client, &board.id, true)?;
             if let Some(list) = get_object_by_name(lists, &list_name, false)? {
                 if let Some(card_name) = matches.value_of("card_name") {
                     if let Some(card) = get_object_by_name(list.cards.unwrap(), &card_name, false)?
@@ -225,7 +225,7 @@ fn list_subcommand(
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(list_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
-            let lists = Board::get_all_lists(&client, board_id)?;
+            let lists = Board::get_all_lists(&client, board_id, true)?;
 
             if let Some(mut list) = get_object_by_name(lists, list_name, ignore_case)? {
                 if let Some(matches) = matches.subcommand_matches("cards") {
@@ -244,7 +244,7 @@ fn list_subcommand(
             println!("Must specify a filter to target list");
         }
     } else if matches.subcommand_matches("ls").is_some() {
-        let lists = Board::get_all_lists(client, board_id)?;
+        let lists = Board::get_all_lists(client, board_id, true)?;
         for list in lists {
             println!("{}", list.name);
         }
@@ -299,7 +299,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
 }
 
 fn render_board(client: &Client, board: &Board) -> Result<(), Box<dyn Error>> {
-    let lists = Board::get_all_lists(client, &board.id)?;
+    let lists = Board::get_all_lists(client, &board.id, true)?;
 
     for list in lists {
         render_list(&list);
