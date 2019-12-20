@@ -94,6 +94,7 @@ mod list_tests {
         let expected = List {
             id: String::from("MTLDA"),
             name: String::from("Today"),
+            cards: None,
             closed: false,
         };
         assert_eq!(result, expected);
@@ -122,6 +123,7 @@ mod list_tests {
         let list = List {
             id: "MY-LIST-ID".to_string(),
             name: "Today".to_string(),
+            cards: None,
             closed: true,
         };
 
@@ -311,11 +313,13 @@ mod board_tests {
             List {
                 name: String::from("Red"),
                 id: String::from("823-123"),
+                cards: None,
                 closed: false,
             },
             List {
                 name: String::from("Green"),
                 id: String::from("222-222"),
+                cards: None,
                 closed: false,
             },
         ];

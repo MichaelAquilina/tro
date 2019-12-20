@@ -71,6 +71,7 @@ mod test_get_object_by_name {
         let boards = vec![List {
             name: "red".to_string(),
             id: "R35".to_string(),
+            cards: None,
             closed: false,
         }];
         let result = get_object_by_name(boards, "RED", true).expect("");
@@ -78,6 +79,7 @@ mod test_get_object_by_name {
         let expected = List {
             name: "red".to_string(),
             id: "R35".to_string(),
+            cards: None,
             closed: false,
         };
 

@@ -23,7 +23,7 @@ pub struct Card {
 
 impl TrelloObject for Card {
     fn get_name(&self) -> &str {
-        return &self.name;
+        &self.name
     }
 }
 
@@ -38,7 +38,7 @@ pub struct List {
 
 impl TrelloObject for List {
     fn get_name(&self) -> &str {
-        return &self.name;
+        &self.name
     }
 }
 
@@ -52,7 +52,7 @@ pub struct Board {
 
 impl TrelloObject for Board {
     fn get_name(&self) -> &str {
-        return &self.name;
+        &self.name
     }
 }
 

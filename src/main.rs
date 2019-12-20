@@ -24,21 +24,8 @@ struct TrelloConfig {
     key: String,
 }
 
-// TODO: Logging
-// TODO: Generics
-// TODO: -n is default. --id to use ids as alternative
+// TODO: Better caching between subcommands (i.e. dont re-retrieve data)
 // TODO: Better render for "get" subcommands. Make render a trait method?
-// TODO: easier method for accessing and retrieving cards e.g.
-//      tro cards TODO Prioritised create "My new card"
-// which would equivalent to:
-//      tro boards get -n TODO lists get -n Prioritised cards create "My new card"
-// shortcut is a lot easier to remember and a lot easier to read
-//
-// question is if the shortcut should be part of the rust binary or just a bash function
-//
-// function cards() {
-//     tro boards get -n $1 lists get -n $2 cards ${@:2}
-// }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(myapp =>
@@ -46,6 +33,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         (author: "Michael Aquilina")
         (about: "Trello CLI interface")
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
+        (@subcommand show =>
+            (about: "Shortcut subcommand")
+            (@arg board_name: +required "Board Name to retrieve")
+            (@arg list_name: !required "List Name to retrieve")
+            (@arg card_name: !required "Card Name to retrieve")
+        )
         (@subcommand boards =>
             (about: "Commands related to Trello boards")
             (@subcommand create =>
@@ -57,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             )
             (@subcommand get =>
                 (about: "Get details for a specific board")
-                (@arg name: -n --name +takes_value "Specify board by name. Supports regex patterns.")
+                (@arg name: +takes_value "Specify board by name. Supports regex patterns.")
                 (@arg ignore_case: -i --("ignore-case") "Ignore case when searching by board name.")
                 (@subcommand close =>
                     (about: "Close the board")
@@ -73,7 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     )
                     (@subcommand get =>
                         (about: "Get details for a specific list")
-                        (@arg name: -n --name +takes_value "Specify list by name. Supports regex patterns.")
+                        (@arg name: +takes_value "Specify list by name. Supports regex patterns.")
                         (@arg ignore_case: -i --("ignore-case") "Ignore case when searching by list name.")
                         (@subcommand close =>
                             (about: "Close the list")
@@ -89,7 +82,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             )
                             (@subcommand get =>
                                 (about: "Get details for a specific card")
-                                (@arg name: -n --name +takes_value "Specify card by name. Supports regex patterns.")
+                                (@arg name: +takes_value "Specify card by name. Supports regex patterns.")
                                 (@arg ignore_case: -i --("ignore-case") "Ignore case when searching by card name.")
                                 (@subcommand close =>
                                     (about: "Close the card")
@@ -131,6 +124,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if let Some(matches) = matches.subcommand_matches("boards") {
         board_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("show") {
+        show_subcommand(&client, &matches)?;
     } else {
         println!("{}", matches.usage());
     }
@@ -146,11 +141,46 @@ fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
     Ok(toml::from_str(&contents)?)
 }
 
+fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running show subcommand with {:?}", matches);
+
+    let board_name = matches.value_of("board_name").unwrap();
+    let boards = Board::get_all(&client)?;
+
+    if let Some(board) = get_object_by_name(boards, &board_name, false)? {
+        if let Some(list_name) = matches.value_of("list_name") {
+            let lists = Board::get_all_lists(client, &board.id)?;
+            if let Some(list) = get_object_by_name(lists, &list_name, false)? {
+                if let Some(card_name) = matches.value_of("card_name") {
+                    if let Some(card) = get_object_by_name(list.cards.unwrap(), &card_name, false)?
+                    {
+                        render_card(&card, true);
+                    } else {
+                        println!("Card not found, specify a more precise filter");
+                    }
+                } else {
+                    render_list(&list);
+                }
+            } else {
+                println!("List not found, specify a more precise filter");
+            }
+        } else {
+            render_board(client, &board)?;
+        }
+    } else {
+        println!("Board not found, specify a more precise filter");
+    }
+
+    Ok(())
+}
+
 fn card_subcommand(
     client: &Client,
     matches: &ArgMatches,
     list_id: &str,
 ) -> Result<(), Box<dyn Error>> {
+    debug!("Running card subcommand with {:?}", matches);
+
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(card_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
@@ -190,6 +220,8 @@ fn list_subcommand(
     matches: &ArgMatches,
     board_id: &str,
 ) -> Result<(), Box<dyn Error>> {
+    debug!("Running list subcommand with {:?}", matches);
+
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(list_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
@@ -228,6 +260,8 @@ fn list_subcommand(
 }
 
 fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running board subcommand with {:?}", matches);
+
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
