@@ -8,6 +8,10 @@ pub use client::Client;
 use serde::Deserialize;
 use std::error::Error;
 
+pub trait TrelloObject {
+    fn get_name(&self) -> &str;
+}
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Card {
@@ -15,6 +19,12 @@ pub struct Card {
     pub name: String,
     pub desc: String,
     pub closed: bool,
+}
+
+impl TrelloObject for Card {
+    fn get_name(&self) -> &str {
+        return &self.name;
+    }
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
@@ -25,13 +35,24 @@ pub struct List {
     pub closed: bool,
 }
 
+impl TrelloObject for List {
+    fn get_name(&self) -> &str {
+        return &self.name;
+    }
+}
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Board {
     pub id: String,
     pub name: String,
-    pub url: String,
     pub closed: bool,
+}
+
+impl TrelloObject for Board {
+    fn get_name(&self) -> &str {
+        return &self.name;
+    }
 }
 
 impl Card {

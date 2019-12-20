@@ -15,7 +15,7 @@ use serde::Deserialize;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
 use std::fs;
-use trello::{Board, Card, Client, List};
+use trello::{Board, Card, Client, List, TrelloObject};
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
@@ -23,6 +23,22 @@ struct TrelloConfig {
     token: String,
     key: String,
 }
+
+// TODO: Logging
+// TODO: Generics
+// TODO: -n is default. --id to use ids as alternative
+// TODO: Better render for "get" subcommands. Make render a trait method?
+// TODO: easier method for accessing and retrieving cards e.g.
+//      tro cards TODO Prioritised create "My new card"
+// which would equivalent to:
+//      tro boards get -n TODO lists get -n Prioritised cards create "My new card"
+// shortcut is a lot easier to remember and a lot easier to read
+//
+// question is if the shortcut should be part of the rust binary or just a bash function
+//
+// function cards() {
+//     tro boards get -n $1 lists get -n $2 cards ${@:2}
+// }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(myapp =>
@@ -138,7 +154,9 @@ fn card_subcommand(
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(card_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
-            if let Some(mut card) = get_card_by_name(&client, list_id, card_name, ignore_case)? {
+            let cards = List::get_all_cards(&client, list_id)?;
+
+            if let Some(mut card) = get_object_by_name(cards, card_name, ignore_case)? {
                 if matches.subcommand_matches("close").is_some() {
                     card.closed = true;
                     Card::update(client, &card)?;
@@ -175,7 +193,9 @@ fn list_subcommand(
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(list_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
-            if let Some(mut list) = get_list_by_name(&client, board_id, list_name, ignore_case)? {
+            let lists = Board::get_all_lists(&client, board_id)?;
+
+            if let Some(mut list) = get_object_by_name(lists, list_name, ignore_case)? {
                 if let Some(matches) = matches.subcommand_matches("cards") {
                     card_subcommand(client, matches, &list.id)?;
                 } else if matches.subcommand_matches("close").is_some() {
@@ -211,8 +231,9 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(matches) = matches.subcommand_matches("get") {
         if let Some(board_name) = matches.value_of("name") {
             let ignore_case = matches.is_present("ignore_case");
+            let boards = Board::get_all(&client)?;
 
-            if let Some(mut board) = get_board_by_name(&client, board_name, ignore_case)? {
+            if let Some(mut board) = get_object_by_name(boards, board_name, ignore_case)? {
                 if let Some(matches) = matches.subcommand_matches("lists") {
                     list_subcommand(client, matches, &board.id)?;
                 } else if matches.subcommand_matches("close").is_some() {
@@ -222,6 +243,8 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
                 } else {
                     let lists = Board::get_all_lists(client, &board.id)?;
 
+                    // TODO: Maybe this should not be a fallback, it should be some
+                    // kind of "render" command"
                     render_board(&board);
                     println!();
 
@@ -251,7 +274,6 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     Ok(())
 }
 
-// TODO Consider making this a trait for each Trello struct
 fn render_board(board: &Board) {
     println!("{}", board.name);
     println!("===");
@@ -275,67 +297,11 @@ fn render_card(card: &Card, detail: bool) {
     }
 }
 
-fn get_card_by_name(
-    client: &Client,
-    list_id: &str,
+fn get_object_by_name<T: TrelloObject>(
+    boards: Vec<T>,
     name: &str,
     ignore_case: bool,
-) -> Result<Option<Card>, Box<dyn Error>> {
-    let cards = List::get_all_cards(client, list_id)?;
-
-    let re = RegexBuilder::new(name)
-        .case_insensitive(ignore_case)
-        .build()
-        .expect("Invalid Regex");
-
-    let mut cards = cards
-        .into_iter()
-        .filter(|c| re.is_match(&c.name))
-        .collect::<Vec<Card>>();
-
-    if cards.len() == 1 {
-        Ok(cards.pop())
-    } else if cards.len() > 1 {
-        bail!("More than one Card found. Specify a more precise filter.");
-    } else {
-        Ok(None)
-    }
-}
-
-fn get_list_by_name(
-    client: &Client,
-    board_id: &str,
-    name: &str,
-    ignore_case: bool,
-) -> Result<Option<List>, Box<dyn Error>> {
-    let lists = Board::get_all_lists(client, board_id)?;
-
-    let re = RegexBuilder::new(name)
-        .case_insensitive(ignore_case)
-        .build()
-        .expect("Invalid Regex");
-
-    let mut lists = lists
-        .into_iter()
-        .filter(|l| re.is_match(&l.name))
-        .collect::<Vec<List>>();
-
-    if lists.len() == 1 {
-        Ok(lists.pop())
-    } else if lists.len() > 1 {
-        bail!("More than one List found. Specify a more precise filter.");
-    } else {
-        Ok(None)
-    }
-}
-
-fn get_board_by_name(
-    client: &Client,
-    name: &str,
-    ignore_case: bool,
-) -> Result<Option<Board>, Box<dyn Error>> {
-    let boards = Board::get_all(client)?;
-
+) -> Result<Option<T>, simple_error::SimpleError> {
     let re = RegexBuilder::new(name)
         .case_insensitive(ignore_case)
         .build()
@@ -343,13 +309,16 @@ fn get_board_by_name(
 
     let mut boards = boards
         .into_iter()
-        .filter(|b| re.is_match(&b.name))
-        .collect::<Vec<Board>>();
+        .filter(|b| re.is_match(&b.get_name()))
+        .collect::<Vec<T>>();
 
     if boards.len() == 1 {
         Ok(boards.pop())
     } else if boards.len() > 1 {
-        bail!("More than one Board found. Specify a more precise filter");
+        bail!(
+            "More than one object found for '{}'. Specify a more precise filter",
+            name
+        );
     } else {
         Ok(None)
     }

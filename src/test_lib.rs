@@ -181,7 +181,6 @@ mod board_tests {
         .with_body(
             json!({
                 "name": "MY-TEST-BOARD",
-                "url": "https://example.com/1/2",
                 "id": "231dgfe4r343",
                 "closed": false,
             })
@@ -194,7 +193,6 @@ mod board_tests {
         let expected = Board {
             id: String::from("231dgfe4r343"),
             name: String::from("MY-TEST-BOARD"),
-            url: String::from("https://example.com/1/2"),
             closed: false,
         };
         assert_eq!(result, expected);
@@ -212,7 +210,6 @@ mod board_tests {
             json!({
                 "name": "TODO",
                 "id": "MY-BOARD-ID",
-                "url": "https://trello.com/foo",
                 "closed": true,
             })
             .to_string(),
@@ -225,7 +222,6 @@ mod board_tests {
             id: "MY-BOARD-ID".to_string(),
             name: "TODO".to_string(),
             closed: true,
-            url: "https://trello.com/foo".to_string(),
         };
 
         let result = Board::update(&client, &board)?;
@@ -242,8 +238,8 @@ mod board_tests {
         .with_status(200)
         .with_body(
             json!([
-                {"name": "TODO", "id": "abc-def", "url": "http://bit.ly/12", "closed": false},
-                {"name": "foo", "id": "123-456", "url": "", "closed": false},
+                {"name": "TODO", "id": "abc-def", "closed": false},
+                {"name": "foo", "id": "123-456", "closed": false},
             ])
             .to_string(),
         )
@@ -255,13 +251,11 @@ mod board_tests {
             Board {
                 name: String::from("TODO"),
                 id: String::from("abc-def"),
-                url: String::from("http://bit.ly/12"),
                 closed: false,
             },
             Board {
                 name: String::from("foo"),
                 id: String::from("123-456"),
-                url: String::from(""),
                 closed: false,
             },
         ];
@@ -278,7 +272,6 @@ mod board_tests {
                 json!({
                     "name": "My Favourite Board",
                     "id": "some-board-id",
-                    "url": "https://trello.com/boards/some-board-id",
                     "closed": false,
                 })
                 .to_string(),
@@ -290,7 +283,6 @@ mod board_tests {
         let expected = Board {
             name: String::from("My Favourite Board"),
             id: String::from("some-board-id"),
-            url: String::from("https://trello.com/boards/some-board-id"),
             closed: false,
         };
         assert_eq!(result, expected);

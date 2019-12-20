@@ -1,184 +1,104 @@
 use super::*;
 
-mod test_get_board_by_name {
+mod test_get_object_by_name {
     use super::*;
-    use mockito;
-    use serde_json::json;
 
     #[test]
     fn test_empty() {
-        let _m = mockito::mock(
-            "GET",
-            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
-        )
-        .with_status(200)
-        .with_body(json!([]).to_string())
-        .create();
-
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = get_board_by_name(&client, "foobar", false).expect("");
+        let boards: Vec<Board> = vec![];
+        let result = get_object_by_name(boards, "foobar", false).expect("");
 
         assert_eq!(result, None);
     }
 
     #[test]
     fn test_not_found() {
-        let _m = mockito::mock(
-            "GET",
-            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
-        )
-        .with_status(200)
-        .with_body(
-            json!([{
-                "name": "red",
-                "id": "R35",
-                "url": "",
-                "closed": false,
-            }])
-            .to_string(),
-        )
-        .create();
-
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = get_board_by_name(&client, "foobar", false).expect("");
+        let boards = vec![Card {
+            name: "red".to_string(),
+            desc: "".to_string(),
+            id: "1".to_string(),
+            closed: false,
+        }];
+        let result = get_object_by_name(boards, "foobar", false).expect("");
 
         assert_eq!(result, None);
     }
 
     #[test]
     fn test_more_than_one() {
-        let _m = mockito::mock(
-            "GET",
-            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
-        )
-        .with_status(200)
-        .with_body(
-            json!([
-                {
-                    "name": "red",
-                    "id": "R35",
-                    "url": "",
-                    "closed": false,
-                },
-                {
-                    "name": "red",
-                    "id": "R44",
-                    "url": "",
-                    "closed": false,
-                }
-            ])
-            .to_string(),
-        )
-        .create();
+        let boards = vec![
+            Board {
+                name: "red".to_string(),
+                id: "1".to_string(),
+                closed: false,
+            },
+            Board {
+                name: "red".to_string(),
+                id: "2".to_string(),
+                closed: false,
+            },
+        ];
+        let result = get_object_by_name(boards, "red", false);
 
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = get_board_by_name(&client, "red", false);
-
-        // TODO How do I correctly assert type of Error and value?
-        assert!(result.is_err());
+        assert_eq!(
+            result,
+            Err(simple_error::SimpleError::new(
+                "More than one object found for 'red'. Specify a more precise filter"
+            ))
+        );
     }
 
     #[test]
     fn test_found() {
-        let _m = mockito::mock(
-            "GET",
-            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
-        )
-        .with_status(200)
-        .with_body(
-            json!([
-                {
-                    "name": "red",
-                    "id": "R35",
-                    "url": "",
-                    "closed": false,
-                },
-                {
-                    "name": "Red",
-                    "id": "320",
-                    "url": "",
-                    "closed": false,
-                }
-            ])
-            .to_string(),
-        )
-        .create();
-
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = get_board_by_name(&client, "red", false).expect("");
+        let boards = vec![Board {
+            name: "red".to_string(),
+            id: "R35".to_string(),
+            closed: false,
+        }];
+        let result = get_object_by_name(boards, "red", false).expect("");
 
         let expected = Board {
             name: "red".to_string(),
             id: "R35".to_string(),
-            url: "".to_string(),
             closed: false,
         };
+
         assert_eq!(result, Some(expected));
     }
 
     #[test]
     fn test_case_insensitive() {
-        let _m = mockito::mock(
-            "GET",
-            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
-        )
-        .with_status(200)
-        .with_body(
-            json!([{
-                "name": "red",
-                "id": "R35",
-                "url": "",
-                "closed": false,
-            }])
-            .to_string(),
-        )
-        .create();
-
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = get_board_by_name(&client, "RED", true).expect("");
-
-        let expected = Board {
+        let boards = vec![List {
             name: "red".to_string(),
             id: "R35".to_string(),
-            url: "".to_string(),
+            closed: false,
+        }];
+        let result = get_object_by_name(boards, "RED", true).expect("");
+
+        let expected = List {
+            name: "red".to_string(),
+            id: "R35".to_string(),
             closed: false,
         };
+
         assert_eq!(result, Some(expected));
     }
 
     #[test]
     fn test_regex() {
-        let _m = mockito::mock(
-            "GET",
-            "/1/members/me/boards/?key=KEY&token=TOKEN&filter=open",
-        )
-        .with_status(200)
-        .with_body(
-            json!([{
-                "name": "Red Green Blue 🖌️",
-                "id": "R35",
-                "url": "",
-                "closed": false,
-            }])
-            .to_string(),
-        )
-        .create();
-
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = get_board_by_name(&client, "Red .*", false).expect("");
+        let boards = vec![Board {
+            name: "Red Green Blue 🖌️".to_string(),
+            id: "R35".to_string(),
+            closed: false,
+        }];
+        let result = get_object_by_name(boards, "Red .*", false).expect("");
 
         let expected = Board {
             name: "Red Green Blue 🖌️".to_string(),
             id: "R35".to_string(),
-            url: "".to_string(),
             closed: false,
         };
+
         assert_eq!(result, Some(expected));
     }
 }
