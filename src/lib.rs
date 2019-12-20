@@ -33,6 +33,7 @@ pub struct List {
     pub id: String,
     pub name: String,
     pub closed: bool,
+    pub cards: Option<Vec<Card>>,
 }
 
 impl TrelloObject for List {

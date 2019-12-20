@@ -241,17 +241,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
                     Board::update(client, &board)?;
                     println!("Closed board {} with id {}", board.id, board.name);
                 } else {
-                    let lists = Board::get_all_lists(client, &board.id)?;
-
-                    // TODO: Maybe this should not be a fallback, it should be some
-                    // kind of "render" command"
-                    render_board(&board);
-                    println!();
-
-                    for list in lists {
-                        render_list(&list);
-                        println!();
-                    }
+                    render_board(client, &board)?;
                 }
             } else {
                 println!("Could not find target board: '{}'", board_name);
@@ -274,14 +264,26 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     Ok(())
 }
 
-fn render_board(board: &Board) {
-    println!("{}", board.name);
-    println!("===");
+fn render_board(client: &Client, board: &Board) -> Result<(), Box<dyn Error>> {
+    let lists = Board::get_all_lists(client, &board.id)?;
+
+    for list in lists {
+        render_list(&list);
+        println!();
+    }
+
+    Ok(())
 }
 
 fn render_list(list: &List) {
     println!("{}", list.name);
     println!("---");
+
+    if let Some(cards) = &list.cards {
+        for card in cards {
+            render_card(&card, false);
+        }
+    }
 }
 
 fn render_card(card: &Card, detail: bool) {
