@@ -10,6 +10,8 @@ use std::error::Error;
 
 pub trait TrelloObject {
     fn get_name(&self) -> &str;
+
+    fn render(&self) -> String;
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
@@ -24,6 +26,10 @@ pub struct Card {
 impl TrelloObject for Card {
     fn get_name(&self) -> &str {
         &self.name
+    }
+
+    fn render(&self) -> String {
+        [&self.name, "----", &self.desc].join("\n")
     }
 }
 
@@ -40,6 +46,16 @@ impl TrelloObject for List {
     fn get_name(&self) -> &str {
         &self.name
     }
+
+    fn render(&self) -> String {
+        let mut result: Vec<&str> = vec![&self.name, "---"];
+        if let Some(cards) = &self.cards {
+            for c in cards {
+                result.push(&c.name);
+            }
+        }
+        result.join("\n")
+    }
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
@@ -53,6 +69,10 @@ pub struct Board {
 impl TrelloObject for Board {
     fn get_name(&self) -> &str {
         &self.name
+    }
+
+    fn render(&self) -> String {
+        [&self.name, "===="].join("\n")
     }
 }
 

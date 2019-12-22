@@ -34,10 +34,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         (about: "Trello CLI interface")
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
         (@subcommand show =>
-            (about: "Shortcut subcommand")
+            (about: "Shortcut subcommand to show object contents")
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
+            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
+        )
+        (@subcommand close =>
+            (about: "Shortcut subcommand to close objects")
+            (@arg board_name: +required "Board Name to retrieve")
+            (@arg list_name: !required "List Name to retrieve")
+            (@arg card_name: !required "Card Name to retrieve")
+            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
         (@subcommand boards =>
             (about: "Commands related to Trello boards")
@@ -126,6 +134,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         board_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("close") {
+        close_subcommand(&client, &matches)?;
     } else {
         println!("{}", matches.usage());
     }
@@ -141,34 +151,75 @@ fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
     Ok(toml::from_str(&contents)?)
 }
 
+struct TrelloResult {
+    board: Option<Board>,
+    list: Option<List>,
+    card: Option<Card>,
+}
+
+
+fn get_trello_object(client: &Client, matches: &ArgMatches) -> Result<TrelloResult, Box<dyn Error>> {
+    let board_name = matches.value_of("board_name").unwrap();
+    let boards = Board::get_all(&client)?;
+    let ignore_case = matches.is_present("ignore_case");
+
+    if let Some(board) = get_object_by_name(boards, &board_name, ignore_case)? {
+        if let Some(list_name) = matches.value_of("list_name") {
+            let lists = Board::get_all_lists(client, &board.id, true)?;
+            if let Some(list) = get_object_by_name(lists, &list_name, ignore_case)? {
+                if let Some(card_name) = matches.value_of("card_name") {
+                    let cards = List::get_all_cards(client, &list.id)?;
+
+                    if let Some(card) = get_object_by_name(cards, &card_name, ignore_case)?
+                    {
+                        return Ok(TrelloResult { board: Some(board), list: Some(list), card: Some(card) });
+                    } else {
+                        bail!("Card not found, specify a more precise filter");
+                    }
+                } else {
+                    return Ok(TrelloResult { board: Some(board), list: Some(list), card: None });
+                }
+            } else {
+                bail!("List not found, specify a more precise filter");
+            }
+        } else {
+            return Ok(TrelloResult { board: Some(board), list: None, card: None });
+        }
+    } else {
+        bail!("Board not found, specify a more precise filter");
+    }
+}
+
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
-    let board_name = matches.value_of("board_name").unwrap();
-    let boards = Board::get_all(&client)?;
+    let result = get_trello_object(client, matches)?;
 
-    if let Some(board) = get_object_by_name(boards, &board_name, false)? {
-        if let Some(list_name) = matches.value_of("list_name") {
-            let lists = Board::get_all_lists(client, &board.id, true)?;
-            if let Some(list) = get_object_by_name(lists, &list_name, false)? {
-                if let Some(card_name) = matches.value_of("card_name") {
-                    if let Some(card) = get_object_by_name(list.cards.unwrap(), &card_name, false)?
-                    {
-                        render_card(&card, true);
-                    } else {
-                        println!("Card not found, specify a more precise filter");
-                    }
-                } else {
-                    render_list(&list);
-                }
-            } else {
-                println!("List not found, specify a more precise filter");
-            }
-        } else {
-            render_board(client, &board)?;
-        }
-    } else {
-        println!("Board not found, specify a more precise filter");
+    if let Some(card) = result.card {
+        println!("{}", card.render());
+    } else if let Some(list) = result.list {
+        println!("{}", list.render());
+    } else if let Some(board) = result.board {
+        println!("{}", board.render());
+    }
+
+    Ok(())
+}
+
+fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running close subcommand with {:?}", matches);
+
+    let result = get_trello_object(client, matches)?;
+
+    if let Some(mut card) = result.card {
+        card.closed = true;
+        Card::update(client, &card)?;
+    } else if let Some(mut list) = result.list {
+        list.closed = true;
+        List::update(client, &list)?;
+    } else if let Some(mut board) = result.board {
+        board.closed = true;
+        Board::update(client, &board)?;
     }
 
     Ok(())
@@ -192,7 +243,7 @@ fn card_subcommand(
                     Card::update(client, &card)?;
                     println!("Closed card {} with id {}", card.name, card.id);
                 } else {
-                    render_card(&card, true);
+                    println!("{}", card.render());
                 }
             } else {
                 println!("Could not find a card with the name: {}", card_name);
@@ -235,7 +286,7 @@ fn list_subcommand(
                     List::update(client, &list)?;
                     println!("Closed list {} with id {}", list.name, list.id);
                 } else {
-                    render_list(&list);
+                    println!("{}", list.render());
                 }
             } else {
                 println!("Could not find a list with the name: {}", list_name);
@@ -275,7 +326,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
                     Board::update(client, &board)?;
                     println!("Closed board {} with id {}", board.id, board.name);
                 } else {
-                    render_board(client, &board)?;
+                    println!("{}", board.render());
                 }
             } else {
                 println!("Could not find target board: '{}'", board_name);
@@ -298,40 +349,7 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     Ok(())
 }
 
-fn render_board(client: &Client, board: &Board) -> Result<(), Box<dyn Error>> {
-    let lists = Board::get_all_lists(client, &board.id, true)?;
 
-    for list in lists {
-        render_list(&list);
-        println!();
-    }
-
-    Ok(())
-}
-
-fn render_list(list: &List) {
-    println!("{}", list.name);
-    println!("---");
-
-    if let Some(cards) = &list.cards {
-        for card in cards {
-            render_card(&card, false);
-        }
-    }
-}
-
-fn render_card(card: &Card, detail: bool) {
-    println!("{}", card.name);
-
-    if detail {
-        println!("---");
-        if card.desc.is_empty() {
-            println!("<No Description>");
-        } else {
-            println!("{}", card.desc);
-        }
-    }
-}
 
 fn get_object_by_name<T: TrelloObject>(
     boards: Vec<T>,
