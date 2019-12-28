@@ -157,8 +157,10 @@ struct TrelloResult {
     card: Option<Card>,
 }
 
-
-fn get_trello_object(client: &Client, matches: &ArgMatches) -> Result<TrelloResult, Box<dyn Error>> {
+fn get_trello_object(
+    client: &Client,
+    matches: &ArgMatches,
+) -> Result<TrelloResult, Box<dyn Error>> {
     let board_name = matches.value_of("board_name").unwrap();
     let boards = Board::get_all(&client)?;
     let ignore_case = matches.is_present("ignore_case");
@@ -170,20 +172,31 @@ fn get_trello_object(client: &Client, matches: &ArgMatches) -> Result<TrelloResu
                 if let Some(card_name) = matches.value_of("card_name") {
                     let cards = List::get_all_cards(client, &list.id)?;
 
-                    if let Some(card) = get_object_by_name(cards, &card_name, ignore_case)?
-                    {
-                        return Ok(TrelloResult { board: Some(board), list: Some(list), card: Some(card) });
+                    if let Some(card) = get_object_by_name(cards, &card_name, ignore_case)? {
+                        return Ok(TrelloResult {
+                            board: Some(board),
+                            list: Some(list),
+                            card: Some(card),
+                        });
                     } else {
                         bail!("Card not found, specify a more precise filter");
                     }
                 } else {
-                    return Ok(TrelloResult { board: Some(board), list: Some(list), card: None });
+                    return Ok(TrelloResult {
+                        board: Some(board),
+                        list: Some(list),
+                        card: None,
+                    });
                 }
             } else {
                 bail!("List not found, specify a more precise filter");
             }
         } else {
-            return Ok(TrelloResult { board: Some(board), list: None, card: None });
+            return Ok(TrelloResult {
+                board: Some(board),
+                list: None,
+                card: None,
+            });
         }
     } else {
         bail!("Board not found, specify a more precise filter");
@@ -348,8 +361,6 @@ fn board_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     }
     Ok(())
 }
-
-
 
 fn get_object_by_name<T: TrelloObject>(
     boards: Vec<T>,
