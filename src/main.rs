@@ -34,14 +34,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         (about: "Trello CLI interface")
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
         (@subcommand show =>
-            (about: "Shortcut subcommand to show object contents")
+            (about: "Show object contents")
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
         (@subcommand close =>
-            (about: "Shortcut subcommand to close objects")
+            (about: "Close objects")
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
@@ -90,6 +90,7 @@ fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
     let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
     config_path.push("tro/config.toml");
 
+    debug!("Loading configuration from {:?}", config_path);
     let contents = fs::read_to_string(config_path.to_str().unwrap())?;
 
     Ok(toml::from_str(&contents)?)
@@ -171,12 +172,15 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
+        println!("Closed card '{}'", &card.name);
     } else if let Some(mut list) = result.list {
         list.closed = true;
         List::update(client, &list)?;
+        println!("Closed list '{}'", &list.name);
     } else if let Some(mut board) = result.board {
         board.closed = true;
         Board::update(client, &board)?;
+        println!("Closed board '{}'", &board.name);
     }
 
     Ok(())
