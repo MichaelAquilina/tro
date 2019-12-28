@@ -15,6 +15,7 @@ use serde::Deserialize;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
 use std::fs;
+use std::io::stdin;
 use trello::{Board, Card, Client, List, TrelloObject};
 
 #[derive(Deserialize, Debug)]
@@ -35,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
         (@subcommand show =>
             (about: "Show object contents")
-            (@arg board_name: +required "Board Name to retrieve")
+            (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
@@ -45,6 +46,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
+            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
+        )
+        (@subcommand create =>
+            (about: "Create objects")
+            (@arg board_name: !required "Board Name to retrieve")
+            (@arg list_name: !required "List Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
     )
@@ -80,6 +87,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         show_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("close") {
         close_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("create") {
+        create_subcommand(&client, &matches)?;
     } else {
         println!("{}", matches.usage());
     }
@@ -106,7 +115,10 @@ fn get_trello_object(
     client: &Client,
     matches: &ArgMatches,
 ) -> Result<TrelloResult, Box<dyn Error>> {
-    let board_name = matches.value_of("board_name").unwrap();
+    let board_name = match matches.value_of("board_name") {
+        Some(bn) => bn,
+        None => return Ok(TrelloResult {board: None, list: None, card: None})
+    };
     let boards = Board::get_all(&client)?;
     let ignore_case = matches.is_present("ignore_case");
 
@@ -159,6 +171,11 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
         println!("{}", list.render());
     } else if let Some(board) = result.board {
         println!("{}", board.render());
+    } else {
+        let boards = Board::get_all(client)?;
+        for b in boards {
+            println!("* {}", b.name);
+        }
     }
 
     Ok(())
@@ -181,6 +198,34 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         board.closed = true;
         Board::update(client, &board)?;
         println!("Closed board '{}'", &board.name);
+    }
+
+    Ok(())
+}
+
+fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running create subcommand with {:?}", matches);
+
+    let result = get_trello_object(client, matches)?;
+
+    let mut input = String::new();
+
+    if let Some(list) = result.list {
+        eprint!("Card name: ");
+        stdin().read_line(&mut input)?;
+
+        Card::create(client, &list.id, &input.trim_end())?;
+
+    } else if let Some(board) = result.board {
+        eprint!("List name: ");
+        stdin().read_line(&mut input)?;
+
+        List::create(client, &board.id, &input.trim_end())?;
+    } else {
+        eprint!("Board name: ");
+        stdin().read_line(&mut input)?;
+
+        Board::create(client, &input.trim_end())?;
     }
 
     Ok(())
