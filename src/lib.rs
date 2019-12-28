@@ -8,6 +8,10 @@ pub use client::Client;
 use serde::Deserialize;
 use std::error::Error;
 
+fn header(text: &str, header_char: &str) -> String {
+    [text, &header_char.repeat(text.chars().count())].join("\n")
+}
+
 pub trait TrelloObject {
     fn get_name(&self) -> &str;
 
@@ -29,7 +33,7 @@ impl TrelloObject for Card {
     }
 
     fn render(&self) -> String {
-        [&self.name, "----", &self.desc].join("\n")
+        [header(&self.name, "-").as_str(), &self.desc].join("\n")
     }
 }
 
@@ -48,7 +52,8 @@ impl TrelloObject for List {
     }
 
     fn render(&self) -> String {
-        let mut result: Vec<&str> = vec![&self.name, "---"];
+        let title = header(&self.name, "-");
+        let mut result: Vec<&str> = vec![&title];
         if let Some(cards) = &self.cards {
             for c in cards {
                 result.push(&c.name);
@@ -72,7 +77,7 @@ impl TrelloObject for Board {
     }
 
     fn render(&self) -> String {
-        [&self.name, "===="].join("\n")
+        header(&self.name, "=")
     }
 }
 
