@@ -60,7 +60,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             (about: "Edit cards")
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: +required "List Name to retrieve")
-            (@arg card_name: +required "Card Name to retrieve")
+            (@arg card_name: required_unless("new") "Card Name to retrieve")
+            (@arg new: -n --new +takes_value "Creates a new card")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
     )
@@ -233,7 +234,7 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         eprint!("Card name: ");
         stdin().read_line(&mut input)?;
 
-        Card::create(client, &list.id, &input.trim_end())?;
+        Card::create(client, &list.id, &Card::new("", &input, ""))?;
     } else if let Some(board) = result.board {
         eprint!("List name: ");
         stdin().read_line(&mut input)?;
@@ -257,9 +258,16 @@ fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     let editor_env = env::var("EDITOR")?;
 
     debug!("Using editor: {}", editor_env);
+    let new = matches.value_of("new");
 
     // if we don't get a card we should panic
-    let card = result.card.unwrap();
+    let card = if new.is_some() {
+        Card::new("", new.unwrap(), "")
+    } else {
+        result.card.unwrap()
+    };
+
+    debug!("Editing card: {:?}", card);
 
     writeln!(file, "{}", card.render())?;
 
@@ -279,7 +287,14 @@ fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
     if new_card != card {
         debug!("Detected changes - attempting to update");
-        Card::update(client, &new_card)?;
+        if new_card.id == "" {
+            let list_id = &result.list.unwrap().id;
+            debug!("Creating new card under list {}", list_id);
+            Card::create(client, list_id, &new_card)?;
+        } else {
+            debug!("Updating card {}", new_card.id);
+            Card::update(client, &new_card)?;
+        }
     } else {
         debug!("No changes detected - no update will be attempted");
     }

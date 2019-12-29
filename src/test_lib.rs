@@ -52,7 +52,7 @@ mod card_tests {
     fn test_create() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "POST",
-            "/1/cards/?key=some-key&token=some-token&name=Laundry&idList=FOOBAR",
+            "/1/cards/?key=some-key&token=some-token&name=Laundry&desc=Desky&idList=FOOBAR",
         )
         .with_status(200)
         .with_body(
@@ -67,7 +67,7 @@ mod card_tests {
         .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-        let result = Card::create(&client, "FOOBAR", "Laundry")?;
+        let result = Card::create(&client, "FOOBAR", &Card::new("", "Laundry", "Desky"))?;
         let expected = Card::new("88888", "Laundry", "");
 
         assert_eq!(result, expected);
