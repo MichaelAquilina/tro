@@ -1,3 +1,8 @@
+#[macro_use]
+extern crate simple_error;
+#[macro_use]
+extern crate log;
+
 mod client;
 
 #[cfg(test)]
@@ -7,6 +12,8 @@ pub use client::Client;
 
 use serde::Deserialize;
 use std::error::Error;
+
+use simple_error::SimpleError;
 
 fn header(text: &str, header_char: &str) -> String {
     [text, &header_char.repeat(text.chars().count())].join("\n")
@@ -105,6 +112,82 @@ impl TrelloObject for Board {
 }
 
 impl Card {
+    /// Takes a buffer of contents that represent a Card render and parses
+    /// it into a Card structure. This is similar to a deserialization process
+    /// except this is quite unstructured and is not very strict in order to allow
+    /// the user to more easily edit card contents.
+    ///
+    /// Card id is left empty as there is no way to derive that from the contents.
+    /// The resultant card is also assumed to be open.
+    /// ```
+    /// # use simple_error::SimpleError;
+    /// # fn main() -> Result<(), SimpleError> {
+    /// let buffer = "Hello World\n---\nThis is my card";
+    /// let card = trello::Card::parse(buffer)?;
+    ///
+    /// assert_eq!(
+    ///     card,
+    ///     trello::Card {
+    ///         id: String::new(),
+    ///         name: String::from("Hello World"),
+    ///         desc: String::from("This is my card"),
+    ///         closed: false,
+    ///     },
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    /// Invalid data will result in an appropriate error being returned.
+    ///
+    /// ```
+    /// use simple_error::SimpleError;
+    /// let buffer = "";
+    /// let result = trello::Card::parse(buffer);
+    /// assert_eq!(
+    ///     result,
+    ///     Err(SimpleError::new("Unable to parse - Unable to find name delimiter '----'"))
+    /// );
+    /// ```
+    pub fn parse(buffer: &str) -> Result<Card, SimpleError> {
+        // this is guaranteed to give at least one result
+        let mut contents = buffer.split("\n").collect::<Vec<&str>>();
+        trace!("{:?}", contents);
+
+        // first line should *always* be the name of the card
+        let mut name = vec![contents.remove(0)];
+
+        // continue generating the name until we find a line entirely composed of '-'
+        // we cannot calculate header() here because we allow the user the benefit of not
+        // having to add or remove characters in case the name grows or shrinks in size
+        let mut found = false;
+        while contents.len() > 0 {
+            let line = contents.remove(0);
+
+            if &line.chars().take_while(|c| c == &'-').collect::<String>() != line {
+                name.push(line);
+            } else {
+                found = true;
+                break;
+            }
+        }
+
+        if !found {
+            bail!("Unable to parse - Unable to find name delimiter '----'");
+        }
+
+        let name = name.join("\n");
+        // The rest of the contents is assumed to be the description
+        let desc = contents.join("\n");
+
+        Ok(Card {
+            id: String::new(),
+            name: String::from(name),
+            // Trim end because a lot of editors will auto add new lines at the end of the file
+            desc: String::from(desc.trim_end()),
+            closed: false,
+        })
+    }
+
     pub fn create(client: &Client, list_id: &str, name: &str) -> Result<Card, Box<dyn Error>> {
         let url = client.get_trello_url("/1/cards/", &[("name", name), ("idList", list_id)])?;
 

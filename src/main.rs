@@ -14,8 +14,10 @@ use regex::RegexBuilder;
 use serde::Deserialize;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
-use std::fs;
-use std::io::stdin;
+use std::io::{stdin, Read, Write};
+use std::process::Command;
+use std::{env, fs};
+use tempfile::NamedTempFile;
 use trello::{Board, Card, Client, List, TrelloObject};
 
 #[derive(Deserialize, Debug)]
@@ -54,6 +56,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@arg list_name: !required "List Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
+        (@subcommand edit =>
+            (about: "Edit cards")
+            (@arg board_name: +required "Board Name to retrieve")
+            (@arg list_name: +required "List Name to retrieve")
+            (@arg card_name: +required "Card Name to retrieve")
+            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
+        )
     )
     .get_matches();
 
@@ -89,6 +98,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         close_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("create") {
         create_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("edit") {
+        edit_subcommand(&client, &matches)?;
     } else {
         println!("{}", matches.usage());
     }
@@ -232,6 +243,43 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         stdin().read_line(&mut input)?;
 
         Board::create(client, &input.trim_end())?;
+    }
+
+    Ok(())
+}
+
+fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running edit subcommand with {:?}", matches);
+
+    let result = get_trello_object(client, matches)?;
+    let mut file = NamedTempFile::new()?;
+    let editor_env = env::var("EDITOR")?;
+
+    debug!("Using editor: {}", editor_env);
+
+    // if we don't get a card we should panic
+    let card = result.card.unwrap();
+
+    writeln!(file, "{}", card.render())?;
+
+    let editor = Command::new(editor_env).arg(file.path()).status()?;
+
+    debug!("editor exited with {:?}", editor);
+
+    let mut buf = String::new();
+    file.reopen()?.read_to_string(&mut buf)?;
+
+    let mut new_card = Card::parse(&mut buf)?;
+    new_card.id = String::from(&card.id);
+
+    trace!("Previous: {:?}", card);
+    trace!("New: {:?}", new_card);
+
+    if new_card != card {
+        debug!("Detected changes - attempting to update");
+        Card::update(client, &new_card)?;
+    } else {
+        debug!("No changes detected - no update will be attempted");
     }
 
     Ok(())
