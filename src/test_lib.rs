@@ -1,4 +1,4 @@
-use super::{header, Board, Card, Client, List};
+use super::{header, Board, Card, Client, List, TrelloObject};
 use mockito;
 use serde_json::json;
 use std::error::Error;
@@ -27,6 +27,19 @@ mod header_tests {
 
 mod card_tests {
     use super::*;
+
+    #[test]
+    fn test_render() {
+        let card = Card {
+            id: String::from("aaaaa"),
+            name: String::from("My Fav Card"),
+            desc: String::from("this is a nice card"),
+            closed: false,
+        };
+
+        let expected = "My Fav Card\n-----------\nthis is a nice card";
+        assert_eq!(card.render(), expected);
+    }
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
@@ -93,6 +106,45 @@ mod card_tests {
 
 mod list_tests {
     use super::*;
+
+    #[test]
+    fn test_render_no_cards() {
+        let list = List {
+            id: String::from("aaaaa"),
+            name: String::from("King Knight"),
+            cards: None,
+            closed: false,
+        };
+
+        let expected = "King Knight\n-----------";
+        assert_eq!(list.render(), expected);
+    }
+
+    #[test]
+    fn test_render_with_cards() {
+        let list = List {
+            id: String::from("aaaaa"),
+            name: String::from("King Knight"),
+            cards: Some(vec![
+                Card {
+                    id: String::new(),
+                    name: String::from("hello"),
+                    desc: String::new(),
+                    closed: false,
+                },
+                Card {
+                    id: String::new(),
+                    name: String::from("world"),
+                    desc: String::new(),
+                    closed: false,
+                },
+            ]),
+            closed: false,
+        };
+
+        let expected = "King Knight\n-----------\n* hello\n* world";
+        assert_eq!(list.render(), expected);
+    }
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
@@ -194,6 +246,76 @@ mod list_tests {
 
 mod board_tests {
     use super::*;
+
+    #[test]
+    fn test_render_no_lists() {
+        let board = Board {
+            id: String::new(),
+            name: String::from("Knights"),
+            closed: false,
+            lists: None,
+        };
+
+        let expected = "Knights\n=======";
+        assert_eq!(board.render(), expected);
+    }
+
+    #[test]
+    fn test_render_lists() {
+        let board = Board {
+            id: String::new(),
+            name: String::from("Knights"),
+            closed: false,
+            lists: Some(vec![
+                List {
+                    id: String::new(),
+                    name: String::from("King"),
+                    cards: None,
+                    closed: false,
+                },
+                List {
+                    id: String::new(),
+                    name: String::from("Shovel"),
+                    cards: None,
+                    closed: false,
+                },
+            ]),
+        };
+
+        let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------";
+        assert_eq!(board.render(), expected);
+    }
+
+    #[test]
+    fn test_render_lists_and_cards() {
+        let board = Board {
+            id: String::new(),
+            name: String::from("Knights"),
+            closed: false,
+            lists: Some(vec![
+                List {
+                    id: String::new(),
+                    name: String::from("King"),
+                    cards: None,
+                    closed: false,
+                },
+                List {
+                    id: String::new(),
+                    name: String::from("Shovel"),
+                    cards: Some(vec![Card {
+                        id: String::new(),
+                        name: String::from("Flare Wand"),
+                        desc: String::new(),
+                        closed: false,
+                    }]),
+                    closed: false,
+                },
+            ]),
+        };
+
+        let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------\n* Flare Wand";
+        assert_eq!(board.render(), expected);
+    }
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {

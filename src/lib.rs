@@ -95,9 +95,8 @@ impl TrelloObject for Board {
     fn render(&self) -> String {
         let mut result = vec![header(&self.name, "=")];
         if let Some(lists) = &self.lists {
-            result.push(String::from(""));
-
             for list in lists {
+                result.push(String::from(""));
                 result.push(list.render());
             }
         }
