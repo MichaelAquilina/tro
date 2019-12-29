@@ -27,8 +27,8 @@ struct TrelloConfig {
     key: String,
 }
 
-// TODO: Better caching between subcommands (i.e. dont re-retrieve data)
-// TODO: Better render for "get" subcommands. Make render a trait method?
+// TODO: Tests for all the subcommands
+// TODO: Better Trello API interface
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(myapp =>
