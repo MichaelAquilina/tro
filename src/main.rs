@@ -29,6 +29,9 @@ struct TrelloConfig {
 
 // TODO: Tests for all the subcommands
 // TODO: Better Trello API interface
+// TODO: Wildcards for easier patterns
+// e.g. tro close TODO - "some card"
+// closes the card "some card" searching all lists in the TODO board
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(TrelloCLI =>
