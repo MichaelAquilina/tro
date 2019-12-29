@@ -31,10 +31,10 @@ struct TrelloConfig {
 // TODO: Better Trello API interface
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let matches = clap_app!(myapp =>
-        (version: "1.0")
+    let matches = clap_app!(TrelloCLI =>
+        (version: env!("CARGO_PKG_VERSION"))
         (author: "Michael Aquilina")
-        (about: "Trello CLI interface")
+        (about: env!("CARGO_PKG_DESCRIPTION"))
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
         (@subcommand show =>
             (about: "Show object contents")
