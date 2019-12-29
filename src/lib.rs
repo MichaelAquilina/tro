@@ -53,10 +53,11 @@ impl TrelloObject for List {
 
     fn render(&self) -> String {
         let title = header(&self.name, "-");
-        let mut result: Vec<&str> = vec![&title];
+        let mut result: Vec<String> = vec![title];
         if let Some(cards) = &self.cards {
             for c in cards {
-                result.push(&c.name);
+                let s = format!("* {}", &c.name);
+                result.push(s);
             }
         }
         result.join("\n")
