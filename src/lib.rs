@@ -112,6 +112,15 @@ impl TrelloObject for Board {
 }
 
 impl Card {
+    pub fn new(id: &str, name: &str, desc: &str) -> Card {
+        Card {
+            id: String::from(id),
+            name: String::from(name),
+            desc: String::from(desc),
+            closed: false,
+        }
+    }
+
     /// Takes a buffer of contents that represent a Card render and parses
     /// it into a Card structure. This is similar to a deserialization process
     /// except this is quite unstructured and is not very strict in order to allow
@@ -216,6 +225,15 @@ impl Card {
 }
 
 impl List {
+    pub fn new(id: &str, name: &str, cards: Option<Vec<Card>>) -> List {
+        List {
+            id: String::from(id),
+            name: String::from(name),
+            cards: cards,
+            closed: false,
+        }
+    }
+
     pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List, Box<dyn Error>> {
         let url = client.get_trello_url("/1/lists/", &[("name", name), ("idBoard", board_id)])?;
 
@@ -249,6 +267,15 @@ impl List {
 }
 
 impl Board {
+    pub fn new(id: &str, name: &str, lists: Option<Vec<List>>) -> Board {
+        Board {
+            id: String::from(id),
+            name: String::from(name),
+            lists: lists,
+            closed: false,
+        }
+    }
+
     /// Retrieves any missing nested content for the given board. This potentially
     /// means one or more network requests in order to retrieve the data. The Board
     /// will be mutated to include all its associated lists. The lists will also in turn

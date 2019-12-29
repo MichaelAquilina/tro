@@ -29,13 +29,20 @@ mod card_tests {
     use super::*;
 
     #[test]
-    fn test_render() {
-        let card = Card {
-            id: String::from("aaaaa"),
-            name: String::from("My Fav Card"),
-            desc: String::from("this is a nice card"),
+    fn test_new() {
+        let card = Card::new("A", "B", "C");
+        let expected = Card {
+            id: String::from("A"),
+            name: String::from("B"),
+            desc: String::from("C"),
             closed: false,
         };
+        assert_eq!(card, expected);
+    }
+
+    #[test]
+    fn test_render() {
+        let card = Card::new("aaaaa", "My Fav Card", "this is a nice card");
 
         let expected = "My Fav Card\n-----------\nthis is a nice card";
         assert_eq!(card.render(), expected);
@@ -61,12 +68,8 @@ mod card_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = Card::create(&client, "FOOBAR", "Laundry")?;
-        let expected = Card {
-            id: String::from("88888"),
-            name: String::from("Laundry"),
-            desc: String::from(""),
-            closed: false,
-        };
+        let expected = Card::new("88888", "Laundry", "");
+
         assert_eq!(result, expected);
         Ok(())
     }
@@ -91,12 +94,8 @@ mod card_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
 
-        let card = Card {
-            id: "MY-CARD-ID".to_string(),
-            name: "Laundry".to_string(),
-            desc: "hello".to_string(),
-            closed: true,
-        };
+        let mut card = Card::new("MY-CARD-ID", "Laundry", "hello");
+        card.closed = true;
 
         let result = Card::update(&client, &card)?;
         assert_eq!(result, card);
@@ -108,39 +107,31 @@ mod list_tests {
     use super::*;
 
     #[test]
-    fn test_render_no_cards() {
-        let list = List {
-            id: String::from("aaaaa"),
-            name: String::from("King Knight"),
-            cards: None,
+    fn test_new() {
+        let list = List::new("123", "my list", Some(vec![]));
+        let expected = List {
+            id: String::from("123"),
+            name: String::from("my list"),
+            cards: Some(vec![]),
             closed: false,
         };
+        assert_eq!(list, expected);
+    }
 
+    #[test]
+    fn test_render_no_cards() {
+        let list = List::new("aaaaa", "King Knight", None);
         let expected = "King Knight\n-----------";
         assert_eq!(list.render(), expected);
     }
 
     #[test]
     fn test_render_with_cards() {
-        let list = List {
-            id: String::from("aaaaa"),
-            name: String::from("King Knight"),
-            cards: Some(vec![
-                Card {
-                    id: String::new(),
-                    name: String::from("hello"),
-                    desc: String::new(),
-                    closed: false,
-                },
-                Card {
-                    id: String::new(),
-                    name: String::from("world"),
-                    desc: String::new(),
-                    closed: false,
-                },
-            ]),
-            closed: false,
-        };
+        let list = List::new(
+            "aaaaa",
+            "King Knight",
+            Some(vec![Card::new("", "hello", ""), Card::new("", "world", "")]),
+        );
 
         let expected = "King Knight\n-----------\n* hello\n* world";
         assert_eq!(list.render(), expected);
@@ -165,12 +156,7 @@ mod list_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = List::create(&client, "LEONSK", "Today")?;
-        let expected = List {
-            id: String::from("MTLDA"),
-            name: String::from("Today"),
-            cards: None,
-            closed: false,
-        };
+        let expected = List::new("MTLDA", "Today", None);
         assert_eq!(result, expected);
         Ok(())
     }
@@ -194,12 +180,8 @@ mod list_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
 
-        let list = List {
-            id: "MY-LIST-ID".to_string(),
-            name: "Today".to_string(),
-            cards: None,
-            closed: true,
-        };
+        let mut list = List::new("MY-LIST-ID", "Today", None);
+        list.closed = true;
 
         let result = List::update(&client, &list)?;
         assert_eq!(result, list);
@@ -225,18 +207,8 @@ mod list_tests {
         let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
         let result = List::get_all_cards(&client, "DEADBEEF")?;
         let expected = vec![
-            Card {
-                name: String::from("Water the plants"),
-                id: String::from("abc-def"),
-                desc: String::from(""),
-                closed: false,
-            },
-            Card {
-                name: String::from("Feed the dog"),
-                id: String::from("123-456"),
-                desc: String::from("for a good boy"),
-                closed: false,
-            },
+            Card::new("abc-def", "Water the plants", ""),
+            Card::new("123-456", "Feed the dog", "for a good boy"),
         ];
 
         assert_eq!(result, expected);
@@ -248,39 +220,34 @@ mod board_tests {
     use super::*;
 
     #[test]
-    fn test_render_no_lists() {
-        let board = Board {
-            id: String::new(),
-            name: String::from("Knights"),
+    fn test_new() {
+        let board = Board::new("888", "some board", Some(vec![]));
+        let expected = Board {
+            id: String::from("888"),
+            name: String::from("some board"),
+            lists: Some(vec![]),
             closed: false,
-            lists: None,
         };
+        assert_eq!(board, expected);
+    }
 
+    #[test]
+    fn test_render_no_lists() {
+        let board = Board::new("", "Knights", None);
         let expected = "Knights\n=======";
         assert_eq!(board.render(), expected);
     }
 
     #[test]
     fn test_render_lists() {
-        let board = Board {
-            id: String::new(),
-            name: String::from("Knights"),
-            closed: false,
-            lists: Some(vec![
-                List {
-                    id: String::new(),
-                    name: String::from("King"),
-                    cards: None,
-                    closed: false,
-                },
-                List {
-                    id: String::new(),
-                    name: String::from("Shovel"),
-                    cards: None,
-                    closed: false,
-                },
+        let board = Board::new(
+            "",
+            "Knights",
+            Some(vec![
+                List::new("", "King", None),
+                List::new("", "Shovel", None),
             ]),
-        };
+        );
 
         let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------";
         assert_eq!(board.render(), expected);
@@ -288,30 +255,14 @@ mod board_tests {
 
     #[test]
     fn test_render_lists_and_cards() {
-        let board = Board {
-            id: String::new(),
-            name: String::from("Knights"),
-            closed: false,
-            lists: Some(vec![
-                List {
-                    id: String::new(),
-                    name: String::from("King"),
-                    cards: None,
-                    closed: false,
-                },
-                List {
-                    id: String::new(),
-                    name: String::from("Shovel"),
-                    cards: Some(vec![Card {
-                        id: String::new(),
-                        name: String::from("Flare Wand"),
-                        desc: String::new(),
-                        closed: false,
-                    }]),
-                    closed: false,
-                },
+        let board = Board::new(
+            "",
+            "Knights",
+            Some(vec![
+                List::new("", "King", None),
+                List::new("", "Shovel", Some(vec![Card::new("", "Flare Wand", "")])),
             ]),
-        };
+        );
 
         let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------\n* Flare Wand";
         assert_eq!(board.render(), expected);
@@ -336,12 +287,8 @@ mod board_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = Board::create(&client, "MY-TEST-BOARD")?;
-        let expected = Board {
-            id: String::from("231dgfe4r343"),
-            name: String::from("MY-TEST-BOARD"),
-            closed: false,
-            lists: None,
-        };
+        let expected = Board::new("231dgfe4r343", "MY-TEST-BOARD", None);
+
         assert_eq!(result, expected);
         Ok(())
     }
@@ -365,14 +312,11 @@ mod board_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
 
-        let board = Board {
-            id: "MY-BOARD-ID".to_string(),
-            name: "TODO".to_string(),
-            closed: true,
-            lists: None,
-        };
+        let mut board = Board::new("MY-BOARD-ID", "TODO", None);
+        board.closed = true;
 
         let result = Board::update(&client, &board)?;
+
         assert_eq!(result, board);
         Ok(())
     }
@@ -396,18 +340,8 @@ mod board_tests {
         let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
         let result = Board::get_all(&client)?;
         let expected = vec![
-            Board {
-                name: String::from("TODO"),
-                id: String::from("abc-def"),
-                closed: false,
-                lists: None,
-            },
-            Board {
-                name: String::from("foo"),
-                id: String::from("123-456"),
-                closed: false,
-                lists: None,
-            },
+            Board::new("abc-def", "TODO", None),
+            Board::new("123-456", "foo", None),
         ];
 
         assert_eq!(result, expected);
@@ -433,13 +367,9 @@ mod board_tests {
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
         let result = Board::get(&client, "some-board-id")?;
-        let expected = Board {
-            name: String::from("My Favourite Board"),
-            id: String::from("some-board-id"),
-            closed: false,
-            lists: None,
-        };
+        let expected = Board::new("some-board-id", "My Favourite Board", None);
         assert_eq!(result, expected);
+
         Ok(())
     }
 
@@ -462,18 +392,8 @@ mod board_tests {
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = Board::get_all_lists(&client, "some-board-id", false)?;
         let expected = vec![
-            List {
-                name: String::from("Red"),
-                id: String::from("823-123"),
-                cards: None,
-                closed: false,
-            },
-            List {
-                name: String::from("Green"),
-                id: String::from("222-222"),
-                cards: None,
-                closed: false,
-            },
+            List::new("823-123", "Red", None),
+            List::new("222-222", "Green", None),
         ];
         assert_eq!(result, expected);
         Ok(())
@@ -505,23 +425,12 @@ mod board_tests {
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = Board::get_all_lists(&client, "some-board-id", true)?;
         let expected = vec![
-            List {
-                name: String::from("Red"),
-                id: String::from("823-123"),
-                cards: Some(vec![]),
-                closed: false,
-            },
-            List {
-                name: String::from("Green"),
-                id: String::from("222-222"),
-                cards: Some(vec![Card {
-                    id: "card1".to_string(),
-                    name: "apple".to_string(),
-                    desc: "".to_string(),
-                    closed: false,
-                }]),
-                closed: false,
-            },
+            List::new("823-123", "Red", Some(vec![])),
+            List::new(
+                "222-222",
+                "Green",
+                Some(vec![Card::new("card1", "apple", "")]),
+            ),
         ];
         assert_eq!(result, expected);
         Ok(())
