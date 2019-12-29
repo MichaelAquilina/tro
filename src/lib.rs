@@ -80,6 +80,7 @@ pub struct Board {
     pub id: String,
     pub name: String,
     pub closed: bool,
+    pub lists: Option<Vec<List>>,
 }
 
 impl TrelloObject for Board {
@@ -92,7 +93,15 @@ impl TrelloObject for Board {
     }
 
     fn render(&self) -> String {
-        header(&self.name, "=")
+        let mut result = vec![header(&self.name, "=")];
+        if let Some(lists) = &self.lists {
+            result.push(String::from(""));
+
+            for list in lists {
+                result.push(list.render());
+            }
+        }
+        result.join("\n")
     }
 }
 
@@ -159,6 +168,18 @@ impl List {
 }
 
 impl Board {
+    pub fn retrieve_nested(&mut self, client: &Client) -> Result<(), Box<dyn Error>> {
+        if let Some(lists) = &mut self.lists {
+            for list in lists {
+                list.cards = Some(List::get_all_cards(client, &list.id)?);
+            }
+        } else {
+            self.lists = Some(Board::get_all_lists(client, &self.id, true)?);
+        }
+
+        Ok(())
+    }
+
     pub fn create(client: &Client, name: &str) -> Result<Board, Box<dyn Error>> {
         let url = client.get_trello_url("/1/boards/", &[("name", name)])?;
 

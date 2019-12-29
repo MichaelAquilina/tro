@@ -31,11 +31,13 @@ mod test_get_object_by_name {
                 name: "red".to_string(),
                 id: "1".to_string(),
                 closed: false,
+                lists: None,
             },
             Board {
                 name: "red".to_string(),
                 id: "2".to_string(),
                 closed: false,
+                lists: None,
             },
         ];
         let result = get_object_by_name(boards, "red", false);
@@ -54,6 +56,7 @@ mod test_get_object_by_name {
             name: "red".to_string(),
             id: "R35".to_string(),
             closed: false,
+            lists: None,
         }];
         let result = get_object_by_name(boards, "red", false).expect("");
 
@@ -61,6 +64,7 @@ mod test_get_object_by_name {
             name: "red".to_string(),
             id: "R35".to_string(),
             closed: false,
+            lists: None,
         };
 
         assert_eq!(result, Some(expected));
@@ -92,6 +96,7 @@ mod test_get_object_by_name {
             name: "Red Green Blue 🖌️".to_string(),
             id: "R35".to_string(),
             closed: false,
+            lists: None,
         }];
         let result = get_object_by_name(boards, "Red .*", false).expect("");
 
@@ -99,6 +104,7 @@ mod test_get_object_by_name {
             name: "Red Green Blue 🖌️".to_string(),
             id: "R35".to_string(),
             closed: false,
+            lists: None,
         };
 
         assert_eq!(result, Some(expected));

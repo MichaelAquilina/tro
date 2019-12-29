@@ -175,7 +175,8 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
         println!("{}", card.render());
     } else if let Some(list) = result.list {
         println!("{}", list.render());
-    } else if let Some(board) = result.board {
+    } else if let Some(mut board) = result.board {
+        board.retrieve_nested(client)?;
         println!("{}", board.render());
     } else {
         let boards = Board::get_all(client)?;

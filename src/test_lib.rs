@@ -218,6 +218,7 @@ mod board_tests {
             id: String::from("231dgfe4r343"),
             name: String::from("MY-TEST-BOARD"),
             closed: false,
+            lists: None,
         };
         assert_eq!(result, expected);
         Ok(())
@@ -246,6 +247,7 @@ mod board_tests {
             id: "MY-BOARD-ID".to_string(),
             name: "TODO".to_string(),
             closed: true,
+            lists: None,
         };
 
         let result = Board::update(&client, &board)?;
@@ -276,11 +278,13 @@ mod board_tests {
                 name: String::from("TODO"),
                 id: String::from("abc-def"),
                 closed: false,
+                lists: None,
             },
             Board {
                 name: String::from("foo"),
                 id: String::from("123-456"),
                 closed: false,
+                lists: None,
             },
         ];
 
@@ -311,6 +315,7 @@ mod board_tests {
             name: String::from("My Favourite Board"),
             id: String::from("some-board-id"),
             closed: false,
+            lists: None,
         };
         assert_eq!(result, expected);
         Ok(())
