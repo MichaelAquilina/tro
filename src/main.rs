@@ -116,6 +116,7 @@ fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
     Ok(toml::from_str(&contents)?)
 }
 
+#[derive(Debug, PartialEq)]
 struct TrelloResult {
     board: Option<Board>,
     list: Option<List>,

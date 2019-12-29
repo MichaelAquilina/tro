@@ -1,5 +1,21 @@
 use super::*;
 
+mod test_get_trello_object {
+    use super::*;
+    use clap::ArgMatches;
+
+    #[test]
+    fn test_empty() -> Result<(), Box<dyn Error>> {
+        let matches = ArgMatches::new();
+        let client = Client::new("", "", "");
+
+        let result = get_trello_object(&client, &matches)?;
+        let expected = TrelloResult { board: None, list: None, card: None };
+        assert_eq!(result, expected);
+        Ok(())
+    }
+}
+
 mod test_get_object_by_name {
     use super::*;
 
