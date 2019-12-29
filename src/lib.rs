@@ -250,7 +250,12 @@ impl List {
 }
 
 impl Board {
+    /// Retrieves any missing nested content for the given board. This potentially
+    /// means one or more network requests in order to retrieve the data. The Board
+    /// will be mutated to include all its associated lists. The lists will also in turn
+    /// contain the associated card resources.
     pub fn retrieve_nested(&mut self, client: &Client) -> Result<(), Box<dyn Error>> {
+        // TODO: might be more efficient to just re-retrieve all lists with cards: true?
         if let Some(lists) = &mut self.lists {
             for list in lists {
                 list.cards = Some(List::get_all_cards(client, &list.id)?);
