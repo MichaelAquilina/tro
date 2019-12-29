@@ -269,7 +269,8 @@ fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     let mut buf = String::new();
     file.reopen()?.read_to_string(&mut buf)?;
 
-    let mut new_card = Card::parse(&mut buf)?;
+    // Trim end because a lot of editors will auto add new lines at the end of the file
+    let mut new_card = Card::parse(buf.trim_end())?;
     new_card.id = String::from(&card.id);
 
     trace!("Previous: {:?}", card);

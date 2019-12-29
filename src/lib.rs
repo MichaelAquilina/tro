@@ -182,8 +182,7 @@ impl Card {
         Ok(Card {
             id: String::new(),
             name: String::from(name),
-            // Trim end because a lot of editors will auto add new lines at the end of the file
-            desc: String::from(desc.trim_end()),
+            desc: String::from(desc),
             closed: false,
         })
     }
