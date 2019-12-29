@@ -117,7 +117,13 @@ fn get_trello_object(
 ) -> Result<TrelloResult, Box<dyn Error>> {
     let board_name = match matches.value_of("board_name") {
         Some(bn) => bn,
-        None => return Ok(TrelloResult {board: None, list: None, card: None})
+        None => {
+            return Ok(TrelloResult {
+                board: None,
+                list: None,
+                card: None,
+            })
+        }
     };
     let boards = Board::get_all(&client)?;
     let ignore_case = matches.is_present("ignore_case");
@@ -215,7 +221,6 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         stdin().read_line(&mut input)?;
 
         Card::create(client, &list.id, &input.trim_end())?;
-
     } else if let Some(board) = result.board {
         eprint!("List name: ");
         stdin().read_line(&mut input)?;

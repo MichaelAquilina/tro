@@ -15,6 +15,8 @@ fn header(text: &str, header_char: &str) -> String {
 pub trait TrelloObject {
     fn get_name(&self) -> &str;
 
+    fn get_fields() -> &'static [&'static str];
+
     fn render(&self) -> String;
 }
 
@@ -30,6 +32,10 @@ pub struct Card {
 impl TrelloObject for Card {
     fn get_name(&self) -> &str {
         &self.name
+    }
+
+    fn get_fields() -> &'static [&'static str] {
+        &["id", "name", "desc", "closed"]
     }
 
     fn render(&self) -> String {
@@ -49,6 +55,10 @@ pub struct List {
 impl TrelloObject for List {
     fn get_name(&self) -> &str {
         &self.name
+    }
+
+    fn get_fields() -> &'static [&'static str] {
+        &["id", "name", "closed"]
     }
 
     fn render(&self) -> String {
@@ -75,6 +85,10 @@ pub struct Board {
 impl TrelloObject for Board {
     fn get_name(&self) -> &str {
         &self.name
+    }
+
+    fn get_fields() -> &'static [&'static str] {
+        &["id", "name", "closed"]
     }
 
     fn render(&self) -> String {
@@ -136,7 +150,10 @@ impl List {
     }
 
     pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>, Box<dyn Error>> {
-        let url = client.get_trello_url(&format!("/1/lists/{}/cards/", list_id), &[])?;
+        let url = client.get_trello_url(
+            &format!("/1/lists/{}/cards/", list_id),
+            &[("fields", &Card::get_fields().join(","))],
+        )?;
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 }
@@ -166,13 +183,22 @@ impl Board {
     }
 
     pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
-        let url = client.get_trello_url("/1/members/me/boards/", &[("filter", "open")])?;
+        let url = client.get_trello_url(
+            "/1/members/me/boards/",
+            &[
+                ("filter", "open"),
+                ("fields", &Board::get_fields().join(",")),
+            ],
+        )?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
     pub fn get(client: &Client, board_id: &str) -> Result<Board, Box<dyn Error>> {
-        let url = client.get_trello_url(&format!("/1/boards/{}", board_id), &[])?;
+        let url = client.get_trello_url(
+            &format!("/1/boards/{}", board_id),
+            &[("fields", &Board::get_fields().join(","))],
+        )?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
@@ -182,7 +208,8 @@ impl Board {
         board_id: &str,
         cards: bool,
     ) -> Result<Vec<List>, Box<dyn Error>> {
-        let mut params = vec![];
+        let fields = List::get_fields().join(",");
+        let mut params = vec![("fields", fields.as_str())];
 
         if cards {
             params.push(("cards", "open"));

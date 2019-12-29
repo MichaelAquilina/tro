@@ -158,7 +158,7 @@ mod list_tests {
     fn test_get_all_cards() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token",
+            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Cclosed",
         )
         .with_status(200)
         .with_body(
@@ -257,7 +257,7 @@ mod board_tests {
     fn test_get_all() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/members/me/boards/?key=some-key&token=some-secret-token&filter=open",
+            "/1/members/me/boards/?key=some-key&token=some-secret-token&filter=open&fields=id%2Cname%2Cclosed",
         )
         .with_status(200)
         .with_body(
@@ -290,17 +290,20 @@ mod board_tests {
 
     #[test]
     fn test_get() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock("GET", "/1/boards/some-board-id?key=KEY&token=TOKEN")
-            .with_status(200)
-            .with_body(
-                json!({
-                    "name": "My Favourite Board",
-                    "id": "some-board-id",
-                    "closed": false,
-                })
-                .to_string(),
-            )
-            .create();
+        let _m = mockito::mock(
+            "GET",
+            "/1/boards/some-board-id?key=KEY&token=TOKEN&fields=id%2Cname%2Cclosed",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "My Favourite Board",
+                "id": "some-board-id",
+                "closed": false,
+            })
+            .to_string(),
+        )
+        .create();
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
         let result = Board::get(&client, "some-board-id")?;
@@ -317,7 +320,7 @@ mod board_tests {
     fn test_get_all_lists() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/boards/some-board-id/lists?key=some-key&token=some-token",
+            "/1/boards/some-board-id/lists?key=some-key&token=some-token&fields=id%2Cname%2Cclosed",
         )
         .with_status(200)
         .with_body(
@@ -353,7 +356,7 @@ mod board_tests {
     fn test_get_all_lists_with_cards() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/boards/some-board-id/lists?key=some-key&token=some-token&cards=open",
+            "/1/boards/some-board-id/lists?key=some-key&token=some-token&fields=id%2Cname%2Cclosed&cards=open",
         )
         .with_status(200)
         .with_body(
