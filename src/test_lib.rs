@@ -1,10 +1,45 @@
-use super::{Board, Card, Client, List};
+use super::{header, Board, Card, Client, List, TrelloObject};
 use mockito;
 use serde_json::json;
 use std::error::Error;
 
+mod header_tests {
+    use super::*;
+
+    #[test]
+    fn test_empty() {
+        let result = header("", "-");
+        assert_eq!(result, String::from("\n"));
+    }
+
+    #[test]
+    fn test_correct() {
+        let result = header("foobar", "=");
+        assert_eq!(result, String::from("foobar\n======"));
+    }
+
+    #[test]
+    fn test_emoticons() {
+        let result = header("foo 🔴", "-");
+        assert_eq!(result, String::from("foo 🔴\n-----"));
+    }
+}
+
 mod card_tests {
     use super::*;
+
+    #[test]
+    fn test_render() {
+        let card = Card {
+            id: String::from("aaaaa"),
+            name: String::from("My Fav Card"),
+            desc: String::from("this is a nice card"),
+            closed: false,
+        };
+
+        let expected = "My Fav Card\n-----------\nthis is a nice card";
+        assert_eq!(card.render(), expected);
+    }
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
@@ -73,6 +108,45 @@ mod list_tests {
     use super::*;
 
     #[test]
+    fn test_render_no_cards() {
+        let list = List {
+            id: String::from("aaaaa"),
+            name: String::from("King Knight"),
+            cards: None,
+            closed: false,
+        };
+
+        let expected = "King Knight\n-----------";
+        assert_eq!(list.render(), expected);
+    }
+
+    #[test]
+    fn test_render_with_cards() {
+        let list = List {
+            id: String::from("aaaaa"),
+            name: String::from("King Knight"),
+            cards: Some(vec![
+                Card {
+                    id: String::new(),
+                    name: String::from("hello"),
+                    desc: String::new(),
+                    closed: false,
+                },
+                Card {
+                    id: String::new(),
+                    name: String::from("world"),
+                    desc: String::new(),
+                    closed: false,
+                },
+            ]),
+            closed: false,
+        };
+
+        let expected = "King Knight\n-----------\n* hello\n* world";
+        assert_eq!(list.render(), expected);
+    }
+
+    #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "POST",
@@ -94,6 +168,7 @@ mod list_tests {
         let expected = List {
             id: String::from("MTLDA"),
             name: String::from("Today"),
+            cards: None,
             closed: false,
         };
         assert_eq!(result, expected);
@@ -122,6 +197,7 @@ mod list_tests {
         let list = List {
             id: "MY-LIST-ID".to_string(),
             name: "Today".to_string(),
+            cards: None,
             closed: true,
         };
 
@@ -134,7 +210,7 @@ mod list_tests {
     fn test_get_all_cards() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token",
+            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Cclosed",
         )
         .with_status(200)
         .with_body(
@@ -172,6 +248,76 @@ mod board_tests {
     use super::*;
 
     #[test]
+    fn test_render_no_lists() {
+        let board = Board {
+            id: String::new(),
+            name: String::from("Knights"),
+            closed: false,
+            lists: None,
+        };
+
+        let expected = "Knights\n=======";
+        assert_eq!(board.render(), expected);
+    }
+
+    #[test]
+    fn test_render_lists() {
+        let board = Board {
+            id: String::new(),
+            name: String::from("Knights"),
+            closed: false,
+            lists: Some(vec![
+                List {
+                    id: String::new(),
+                    name: String::from("King"),
+                    cards: None,
+                    closed: false,
+                },
+                List {
+                    id: String::new(),
+                    name: String::from("Shovel"),
+                    cards: None,
+                    closed: false,
+                },
+            ]),
+        };
+
+        let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------";
+        assert_eq!(board.render(), expected);
+    }
+
+    #[test]
+    fn test_render_lists_and_cards() {
+        let board = Board {
+            id: String::new(),
+            name: String::from("Knights"),
+            closed: false,
+            lists: Some(vec![
+                List {
+                    id: String::new(),
+                    name: String::from("King"),
+                    cards: None,
+                    closed: false,
+                },
+                List {
+                    id: String::new(),
+                    name: String::from("Shovel"),
+                    cards: Some(vec![Card {
+                        id: String::new(),
+                        name: String::from("Flare Wand"),
+                        desc: String::new(),
+                        closed: false,
+                    }]),
+                    closed: false,
+                },
+            ]),
+        };
+
+        let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------\n* Flare Wand";
+        assert_eq!(board.render(), expected);
+    }
+
+    #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "POST",
@@ -181,7 +327,6 @@ mod board_tests {
         .with_body(
             json!({
                 "name": "MY-TEST-BOARD",
-                "url": "https://example.com/1/2",
                 "id": "231dgfe4r343",
                 "closed": false,
             })
@@ -194,8 +339,8 @@ mod board_tests {
         let expected = Board {
             id: String::from("231dgfe4r343"),
             name: String::from("MY-TEST-BOARD"),
-            url: String::from("https://example.com/1/2"),
             closed: false,
+            lists: None,
         };
         assert_eq!(result, expected);
         Ok(())
@@ -212,7 +357,6 @@ mod board_tests {
             json!({
                 "name": "TODO",
                 "id": "MY-BOARD-ID",
-                "url": "https://trello.com/foo",
                 "closed": true,
             })
             .to_string(),
@@ -225,7 +369,7 @@ mod board_tests {
             id: "MY-BOARD-ID".to_string(),
             name: "TODO".to_string(),
             closed: true,
-            url: "https://trello.com/foo".to_string(),
+            lists: None,
         };
 
         let result = Board::update(&client, &board)?;
@@ -237,13 +381,13 @@ mod board_tests {
     fn test_get_all() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/members/me/boards/?key=some-key&token=some-secret-token&filter=open",
+            "/1/members/me/boards/?key=some-key&token=some-secret-token&filter=open&fields=id%2Cname%2Cclosed",
         )
         .with_status(200)
         .with_body(
             json!([
-                {"name": "TODO", "id": "abc-def", "url": "http://bit.ly/12", "closed": false},
-                {"name": "foo", "id": "123-456", "url": "", "closed": false},
+                {"name": "TODO", "id": "abc-def", "closed": false},
+                {"name": "foo", "id": "123-456", "closed": false},
             ])
             .to_string(),
         )
@@ -255,14 +399,14 @@ mod board_tests {
             Board {
                 name: String::from("TODO"),
                 id: String::from("abc-def"),
-                url: String::from("http://bit.ly/12"),
                 closed: false,
+                lists: None,
             },
             Board {
                 name: String::from("foo"),
                 id: String::from("123-456"),
-                url: String::from(""),
                 closed: false,
+                lists: None,
             },
         ];
 
@@ -272,26 +416,28 @@ mod board_tests {
 
     #[test]
     fn test_get() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock("GET", "/1/boards/some-board-id?key=KEY&token=TOKEN")
-            .with_status(200)
-            .with_body(
-                json!({
-                    "name": "My Favourite Board",
-                    "id": "some-board-id",
-                    "url": "https://trello.com/boards/some-board-id",
-                    "closed": false,
-                })
-                .to_string(),
-            )
-            .create();
+        let _m = mockito::mock(
+            "GET",
+            "/1/boards/some-board-id?key=KEY&token=TOKEN&fields=id%2Cname%2Cclosed",
+        )
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "My Favourite Board",
+                "id": "some-board-id",
+                "closed": false,
+            })
+            .to_string(),
+        )
+        .create();
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
         let result = Board::get(&client, "some-board-id")?;
         let expected = Board {
             name: String::from("My Favourite Board"),
             id: String::from("some-board-id"),
-            url: String::from("https://trello.com/boards/some-board-id"),
             closed: false,
+            lists: None,
         };
         assert_eq!(result, expected);
         Ok(())
@@ -301,7 +447,7 @@ mod board_tests {
     fn test_get_all_lists() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/boards/some-board-id/lists?key=some-key&token=some-token&cards=open",
+            "/1/boards/some-board-id/lists?key=some-key&token=some-token&fields=id%2Cname%2Cclosed",
         )
         .with_status(200)
         .with_body(
@@ -314,16 +460,66 @@ mod board_tests {
         .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-        let result = Board::get_all_lists(&client, "some-board-id")?;
+        let result = Board::get_all_lists(&client, "some-board-id", false)?;
         let expected = vec![
             List {
                 name: String::from("Red"),
                 id: String::from("823-123"),
+                cards: None,
                 closed: false,
             },
             List {
                 name: String::from("Green"),
                 id: String::from("222-222"),
+                cards: None,
+                closed: false,
+            },
+        ];
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_all_lists_with_cards() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "GET",
+            "/1/boards/some-board-id/lists?key=some-key&token=some-token&fields=id%2Cname%2Cclosed&cards=open",
+        )
+        .with_status(200)
+        .with_body(
+            json!([
+                {"name": "Red", "id": "823-123", "closed": false, "cards": []},
+                {
+                    "name": "Green",
+                    "id": "222-222",
+                    "closed": false,
+                    "cards": [
+                        {"id": "card1", "name": "apple", "desc": "", "closed": false},
+                    ],
+                },
+            ])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = Board::get_all_lists(&client, "some-board-id", true)?;
+        let expected = vec![
+            List {
+                name: String::from("Red"),
+                id: String::from("823-123"),
+                cards: Some(vec![]),
+                closed: false,
+            },
+            List {
+                name: String::from("Green"),
+                id: String::from("222-222"),
+                cards: Some(vec![Card {
+                    id: "card1".to_string(),
+                    name: "apple".to_string(),
+                    desc: "".to_string(),
+                    closed: false,
+                }]),
                 closed: false,
             },
         ];

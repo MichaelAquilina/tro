@@ -16,7 +16,7 @@ impl Client {
         }
     }
 
-    /// Gets the resultant URL of the Trello Client given some path and additoinal
+    /// Gets the resultant URL of the Trello Client given some path and additional
     /// parameters. The authentication credentials provided will be included as part
     /// of the generated URL
     /// ```
@@ -30,6 +30,11 @@ impl Client {
     /// assert_eq!(
     ///     url.to_string(),
     ///     "https://api.trello.com/1/me/boards/?key=some-key&token=some-token"
+    /// );
+    /// let url = client.get_trello_url("/1/boards/some-id/", &[("lists", "open")])?;
+    /// assert_eq!(
+    ///     url.to_string(),
+    ///     "https://api.trello.com/1/boards/some-id/?key=some-key&token=some-token&lists=open",
     /// );
     /// # Ok(())
     /// # }
