@@ -20,30 +20,44 @@ Once those are set, simply run with ``cargo run``.
 
 Some examples of commands you can run:
 
-**List all open boards**
+**Show all board**
+
 ::
 
-    $ cargo run boards ls
+    $ cargo run show
+    * TODO
+    * Groceries
+    * Recipes
+
+
+**Show a specific board**
+
+::
+
+    $ cargo run show TODO
     TODO
-    Groceries
-    Recipes
+    ====
 
-
-**List all open lists within a board**
-::
-
-    $ cargo run boards get -n "TODO" lists ls
     Today
-    Tomorrow
+    -----
+    * Wash Dishes
+    * Walk Dog
+    * Learn some Rust
 
 
-**List all open cards within a list**
+**Create a new card**
+
 ::
 
-    $ cargo run boards get -n "TODO" lists get -n "Today" cards ls
-    Wash Dishes
-    Walk Dog
-    Learn some Rust
+    $ cargo run create TODO Today
+    Card name: my new card
+
+**Close a card**
+
+::
+
+    $ cargo run close TODO Today "my new card"
+    Closed card 'my new card'
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/trello-rs
