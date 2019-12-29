@@ -232,7 +232,7 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
 }
 
 fn get_object_by_name<T: TrelloObject>(
-    boards: Vec<T>,
+    objects: Vec<T>,
     name: &str,
     ignore_case: bool,
 ) -> Result<Option<T>, simple_error::SimpleError> {
@@ -241,14 +241,14 @@ fn get_object_by_name<T: TrelloObject>(
         .build()
         .expect("Invalid Regex");
 
-    let mut boards = boards
+    let mut objects = objects
         .into_iter()
-        .filter(|b| re.is_match(&b.get_name()))
+        .filter(|o| re.is_match(&o.get_name()))
         .collect::<Vec<T>>();
 
-    if boards.len() == 1 {
-        Ok(boards.pop())
-    } else if boards.len() > 1 {
+    if objects.len() == 1 {
+        Ok(objects.pop())
+    } else if objects.len() > 1 {
         bail!(
             "More than one object found for '{}'. Specify a more precise filter",
             name
