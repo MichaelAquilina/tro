@@ -187,6 +187,8 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
     let result = get_trello_object(client, matches)?;
 
+    trace!("result: {:?}", result);
+
     if let Some(card) = result.card {
         println!("{}", card.render());
     } else if let Some(list) = result.list {
@@ -209,6 +211,8 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
 
     let result = get_trello_object(client, matches)?;
 
+    trace!("result: {:?}", result);
+
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
@@ -230,6 +234,8 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     debug!("Running create subcommand with {:?}", matches);
 
     let result = get_trello_object(client, matches)?;
+
+    trace!("result: {:?}", result);
 
     let mut input = String::new();
 
