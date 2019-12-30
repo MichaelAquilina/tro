@@ -105,7 +105,7 @@ impl TrelloObject for List {
     }
 
     fn render(&self) -> String {
-        let title = header(&self.name, "-");
+        let title = header(&self.name, "-").bold().to_string();
         let mut result: Vec<String> = vec![title];
         if let Some(cards) = &self.cards {
             for c in cards {
@@ -145,7 +145,7 @@ impl TrelloObject for Board {
     }
 
     fn render(&self) -> String {
-        let mut result = vec![header(&self.name, "=")];
+        let mut result = vec![header(&self.name, "=").bold().to_string()];
         if let Some(lists) = &self.lists {
             for list in lists {
                 result.push(String::from(""));

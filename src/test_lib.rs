@@ -1,4 +1,5 @@
 use super::{header, Board, Card, Client, List, TrelloObject};
+use colored::*;
 use mockito;
 use serde_json::json;
 use std::error::Error;
@@ -122,7 +123,7 @@ mod list_tests {
     #[test]
     fn test_render_no_cards() {
         let list = List::new("aaaaa", "King Knight", None);
-        let expected = "King Knight\n-----------";
+        let expected = "King Knight\n-----------".bold().to_string();
         assert_eq!(list.render(), expected);
     }
 
@@ -134,7 +135,11 @@ mod list_tests {
             Some(vec![Card::new("", "hello", ""), Card::new("", "world", "")]),
         );
 
-        let expected = "King Knight\n-----------\n* hello\n* world";
+        let expected = format!(
+            "{}\n{}",
+            "King Knight\n-----------".bold(),
+            "* hello\n* world"
+        );
         assert_eq!(list.render(), expected);
     }
 
@@ -235,7 +240,7 @@ mod board_tests {
     #[test]
     fn test_render_no_lists() {
         let board = Board::new("", "Knights", None);
-        let expected = "Knights\n=======";
+        let expected = "Knights\n=======".bold().to_string();
         assert_eq!(board.render(), expected);
     }
 
@@ -250,7 +255,12 @@ mod board_tests {
             ]),
         );
 
-        let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------";
+        let expected = format!(
+            "{}\n\n{}\n\n{}",
+            "Knights\n=======".bold(),
+            "King\n----".bold(),
+            "Shovel\n------".bold(),
+        );
         assert_eq!(board.render(), expected);
     }
 
@@ -265,7 +275,13 @@ mod board_tests {
             ]),
         );
 
-        let expected = "Knights\n=======\n\nKing\n----\n\nShovel\n------\n* Flare Wand";
+        let expected = format!(
+            "{}\n\n{}\n\n{}\n{}",
+            "Knights\n=======".bold(),
+            "King\n----".bold(),
+            "Shovel\n------".bold(),
+            "* Flare Wand",
+        );
         assert_eq!(board.render(), expected);
     }
 
