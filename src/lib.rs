@@ -10,6 +10,7 @@ mod test_lib;
 
 pub use client::Client;
 
+use colored::*;
 use serde::Deserialize;
 use std::error::Error;
 
@@ -35,6 +36,32 @@ pub struct Label {
     pub color: String,
 }
 
+fn map_color(color: &str) -> &str {
+    match color {
+        // work around bug.
+        // See https://github.com/mackwic/colored/pull/71
+        "purple" => "magenta",
+        "sky" => "cyan",
+        "lime" => "green",
+        "orange" => "yellow",
+        _ => color,
+    }
+}
+
+impl TrelloObject for Label {
+    fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    fn get_fields() -> &'static [&'static str] {
+        &["id", "name", "color"]
+    }
+
+    fn render(&self) -> String {
+        format!("[{}]", self.name.color(map_color(&self.color)))
+    }
+}
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Card {
@@ -42,7 +69,7 @@ pub struct Card {
     pub name: String,
     pub desc: String,
     pub closed: bool,
-    pub labels: Option<Vec<Label>>
+    pub labels: Option<Vec<Label>>,
 }
 
 impl TrelloObject for Card {
@@ -82,8 +109,17 @@ impl TrelloObject for List {
         let mut result: Vec<String> = vec![title];
         if let Some(cards) = &self.cards {
             for c in cards {
-                let s = format!("* {}", &c.name);
-                result.push(s);
+                trace!("{:?}", c);
+                if let Some(labels) = &c.labels {
+                    let mut lformat: Vec<String> = vec![];
+                    for l in labels {
+                        lformat.push(l.render());
+                    }
+                    let s = format!("* {} {}", &c.name, lformat.join(" "));
+                    result.push(s);
+                } else {
+                    result.push(format!("* {}", &c.name));
+                }
             }
         }
         result.join("\n")
