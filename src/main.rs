@@ -36,7 +36,7 @@ struct TrelloConfig {
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(TrelloCLI =>
         (version: env!("CARGO_PKG_VERSION"))
-        (author: "Michael Aquilina")
+        (author: env!("CARGO_PKG_AUTHORS"))
         (about: env!("CARGO_PKG_DESCRIPTION"))
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
         (@subcommand show =>
