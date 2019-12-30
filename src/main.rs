@@ -17,7 +17,7 @@ use std::error::Error;
 use std::io::{stdin, Read, Write};
 use std::process::Command;
 use std::{env, fs};
-use tempfile::NamedTempFile;
+use tempfile::Builder;
 use trello::{Board, Card, Client, List, TrelloObject};
 
 #[derive(Deserialize, Debug)]
@@ -263,7 +263,7 @@ fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     debug!("Running edit subcommand with {:?}", matches);
 
     let result = get_trello_object(client, matches)?;
-    let mut file = NamedTempFile::new()?;
+    let mut file = Builder::new().suffix(".md").tempfile()?;
     let editor_env = env::var("EDITOR")?;
 
     debug!("Using editor: {}", editor_env);
