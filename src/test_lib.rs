@@ -35,6 +35,7 @@ mod card_tests {
             id: String::from("A"),
             name: String::from("B"),
             desc: String::from("C"),
+            labels: None,
             closed: false,
         };
         assert_eq!(card, expected);
@@ -192,7 +193,7 @@ mod list_tests {
     fn test_get_all_cards() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",
-            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Cclosed",
+            "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Clabels%2Cclosed",
         )
         .with_status(200)
         .with_body(

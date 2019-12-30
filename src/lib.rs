@@ -29,11 +29,20 @@ pub trait TrelloObject {
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
+pub struct Label {
+    pub id: String,
+    pub name: String,
+    pub color: String,
+}
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct Card {
     pub id: String,
     pub name: String,
     pub desc: String,
     pub closed: bool,
+    pub labels: Option<Vec<Label>>
 }
 
 impl TrelloObject for Card {
@@ -42,7 +51,7 @@ impl TrelloObject for Card {
     }
 
     fn get_fields() -> &'static [&'static str] {
-        &["id", "name", "desc", "closed"]
+        &["id", "name", "desc", "labels", "closed"]
     }
 
     fn render(&self) -> String {
@@ -117,6 +126,7 @@ impl Card {
             id: String::from(id),
             name: String::from(name),
             desc: String::from(desc),
+            labels: None,
             closed: false,
         }
     }
@@ -140,6 +150,7 @@ impl Card {
     ///         id: String::new(),
     ///         name: String::from("Hello World"),
     ///         desc: String::from("This is my card"),
+    ///         labels: None,
     ///         closed: false,
     ///     },
     /// );
@@ -192,6 +203,7 @@ impl Card {
             id: String::new(),
             name: String::from(name),
             desc: String::from(desc),
+            labels: None,
             closed: false,
         })
     }

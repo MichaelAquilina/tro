@@ -237,7 +237,7 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         eprint!("Card name: ");
         stdin().read_line(&mut input)?;
 
-        Card::create(client, &list.id, &Card::new("", &input, ""))?;
+        Card::create(client, &list.id, &Card::new("", &input.trim_end(), ""))?;
     } else if let Some(board) = result.board {
         eprint!("List name: ");
         stdin().read_line(&mut input)?;
