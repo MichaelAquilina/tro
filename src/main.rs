@@ -59,14 +59,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@arg list_name: !required "List Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
-        (@subcommand edit =>
-            (about: "Edit cards")
-            (@arg board_name: +required "Board Name to retrieve")
-            (@arg list_name: +required "List Name to retrieve")
-            (@arg card_name: required_unless("new") "Card Name to retrieve")
-            (@arg new: -n --new +takes_value "Creates a new card")
-            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
-        )
     )
     .get_matches();
 
@@ -102,8 +94,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         close_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("create") {
         create_subcommand(&client, &matches)?;
-    } else if let Some(matches) = matches.subcommand_matches("edit") {
-        edit_subcommand(&client, &matches)?;
     } else {
         println!("{}", matches.usage());
     }
@@ -173,6 +163,37 @@ fn get_trello_object(
     }
 }
 
+/// Opens the users chosen editor (specified by the $EDITOR environment variable)
+/// to edit a specified card.
+///
+/// Once the editor is closed, a new card is populated and returned based on the
+/// contents of what was written by the editor.
+fn edit_card(card: &Card) -> Result<Card, Box<dyn Error>> {
+    let mut file = Builder::new().suffix(".md").tempfile()?;
+    let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
+
+    debug!("Using editor: {}", editor_env);
+    debug!("Editing card: {:?}", card);
+
+    writeln!(file, "{}", card.render())?;
+
+    let editor = Command::new(editor_env).arg(file.path()).status()?;
+
+    debug!("editor exited with {:?}", editor);
+
+    let mut buf = String::new();
+    file.reopen()?.read_to_string(&mut buf)?;
+
+    // Trim end because a lot of editors will auto add new lines at the end of the file
+    let mut new_card = Card::parse(buf.trim_end())?;
+    new_card.id = String::from(&card.id);
+    new_card.labels = card.labels.clone();
+
+    debug!("New card: {:?}", new_card);
+
+    Ok(new_card)
+}
+
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
@@ -180,8 +201,13 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
     trace!("result: {:?}", result);
 
+    // TODO Support creating new cards
     if let Some(card) = result.card {
-        println!("{}", card.render());
+        let new_card = edit_card(&card)?;
+        if new_card != card {
+            eprintln!("Changes detected - uploading card contents");
+            Card::update(client, &new_card)?;
+        }
     } else if let Some(list) = result.list {
         println!("{}", list.render());
     } else if let Some(mut board) = result.board {
@@ -207,15 +233,15 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
-        println!("Closed card '{}'", &card.name);
+        eprintln!("Closed card '{}'", &card.name);
     } else if let Some(mut list) = result.list {
         list.closed = true;
         List::update(client, &list)?;
-        println!("Closed list '{}'", &list.name);
+        eprintln!("Closed list '{}'", &list.name);
     } else if let Some(mut board) = result.board {
         board.closed = true;
         Board::update(client, &board)?;
-        println!("Closed board '{}'", &board.name);
+        eprintln!("Closed board '{}'", &board.name);
     }
 
     Ok(())
@@ -245,59 +271,6 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         stdin().read_line(&mut input)?;
 
         Board::create(client, &input.trim_end())?;
-    }
-
-    Ok(())
-}
-
-fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
-    debug!("Running edit subcommand with {:?}", matches);
-
-    let result = get_trello_object(client, matches)?;
-    let mut file = Builder::new().suffix(".md").tempfile()?;
-    let editor_env = env::var("EDITOR")?;
-
-    debug!("Using editor: {}", editor_env);
-
-    // if we don't get a card we should panic
-    let card = if let Some(new) = matches.value_of("new") {
-        // Id is not set
-        // description should be empty by default
-        Card::new("", new, "")
-    } else {
-        result.card.unwrap()
-    };
-
-    debug!("Editing card: {:?}", card);
-
-    writeln!(file, "{}", card.render())?;
-
-    let editor = Command::new(editor_env).arg(file.path()).status()?;
-
-    debug!("editor exited with {:?}", editor);
-
-    let mut buf = String::new();
-    file.reopen()?.read_to_string(&mut buf)?;
-
-    // Trim end because a lot of editors will auto add new lines at the end of the file
-    let mut new_card = Card::parse(buf.trim_end())?;
-    new_card.id = String::from(&card.id);
-
-    trace!("Previous: {:?}", card);
-    trace!("New: {:?}", new_card);
-
-    if new_card != card {
-        debug!("Detected changes - attempting to update");
-        if new_card.id == "" {
-            let list_id = &result.list.unwrap().id;
-            debug!("Creating new card under list {}", list_id);
-            Card::create(client, list_id, &new_card)?;
-        } else {
-            debug!("Updating card {}", new_card.id);
-            Card::update(client, &new_card)?;
-        }
-    } else {
-        debug!("No changes detected - no update will be attempted");
     }
 
     Ok(())
