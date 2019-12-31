@@ -38,9 +38,6 @@ pub struct Label {
 
 fn map_color(color: &str) -> &str {
     match color {
-        // work around bug.
-        // See https://github.com/mackwic/colored/pull/71
-        "purple" => "magenta",
         "sky" => "cyan",
         "lime" => "green",
         "orange" => "yellow",
