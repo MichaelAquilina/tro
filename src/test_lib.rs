@@ -270,17 +270,22 @@ mod board_tests {
             "",
             "Knights",
             Some(vec![
-                List::new("", "King", None),
-                List::new("", "Shovel", Some(vec![Card::new("", "Flare Wand", "")])),
+                List::new("", "King", Some(vec![Card::new("", "Gyro Boots", "")])),
+                List::new(
+                    "",
+                    "Shovel",
+                    Some(vec![Card::new("", "Flare Wand", "Relic")]),
+                ),
             ]),
         );
 
         let expected = format!(
-            "{}\n\n{}\n\n{}\n{}",
+            "{}\n\n{}\n{}\n\n{}\n{}",
             "Knights\n=======".bold(),
             "King\n----".bold(),
+            "* Gyro Boots",
             "Shovel\n------".bold(),
-            "* Flare Wand",
+            format!("* Flare Wand {}", "[...]".dimmed()),
         );
         assert_eq!(board.render(), expected);
     }

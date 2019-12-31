@@ -110,16 +110,22 @@ impl TrelloObject for List {
         if let Some(cards) = &self.cards {
             for c in cards {
                 trace!("{:?}", c);
+                let mut lformat: Vec<String> = vec![];
+
+                if c.desc != "" {
+                    lformat.push("[...]".dimmed().to_string());
+                }
+
                 if let Some(labels) = &c.labels {
-                    let mut lformat: Vec<String> = vec![];
                     for l in labels {
                         lformat.push(l.render());
                     }
-                    let s = format!("* {} {}", &c.name, lformat.join(" "));
-                    result.push(s);
-                } else {
-                    result.push(format!("* {}", &c.name));
                 }
+
+                let s = format!("* {} {}", &c.name, lformat.join(" "));
+
+                // trim end in case there is no data presented by lformat
+                result.push(s.trim_end().to_string());
             }
         }
         result.join("\n")
