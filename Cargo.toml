@@ -4,7 +4,11 @@ version = "1.5.0"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
 edition = "2018"
 description = "A Trello API client for the command line"
+keywords = ["trello"]
+categories = ["command-line-utilities"]
+readme = "README.rst"
 license = "GPL-3.0-only"
+homepage = "https://www.github.com/MichaelAquilina/trello-rs"
 repository = "https://www.github.com/MichaelAquilina/trello-rs.git"
 
 [lib]
