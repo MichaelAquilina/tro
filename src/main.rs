@@ -143,51 +143,33 @@ fn get_trello_object(
     };
     let boards = Board::get_all(&client)?;
     let ignore_case = matches.is_present("ignore_case");
+    let board = get_object_by_name(boards, &board_name, ignore_case)?;
 
-    if let Some(board) = get_object_by_name(boards, &board_name, ignore_case)? {
-        if let Some(list_name) = matches.value_of("list_name") {
-            let lists = Board::get_all_lists(client, &board.id, true)?;
-            if let Some(list) = get_object_by_name(lists, &list_name, ignore_case)? {
-                if let Some(card_name) = matches.value_of("card_name") {
-                    let cards = List::get_all_cards(client, &list.id)?;
+    if let Some(list_name) = matches.value_of("list_name") {
+        let lists = Board::get_all_lists(client, &board.id, true)?;
+        let list = get_object_by_name(lists, &list_name, ignore_case)?;
+        if let Some(card_name) = matches.value_of("card_name") {
+            let cards = List::get_all_cards(client, &list.id)?;
 
-                    if let Some(card) = get_object_by_name(cards, &card_name, ignore_case)? {
-                        return Ok(TrelloResult {
-                            board: Some(board),
-                            list: Some(list),
-                            card: Some(card),
-                        });
-                    } else {
-                        bail!(
-                            "Card not found, specify a more precise filter then '{}'",
-                            card_name
-                        );
-                    }
-                } else {
-                    return Ok(TrelloResult {
-                        board: Some(board),
-                        list: Some(list),
-                        card: None,
-                    });
-                }
-            } else {
-                bail!(
-                    "List not found, specify a more precise filter then '{}'",
-                    list_name
-                );
-            }
+            let card = get_object_by_name(cards, &card_name, ignore_case)?;
+            return Ok(TrelloResult {
+                board: Some(board),
+                list: Some(list),
+                card: Some(card),
+            });
         } else {
             return Ok(TrelloResult {
                 board: Some(board),
-                list: None,
+                list: Some(list),
                 card: None,
             });
         }
     } else {
-        bail!(
-            "Board not found, specify a more precise filter then '{}'",
-            board_name
-        );
+        return Ok(TrelloResult {
+            board: Some(board),
+            list: None,
+            card: None,
+        });
     }
 }
 
@@ -325,7 +307,7 @@ fn get_object_by_name<T: TrelloObject>(
     objects: Vec<T>,
     name: &str,
     ignore_case: bool,
-) -> Result<Option<T>, simple_error::SimpleError> {
+) -> Result<T, simple_error::SimpleError> {
     let re = RegexBuilder::new(name)
         .case_insensitive(ignore_case)
         .build()
@@ -337,13 +319,16 @@ fn get_object_by_name<T: TrelloObject>(
         .collect::<Vec<T>>();
 
     if objects.len() == 1 {
-        Ok(objects.pop())
+        Ok(objects.pop().unwrap())
     } else if objects.len() > 1 {
         bail!(
-            "More than one object found for '{}'. Specify a more precise filter",
+            "More than one object found. Specify a more precise filter than '{}'",
             name
         );
     } else {
-        Ok(None)
+        bail!(
+            "Object not found. Specify a more precise filter than '{}'",
+            name
+        );
     }
 }
