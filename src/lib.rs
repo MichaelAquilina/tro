@@ -28,7 +28,7 @@ pub trait TrelloObject {
     fn render(&self) -> String;
 }
 
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Label {
     pub id: String,
@@ -59,7 +59,7 @@ impl TrelloObject for Label {
     }
 }
 
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Card {
     pub id: String,
@@ -83,7 +83,7 @@ impl TrelloObject for Card {
     }
 }
 
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct List {
     pub id: String,
