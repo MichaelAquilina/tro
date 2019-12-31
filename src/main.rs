@@ -276,11 +276,12 @@ fn edit_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     let editor_env = env::var("EDITOR")?;
 
     debug!("Using editor: {}", editor_env);
-    let new = matches.value_of("new");
 
     // if we don't get a card we should panic
-    let card = if new.is_some() {
-        Card::new("", new.unwrap(), "")
+    let card = if let Some(new) = matches.value_of("new") {
+        // Id is not set
+        // description should be empty by default
+        Card::new("", new, "")
     } else {
         result.card.unwrap()
     };
