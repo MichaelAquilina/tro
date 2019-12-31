@@ -30,6 +30,7 @@ struct TrelloConfig {
 // TODO: Tests for all the subcommands
 // TODO: Better Trello API interface
 // TODO: Wildcards for easier patterns
+// TODO: Filter by Label
 // e.g. tro close TODO - "some card"
 // closes the card "some card" searching all lists in the TODO board
 
