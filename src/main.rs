@@ -158,7 +158,10 @@ fn get_trello_object(
                             card: Some(card),
                         });
                     } else {
-                        bail!("Card not found, specify a more precise filter");
+                        bail!(
+                            "Card not found, specify a more precise filter then '{}'",
+                            card_name
+                        );
                     }
                 } else {
                     return Ok(TrelloResult {
@@ -168,7 +171,10 @@ fn get_trello_object(
                     });
                 }
             } else {
-                bail!("List not found, specify a more precise filter");
+                bail!(
+                    "List not found, specify a more precise filter then '{}'",
+                    list_name
+                );
             }
         } else {
             return Ok(TrelloResult {
@@ -178,7 +184,10 @@ fn get_trello_object(
             });
         }
     } else {
-        bail!("Board not found, specify a more precise filter");
+        bail!(
+            "Board not found, specify a more precise filter then '{}'",
+            board_name
+        );
     }
 }
 
