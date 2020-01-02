@@ -169,7 +169,8 @@ fn get_trello_object(
 }
 
 /// Opens the users chosen editor (specified by the $EDITOR environment variable)
-/// to edit a specified card.
+/// to edit a specified card. If $EDITOR is not set, the default editor will fallback
+/// to vi.
 ///
 /// Once the editor is closed, a new card is populated and returned based on the
 /// contents of what was written by the editor.
