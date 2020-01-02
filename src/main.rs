@@ -20,6 +20,9 @@ use std::{env, fs};
 use tempfile::Builder;
 use trello::{Board, Card, Client, List, TrelloObject};
 
+const CARD_DESCRIPTION_PLACEHOLDER: &str = "<Enter Description Here>";
+const CARD_NAME_PLACEHOLDER: &str = "<Enter Card Name Here>";
+
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
     host: String,
@@ -46,6 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
+            (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
         )
         (@subcommand close =>
             (about: "Close objects")
@@ -202,22 +206,41 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
     trace!("result: {:?}", result);
 
-    // TODO Support creating new cards
-    if let Some(card) = result.card {
-        let new_card = edit_card(&card)?;
-        if new_card != card {
-            eprintln!("Changes detected - uploading card contents");
-            Card::update(client, &new_card)?;
+    if matches.is_present("new") {
+        // we can safely unwrap the list due to the way we've setup clap
+        let list_id = &result.list.unwrap().id;
+        let card = Card::new("", CARD_NAME_PLACEHOLDER, CARD_DESCRIPTION_PLACEHOLDER);
+
+        let mut card = edit_card(&card)?;
+
+        // if nothing is edited by the user, remove it
+        if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
+            card.desc = String::from("");
         }
-    } else if let Some(list) = result.list {
-        println!("{}", list.render());
-    } else if let Some(mut board) = result.board {
-        board.retrieve_nested(client)?;
-        println!("{}", board.render());
+
+        if card.name != CARD_NAME_PLACEHOLDER {
+            let result = Card::create(client, list_id, &card)?;
+            eprintln!("Created new card with id {}", result.id);
+        } else {
+            eprintln!("Card name not entered");
+        }
     } else {
-        let boards = Board::get_all(client)?;
-        for b in boards {
-            println!("* {}", b.name);
+        if let Some(card) = result.card {
+            let new_card = edit_card(&card)?;
+            if new_card != card {
+                eprintln!("Changes detected - uploading card contents");
+                Card::update(client, &new_card)?;
+            }
+        } else if let Some(list) = result.list {
+            println!("{}", list.render());
+        } else if let Some(mut board) = result.board {
+            board.retrieve_nested(client)?;
+            println!("{}", board.render());
+        } else {
+            let boards = Board::get_all(client)?;
+            for b in boards {
+                println!("* {}", b.name);
+            }
         }
     }
 
