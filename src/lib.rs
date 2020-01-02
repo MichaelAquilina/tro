@@ -41,6 +41,8 @@ fn map_color(color: &str) -> &str {
         "sky" => "cyan",
         "lime" => "green",
         "orange" => "yellow",
+        // black is not visible on a terminal
+        "black" => "bright black",
         _ => color,
     }
 }
