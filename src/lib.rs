@@ -305,6 +305,32 @@ impl List {
         }
     }
 
+    /// Filters cards that match the given label_filter (As a regular expression).
+    /// Returns a copy of the original List, with the correct filtering applied.
+    ///
+    /// ```
+    /// use trello::{Card, Label, List};
+    ///
+    /// let list = List::new(
+    ///     "123",
+    ///     "TODO",
+    ///     Some(vec![
+    ///         Card::new("1", "Orange", "", Some(vec![Label::new("fruit")])),
+    ///         Card::new("2", "Green", "", None),
+    ///     ])
+    /// );
+    ///
+    /// assert_eq!(
+    ///     list.filter("fruit"),
+    ///     List::new(
+    ///         "123",
+    ///         "TODO",
+    ///         Some(vec![
+    ///             Card::new("1", "Orange", "", Some(vec![Label::new("fruit")]))
+    ///         ])
+    ///     )
+    /// );
+    /// ```
     pub fn filter(&self, label_filter: &str) -> List {
         let re = RegexBuilder::new(label_filter)
             .build()
