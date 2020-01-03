@@ -30,6 +30,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Edit Labels in show card
 // TODO: Tests for all the subcommands
 // TODO: Better Trello API interface
 // TODO: Wildcards for easier patterns
