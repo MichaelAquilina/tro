@@ -33,7 +33,6 @@ struct TrelloConfig {
 // TODO: Tests for all the subcommands
 // TODO: Better Trello API interface
 // TODO: Wildcards for easier patterns
-// TODO: Filter by Label
 // e.g. tro close TODO - "some card"
 // closes the card "some card" searching all lists in the TODO board
 
@@ -50,6 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@arg card_name: !required "Card Name to retrieve")
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
+            (@arg label_filter: -f --filter +takes_value "Filter by label")
         )
         (@subcommand close =>
             (about: "Close objects")
@@ -228,6 +228,8 @@ fn edit_card(card: &Card) -> Result<Card, Box<dyn Error>> {
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
+    let label_filter = matches.value_of("label_filter");
+
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
 
@@ -236,7 +238,12 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     if matches.is_present("new") {
         // we can safely unwrap the list due to the way we've setup clap
         let list_id = &result.list.unwrap().id;
-        let card = Card::new("", CARD_NAME_PLACEHOLDER, CARD_DESCRIPTION_PLACEHOLDER);
+        let card = Card::new(
+            "",
+            CARD_NAME_PLACEHOLDER,
+            CARD_DESCRIPTION_PLACEHOLDER,
+            None,
+        );
 
         let mut card = edit_card(&card)?;
 
@@ -259,9 +266,17 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
                 Card::update(client, &new_card)?;
             }
         } else if let Some(list) = result.list {
+            let list = match label_filter {
+                Some(label_filter) => list.filter(label_filter),
+                None => list,
+            };
             println!("{}", list.render());
         } else if let Some(mut board) = result.board {
             board.retrieve_nested(client)?;
+            let board = match label_filter {
+                Some(label_filter) => board.filter(label_filter),
+                None => board,
+            };
             println!("{}", board.render());
         } else {
             let boards = Board::get_all(client)?;
@@ -313,7 +328,11 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         eprint!("Card name: ");
         stdin().read_line(&mut input)?;
 
-        Card::create(client, &list.id, &Card::new("", &input.trim_end(), ""))?;
+        Card::create(
+            client,
+            &list.id,
+            &Card::new("", &input.trim_end(), "", None),
+        )?;
     } else if let Some(board) = result.board {
         eprint!("List name: ");
         stdin().read_line(&mut input)?;

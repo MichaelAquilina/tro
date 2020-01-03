@@ -11,6 +11,7 @@ mod test_lib;
 pub use client::Client;
 
 use colored::*;
+use regex::RegexBuilder;
 use serde::Deserialize;
 use std::error::Error;
 
@@ -58,6 +59,16 @@ impl TrelloObject for Label {
 
     fn render(&self) -> String {
         format!("[{}]", self.name.color(map_color(&self.color)))
+    }
+}
+
+impl Label {
+    pub fn new(name: &str) -> Label {
+        Label {
+            name: String::from(name),
+            color: String::from(""),
+            id: String::from(""),
+        }
     }
 }
 
@@ -162,12 +173,12 @@ impl TrelloObject for Board {
 }
 
 impl Card {
-    pub fn new(id: &str, name: &str, desc: &str) -> Card {
+    pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>) -> Card {
         Card {
             id: String::from(id),
             name: String::from(name),
             desc: String::from(desc),
-            labels: None,
+            labels: labels,
             closed: false,
         }
     }
@@ -294,6 +305,31 @@ impl List {
         }
     }
 
+    pub fn filter(&self, label_filter: &str) -> List {
+        let re = RegexBuilder::new(label_filter)
+            .build()
+            .expect("Invalid regex for label filter");
+
+        let closure = |c: &Card| -> bool {
+            if let Some(labels) = &c.labels {
+                for label in labels {
+                    if re.is_match(&label.name) {
+                        return true;
+                    }
+                }
+            }
+            false
+        };
+
+        let mut result = self.clone();
+        result.cards = if let Some(cards) = result.cards {
+            Some(cards.into_iter().filter(closure).collect())
+        } else {
+            None
+        };
+        result
+    }
+
     pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List, Box<dyn Error>> {
         let url = client.get_trello_url("/1/lists/", &[("name", name), ("idBoard", board_id)])?;
 
@@ -336,19 +372,23 @@ impl Board {
         }
     }
 
+    pub fn filter(&self, filter_name: &str) -> Board {
+        let mut result = self.clone();
+
+        result.lists = if let Some(lists) = result.lists {
+            Some(lists.into_iter().map(|l| l.filter(filter_name)).collect())
+        } else {
+            None
+        };
+        result
+    }
+
     /// Retrieves any missing nested content for the given board. This potentially
     /// means one or more network requests in order to retrieve the data. The Board
     /// will be mutated to include all its associated lists. The lists will also in turn
     /// contain the associated card resources.
     pub fn retrieve_nested(&mut self, client: &Client) -> Result<(), Box<dyn Error>> {
-        // TODO: might be more efficient to just re-retrieve all lists with cards: true?
-        if let Some(lists) = &mut self.lists {
-            for list in lists {
-                list.cards = Some(List::get_all_cards(client, &list.id)?);
-            }
-        } else {
-            self.lists = Some(Board::get_all_lists(client, &self.id, true)?);
-        }
+        self.lists = Some(Board::get_all_lists(client, &self.id, true)?);
 
         Ok(())
     }

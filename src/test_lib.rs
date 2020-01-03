@@ -1,4 +1,4 @@
-use super::{header, Board, Card, Client, List, TrelloObject};
+use super::*;
 use colored::*;
 use mockito;
 use serde_json::json;
@@ -31,7 +31,7 @@ mod card_tests {
 
     #[test]
     fn test_new() {
-        let card = Card::new("A", "B", "C");
+        let card = Card::new("A", "B", "C", None);
         let expected = Card {
             id: String::from("A"),
             name: String::from("B"),
@@ -44,7 +44,7 @@ mod card_tests {
 
     #[test]
     fn test_render() {
-        let card = Card::new("aaaaa", "My Fav Card", "this is a nice card");
+        let card = Card::new("aaaaa", "My Fav Card", "this is a nice card", None);
 
         let expected = "My Fav Card\n-----------\nthis is a nice card";
         assert_eq!(card.render(), expected);
@@ -69,8 +69,8 @@ mod card_tests {
         .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-        let result = Card::create(&client, "FOOBAR", &Card::new("", "Laundry", "Desky"))?;
-        let expected = Card::new("88888", "Laundry", "");
+        let result = Card::create(&client, "FOOBAR", &Card::new("", "Laundry", "Desky", None))?;
+        let expected = Card::new("88888", "Laundry", "", None);
 
         assert_eq!(result, expected);
         Ok(())
@@ -96,7 +96,7 @@ mod card_tests {
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
 
-        let mut card = Card::new("MY-CARD-ID", "Laundry", "hello");
+        let mut card = Card::new("MY-CARD-ID", "Laundry", "hello", None);
         card.closed = true;
 
         let result = Card::update(&client, &card)?;
@@ -121,6 +121,53 @@ mod list_tests {
     }
 
     #[test]
+    fn test_filter_none_cards() {
+        let list = List::new("some-id", "some-name", None);
+
+        assert_eq!(
+            list.filter("my-label"),
+            List::new("some-id", "some-name", None)
+        );
+    }
+
+    #[test]
+    fn test_filter_correct_behaviour() {
+        let list = List::new(
+            "some-id",
+            "some-name",
+            Some(vec![
+                Card::new("1", "Apple", "", Some(vec![Label::new("fruit")])),
+                Card::new(
+                    "2",
+                    "Orange",
+                    "",
+                    Some(vec![Label::new("fruit"), Label::new("citrus")]),
+                ),
+                Card::new("3", "Pear", "", Some(vec![Label::new("fruit")])),
+            ]),
+        );
+
+        assert_eq!(
+            list.filter("my-label"),
+            List::new("some-id", "some-name", Some(vec![]))
+        );
+        assert_eq!(list.filter("fruit"), list);
+        assert_eq!(
+            list.filter("citrus"),
+            List::new(
+                "some-id",
+                "some-name",
+                Some(vec![Card::new(
+                    "2",
+                    "Orange",
+                    "",
+                    Some(vec![Label::new("fruit"), Label::new("citrus")])
+                )])
+            )
+        );
+    }
+
+    #[test]
     fn test_render_no_cards() {
         let list = List::new("aaaaa", "King Knight", None);
         let expected = "King Knight\n-----------".bold().to_string();
@@ -132,7 +179,10 @@ mod list_tests {
         let list = List::new(
             "aaaaa",
             "King Knight",
-            Some(vec![Card::new("", "hello", ""), Card::new("", "world", "")]),
+            Some(vec![
+                Card::new("", "hello", "", None),
+                Card::new("", "world", "", None),
+            ]),
         );
 
         let expected = format!(
@@ -213,8 +263,8 @@ mod list_tests {
         let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
         let result = List::get_all_cards(&client, "DEADBEEF")?;
         let expected = vec![
-            Card::new("abc-def", "Water the plants", ""),
-            Card::new("123-456", "Feed the dog", "for a good boy"),
+            Card::new("abc-def", "Water the plants", "", None),
+            Card::new("123-456", "Feed the dog", "for a good boy", None),
         ];
 
         assert_eq!(result, expected);
@@ -270,11 +320,15 @@ mod board_tests {
             "",
             "Knights",
             Some(vec![
-                List::new("", "King", Some(vec![Card::new("", "Gyro Boots", "")])),
+                List::new(
+                    "",
+                    "King",
+                    Some(vec![Card::new("", "Gyro Boots", "", None)]),
+                ),
                 List::new(
                     "",
                     "Shovel",
-                    Some(vec![Card::new("", "Flare Wand", "Relic")]),
+                    Some(vec![Card::new("", "Flare Wand", "Relic", None)]),
                 ),
             ]),
         );
@@ -451,7 +505,7 @@ mod board_tests {
             List::new(
                 "222-222",
                 "Green",
-                Some(vec![Card::new("card1", "apple", "")]),
+                Some(vec![Card::new("card1", "apple", "", None)]),
             ),
         ];
         assert_eq!(result, expected);
