@@ -122,11 +122,27 @@ struct TrelloResult {
     card: Option<Card>,
 }
 
+struct TrelloParams<'a> {
+    board_name: Option<&'a str>,
+    list_name: Option<&'a str>,
+    card_name: Option<&'a str>,
+    ignore_case: bool,
+}
+
+fn get_trello_params<'a>(matches: &'a ArgMatches) -> TrelloParams<'a> {
+    TrelloParams {
+        board_name: matches.value_of("board_name"),
+        list_name: matches.value_of("list_name"),
+        card_name: matches.value_of("card_name"),
+        ignore_case: matches.is_present("ignore_case"),
+    }
+}
+
 fn get_trello_object(
     client: &Client,
-    matches: &ArgMatches,
+    params: &TrelloParams,
 ) -> Result<TrelloResult, Box<dyn Error>> {
-    let board_name = match matches.value_of("board_name") {
+    let board_name = match params.board_name {
         Some(bn) => bn,
         None => {
             return Ok(TrelloResult {
@@ -137,8 +153,7 @@ fn get_trello_object(
         }
     };
     let boards = Board::get_all(&client)?;
-    let ignore_case = matches.is_present("ignore_case");
-    let mut board = get_object_by_name(&boards, &board_name, ignore_case)?.clone();
+    let mut board = get_object_by_name(&boards, &board_name, params.ignore_case)?.clone();
 
     // This should retrieve everything at once
     // This means better performance as it's less HTTP requests. But it does
@@ -148,14 +163,14 @@ fn get_trello_object(
     // TODO: Consider changing struct to use references for List and Card which share
     // a lifetime with the board
 
-    if let Some(list_name) = matches.value_of("list_name") {
+    if let Some(list_name) = params.list_name {
         let lists = &board.lists.as_ref().unwrap();
-        let list = get_object_by_name(lists, &list_name, ignore_case)?.clone();
+        let list = get_object_by_name(lists, &list_name, params.ignore_case)?.clone();
 
-        if let Some(card_name) = matches.value_of("card_name") {
+        if let Some(card_name) = params.card_name {
             let cards = &list.cards.as_ref().unwrap();
 
-            let card = get_object_by_name(&cards, &card_name, ignore_case)?.clone();
+            let card = get_object_by_name(&cards, &card_name, params.ignore_case)?.clone();
             return Ok(TrelloResult {
                 board: Some(board),
                 list: Some(list),
@@ -212,7 +227,8 @@ fn edit_card(card: &Card) -> Result<Card, Box<dyn Error>> {
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
-    let result = get_trello_object(client, matches)?;
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
 
     trace!("result: {:?}", result);
 
@@ -260,7 +276,8 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running close subcommand with {:?}", matches);
 
-    let result = get_trello_object(client, matches)?;
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
 
     trace!("result: {:?}", result);
 
@@ -284,7 +301,8 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
 fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running create subcommand with {:?}", matches);
 
-    let result = get_trello_object(client, matches)?;
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
 
     trace!("result: {:?}", result);
 
