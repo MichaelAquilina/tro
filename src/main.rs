@@ -32,6 +32,7 @@ struct TrelloConfig {
 
 // TODO: Edit Labels in show card
 // TODO: Tests for all the subcommands
+// TODO: Unified/Streamlined CLI interface
 // TODO: Better Trello API interface
 // TODO: Wildcards for easier patterns
 // e.g. tro close TODO - "some card"
