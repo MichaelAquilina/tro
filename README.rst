@@ -56,7 +56,7 @@ Some examples of commands you can run:
 
 ::
 
-    $ cargo run edit TODO Today "my new card"
+    $ cargo run show TODO Today "my new card"
     <your $EDITOR will open>
 
 **Close a card**
