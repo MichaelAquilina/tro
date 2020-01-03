@@ -50,6 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
+            (@arg show_url: --url "Show url for target Object")
         )
         (@subcommand close =>
             (about: "Close objects")
@@ -229,6 +230,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
+    let show_url = matches.is_present("show_url");
 
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
@@ -243,6 +245,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
             CARD_NAME_PLACEHOLDER,
             CARD_DESCRIPTION_PLACEHOLDER,
             None,
+            "",
         );
 
         let mut card = edit_card(&card)?;
@@ -260,24 +263,40 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
         }
     } else {
         if let Some(card) = result.card {
-            let new_card = edit_card(&card)?;
-            if new_card != card {
-                eprintln!("Changes detected - uploading card contents");
-                Card::update(client, &new_card)?;
+            if show_url {
+                println!("{}", card.url);
+            } else {
+                let new_card = edit_card(&card)?;
+                if new_card != card {
+                    eprintln!("Changes detected - uploading card contents");
+                    Card::update(client, &new_card)?;
+                }
             }
         } else if let Some(list) = result.list {
             let list = match label_filter {
                 Some(label_filter) => list.filter(label_filter),
                 None => list,
             };
-            println!("{}", list.render());
+
+            if show_url {
+                // List does not have a target url
+                // We can be sure we have a board and open that instead
+                println!("{}", result.board.unwrap().url);
+            } else {
+                println!("{}", list.render());
+            }
         } else if let Some(mut board) = result.board {
             board.retrieve_nested(client)?;
             let board = match label_filter {
                 Some(label_filter) => board.filter(label_filter),
                 None => board,
             };
-            println!("{}", board.render());
+
+            if show_url {
+                println!("{}", board.url);
+            } else {
+                println!("{}", board.render());
+            }
         } else {
             let boards = Board::get_all(client)?;
             for b in boards {
@@ -331,7 +350,7 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
         Card::create(
             client,
             &list.id,
-            &Card::new("", &input.trim_end(), "", None),
+            &Card::new("", &input.trim_end(), "", None, ""),
         )?;
     } else if let Some(board) = result.board {
         eprint!("List name: ");

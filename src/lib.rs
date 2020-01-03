@@ -79,6 +79,7 @@ pub struct Card {
     pub name: String,
     pub desc: String,
     pub closed: bool,
+    pub url: String,
     pub labels: Option<Vec<Label>>,
 }
 
@@ -88,7 +89,7 @@ impl TrelloObject for Card {
     }
 
     fn get_fields() -> &'static [&'static str] {
-        &["id", "name", "desc", "labels", "closed"]
+        &["id", "name", "desc", "labels", "closed", "url"]
     }
 
     fn render(&self) -> String {
@@ -148,6 +149,7 @@ pub struct Board {
     pub id: String,
     pub name: String,
     pub closed: bool,
+    pub url: String,
     pub lists: Option<Vec<List>>,
 }
 
@@ -157,7 +159,7 @@ impl TrelloObject for Board {
     }
 
     fn get_fields() -> &'static [&'static str] {
-        &["id", "name", "closed"]
+        &["id", "name", "closed", "url"]
     }
 
     fn render(&self) -> String {
@@ -173,11 +175,12 @@ impl TrelloObject for Board {
 }
 
 impl Card {
-    pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>) -> Card {
+    pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>, url: &str) -> Card {
         Card {
             id: String::from(id),
             name: String::from(name),
             desc: String::from(desc),
+            url: String::from(url),
             labels: labels,
             closed: false,
         }
@@ -204,6 +207,7 @@ impl Card {
     ///         desc: String::from("This is my card"),
     ///         labels: None,
     ///         closed: false,
+    ///         url: String::new(),
     ///     },
     /// );
     /// # Ok(())
@@ -257,6 +261,7 @@ impl Card {
             desc: String::from(desc),
             labels: None,
             closed: false,
+            url: String::new(),
         })
     }
 
@@ -315,9 +320,18 @@ impl List {
     ///     "123",
     ///     "TODO",
     ///     Some(vec![
-    ///         Card::new("1", "Orange", "", Some(vec![Label::new("fruit")])),
-    ///         Card::new("2", "Green", "", None),
+    ///         Card::new("1", "Orange", "", Some(vec![Label::new("fruit")]), ""),
+    ///         Card::new("2", "Green", "", None, ""),
     ///     ])
+    /// );
+    ///
+    /// assert_eq!(
+    ///     list.filter("idontexist"),
+    ///     List::new(
+    ///         "123",
+    ///         "TODO",
+    ///         Some(vec![]),
+    ///     )
     /// );
     ///
     /// assert_eq!(
@@ -326,7 +340,7 @@ impl List {
     ///         "123",
     ///         "TODO",
     ///         Some(vec![
-    ///             Card::new("1", "Orange", "", Some(vec![Label::new("fruit")]))
+    ///             Card::new("1", "Orange", "", Some(vec![Label::new("fruit")]), "")
     ///         ])
     ///     )
     /// );
@@ -389,10 +403,11 @@ impl List {
 }
 
 impl Board {
-    pub fn new(id: &str, name: &str, lists: Option<Vec<List>>) -> Board {
+    pub fn new(id: &str, name: &str, lists: Option<Vec<List>>, url: &str) -> Board {
         Board {
             id: String::from(id),
             name: String::from(name),
+            url: String::from(url),
             lists: lists,
             closed: false,
         }

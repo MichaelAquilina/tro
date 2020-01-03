@@ -29,13 +29,13 @@ mod test_get_trello_object {
     fn test_correct_output() -> Result<(), Box<dyn Error>> {
         let _m1 = mockito::mock(
             "GET",
-            "/1/members/me/boards/?key=key&token=token&filter=open&fields=id%2Cname%2Cclosed",
+            "/1/members/me/boards/?key=key&token=token&filter=open&fields=id%2Cname%2Cclosed%2Curl",
         )
         .with_status(200)
         .with_body(
             json!([
-                {"name": "TODO", "id": "abc-def", "closed": false},
-                {"name": "foo", "id": "123-456", "closed": false},
+                {"name": "TODO", "id": "abc-def", "closed": false, "url": ""},
+                {"name": "foo", "id": "123-456", "closed": false, "url": ""},
             ])
             .to_string(),
         )
@@ -48,7 +48,7 @@ mod test_get_trello_object {
         .with_status(200)
         .with_body(
             json!([
-                {"name": "Backlog", "id": "bcklg", "closed": false, "cards": []},
+                {"name": "Backlog", "id": "bcklg", "closed": false, "cards": [], "url": ""},
             ])
             .to_string(),
         )
@@ -68,6 +68,7 @@ mod test_get_trello_object {
                 "abc-def",
                 "TODO",
                 Some(vec![List::new("bcklg", "Backlog", Some(vec![]))]),
+                "",
             )),
             list: Some(List::new("bcklg", "Backlog", Some(vec![]))),
             card: None,
@@ -97,7 +98,7 @@ mod test_get_object_by_name {
 
     #[test]
     fn test_not_found() {
-        let boards = vec![Card::new("red", "", "1", None)];
+        let boards = vec![Card::new("red", "", "1", None, "")];
         let result = get_object_by_name(&boards, "foobar", false);
 
         assert_eq!(
@@ -110,7 +111,10 @@ mod test_get_object_by_name {
 
     #[test]
     fn test_more_than_one() {
-        let boards = vec![Board::new("1", "red", None), Board::new("2", "red", None)];
+        let boards = vec![
+            Board::new("1", "red", None, ""),
+            Board::new("2", "red", None, ""),
+        ];
         let result = get_object_by_name(&boards, "red", false);
 
         assert_eq!(
@@ -124,8 +128,8 @@ mod test_get_object_by_name {
     #[test]
     fn test_found() -> Result<(), Box<dyn Error>> {
         let boards = vec![
-            Board::new("33", "green", None),
-            Board::new("R35", "red", None),
+            Board::new("33", "green", None, ""),
+            Board::new("R35", "red", None, ""),
         ];
         let result = get_object_by_name(&boards, "red", false)?;
 
@@ -146,7 +150,7 @@ mod test_get_object_by_name {
 
     #[test]
     fn test_regex() -> Result<(), Box<dyn Error>> {
-        let boards = vec![Board::new("R35", "Red Green Blue 🖌️", None)];
+        let boards = vec![Board::new("R35", "Red Green Blue 🖌️", None, "")];
         let result = get_object_by_name(&boards, "Red .*", false)?;
 
         let expected = &boards[0];
