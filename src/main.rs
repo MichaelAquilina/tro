@@ -122,6 +122,7 @@ struct TrelloResult {
     card: Option<Card>,
 }
 
+#[derive(Debug, PartialEq)]
 struct TrelloParams<'a> {
     board_name: Option<&'a str>,
     list_name: Option<&'a str>,
