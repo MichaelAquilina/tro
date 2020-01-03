@@ -131,7 +131,7 @@ impl TrelloObject for List {
     }
 }
 
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Board {
     pub id: String,

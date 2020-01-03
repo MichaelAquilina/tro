@@ -26,7 +26,7 @@ mod test_get_object_by_name {
     #[test]
     fn test_empty() {
         let boards: Vec<Board> = vec![];
-        let result = get_object_by_name(boards, "foobar", false);
+        let result = get_object_by_name(&boards, "foobar", false);
 
         assert_eq!(
             result,
@@ -39,7 +39,7 @@ mod test_get_object_by_name {
     #[test]
     fn test_not_found() {
         let boards = vec![Card::new("red", "", "1")];
-        let result = get_object_by_name(boards, "foobar", false);
+        let result = get_object_by_name(&boards, "foobar", false);
 
         assert_eq!(
             result,
@@ -52,7 +52,7 @@ mod test_get_object_by_name {
     #[test]
     fn test_more_than_one() {
         let boards = vec![Board::new("1", "red", None), Board::new("2", "red", None)];
-        let result = get_object_by_name(boards, "red", false);
+        let result = get_object_by_name(&boards, "red", false);
 
         assert_eq!(
             result,
@@ -64,16 +64,13 @@ mod test_get_object_by_name {
 
     #[test]
     fn test_found() -> Result<(), Box<dyn Error>> {
-        let boards = vec![Board::new("R35", "red", None)];
-        let result = get_object_by_name(boards, "red", false)?;
+        let boards = vec![
+            Board::new("33", "green", None),
+            Board::new("R35", "red", None),
+        ];
+        let result = get_object_by_name(&boards, "red", false)?;
 
-        let expected = Board {
-            name: "red".to_string(),
-            id: "R35".to_string(),
-            closed: false,
-            lists: None,
-        };
-
+        let expected = &boards[1];
         assert_eq!(result, expected);
         Ok(())
     }
@@ -81,15 +78,9 @@ mod test_get_object_by_name {
     #[test]
     fn test_case_insensitive() -> Result<(), Box<dyn Error>> {
         let boards = vec![List::new("R35", "red", None)];
-        let result = get_object_by_name(boards, "RED", true)?;
+        let result = get_object_by_name(&boards, "RED", true)?;
 
-        let expected = List {
-            name: "red".to_string(),
-            id: "R35".to_string(),
-            cards: None,
-            closed: false,
-        };
-
+        let expected = &boards[0];
         assert_eq!(result, expected);
         Ok(())
     }
@@ -97,15 +88,9 @@ mod test_get_object_by_name {
     #[test]
     fn test_regex() -> Result<(), Box<dyn Error>> {
         let boards = vec![Board::new("R35", "Red Green Blue 🖌️", None)];
-        let result = get_object_by_name(boards, "Red .*", false)?;
+        let result = get_object_by_name(&boards, "Red .*", false)?;
 
-        let expected = Board {
-            name: "Red Green Blue 🖌️".to_string(),
-            id: "R35".to_string(),
-            closed: false,
-            lists: None,
-        };
-
+        let expected = &boards[0];
         assert_eq!(result, expected);
         Ok(())
     }

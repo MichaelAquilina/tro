@@ -138,15 +138,24 @@ fn get_trello_object(
     };
     let boards = Board::get_all(&client)?;
     let ignore_case = matches.is_present("ignore_case");
-    let board = get_object_by_name(boards, &board_name, ignore_case)?;
+    let mut board = get_object_by_name(&boards, &board_name, ignore_case)?.clone();
+
+    // This should retrieve everything at once
+    // This means better performance as it's less HTTP requests. But it does
+    // mean we might retrieve more than we actually need in memory.
+    board.retrieve_nested(client)?;
+
+    // TODO: Consider changing struct to use references for List and Card which share
+    // a lifetime with the board
 
     if let Some(list_name) = matches.value_of("list_name") {
-        let lists = Board::get_all_lists(client, &board.id, true)?;
-        let list = get_object_by_name(lists, &list_name, ignore_case)?;
-        if let Some(card_name) = matches.value_of("card_name") {
-            let cards = List::get_all_cards(client, &list.id)?;
+        let lists = &board.lists.as_ref().unwrap();
+        let list = get_object_by_name(lists, &list_name, ignore_case)?.clone();
 
-            let card = get_object_by_name(cards, &card_name, ignore_case)?;
+        if let Some(card_name) = matches.value_of("card_name") {
+            let cards = &list.cards.as_ref().unwrap();
+
+            let card = get_object_by_name(&cards, &card_name, ignore_case)?.clone();
             return Ok(TrelloResult {
                 board: Some(board),
                 list: Some(list),
@@ -301,11 +310,11 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     Ok(())
 }
 
-fn get_object_by_name<T: TrelloObject>(
-    objects: Vec<T>,
+fn get_object_by_name<'a, T: TrelloObject>(
+    objects: &'a Vec<T>,
     name: &str,
     ignore_case: bool,
-) -> Result<T, simple_error::SimpleError> {
+) -> Result<&'a T, simple_error::SimpleError> {
     let re = RegexBuilder::new(name)
         .case_insensitive(ignore_case)
         .build()
@@ -314,7 +323,7 @@ fn get_object_by_name<T: TrelloObject>(
     let mut objects = objects
         .into_iter()
         .filter(|o| re.is_match(&o.get_name()))
-        .collect::<Vec<T>>();
+        .collect::<Vec<&T>>();
 
     if objects.len() == 1 {
         Ok(objects.pop().unwrap())
