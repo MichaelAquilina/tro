@@ -93,7 +93,7 @@ impl TrelloObject for Card {
     }
 
     fn render(&self) -> String {
-        [header(&self.name, "-").as_str(), &self.desc].join("\n")
+        [header(&self.name, "=").as_str(), &self.desc].join("\n")
     }
 }
 
@@ -196,7 +196,7 @@ impl Card {
     /// ```
     /// # use simple_error::SimpleError;
     /// # fn main() -> Result<(), SimpleError> {
-    /// let buffer = "Hello World\n---\nThis is my card";
+    /// let buffer = "Hello World\n===\nThis is my card";
     /// let card = trello::Card::parse(buffer)?;
     ///
     /// assert_eq!(
@@ -221,7 +221,7 @@ impl Card {
     /// let result = trello::Card::parse(buffer);
     /// assert_eq!(
     ///     result,
-    ///     Err(SimpleError::new("Unable to parse - Unable to find name delimiter '----'"))
+    ///     Err(SimpleError::new("Unable to parse - Unable to find name delimiter '===='"))
     /// );
     /// ```
     pub fn parse(buffer: &str) -> Result<Card, SimpleError> {
@@ -239,7 +239,7 @@ impl Card {
         while contents.len() > 0 {
             let line = contents.remove(0);
 
-            if &line.chars().take_while(|c| c == &'-').collect::<String>() != line {
+            if &line.chars().take_while(|c| c == &'=').collect::<String>() != line {
                 name.push(line);
             } else {
                 found = true;
@@ -248,7 +248,7 @@ impl Card {
         }
 
         if !found {
-            bail!("Unable to parse - Unable to find name delimiter '----'");
+            bail!("Unable to parse - Unable to find name delimiter '===='");
         }
 
         let name = name.join("\n");

@@ -239,6 +239,9 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
     trace!("result: {:?}", result);
 
+    // TODO: Upload data every time the editor saves the file
+    // rather than just when it is closed
+
     if matches.is_present("new") {
         // we can safely unwrap the list due to the way we've setup clap
         let list_id = &result.list.unwrap().id;

@@ -47,7 +47,7 @@ mod card_tests {
     fn test_render() {
         let card = Card::new("aaaaa", "My Fav Card", "this is a nice card", None, "");
 
-        let expected = "My Fav Card\n-----------\nthis is a nice card";
+        let expected = "My Fav Card\n===========\nthis is a nice card";
         assert_eq!(card.render(), expected);
     }
 
