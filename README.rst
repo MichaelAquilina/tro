@@ -20,7 +20,7 @@ Once those are set, simply run with ``cargo run``.
 
 Some examples of commands you can run:
 
-**Show all board**
+**Show all board names**
 
 ::
 
