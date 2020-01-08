@@ -216,7 +216,7 @@ fn get_trello_object(
 ///
 /// Once the editor is closed, a new card is populated and returned based on the
 /// contents of what was written by the editor.
-fn edit_card(card: &Card) -> Result<Card, Box<dyn Error>> {
+fn edit_card(card: &mut Card) -> Result<(), Box<dyn Error>> {
     let mut file = Builder::new().suffix(".md").tempfile()?;
     let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
 
@@ -233,13 +233,13 @@ fn edit_card(card: &Card) -> Result<Card, Box<dyn Error>> {
     file.reopen()?.read_to_string(&mut buf)?;
 
     // Trim end because a lot of editors will auto add new lines at the end of the file
-    let mut new_card = Card::parse(buf.trim_end())?;
-    new_card.id = String::from(&card.id);
-    new_card.labels = card.labels.clone();
+    let card_contents = Card::parse(buf.trim_end())?;
+    card.name = card_contents.name;
+    card.desc = card_contents.desc;
 
-    debug!("New card: {:?}", new_card);
+    debug!("New card: {:?}", card);
 
-    Ok(new_card)
+    Ok(())
 }
 
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
@@ -259,7 +259,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     if matches.is_present("new") {
         // we can safely unwrap the list due to the way we've setup clap
         let list_id = &result.list.unwrap().id;
-        let card = Card::new(
+        let mut card = Card::new(
             "",
             CARD_NAME_PLACEHOLDER,
             CARD_DESCRIPTION_PLACEHOLDER,
@@ -267,7 +267,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
             "",
         );
 
-        let mut card = edit_card(&card)?;
+        edit_card(&mut card)?;
 
         // if nothing is edited by the user, remove it
         if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
@@ -285,7 +285,8 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
             if show_url {
                 println!("{}", card.url);
             } else {
-                let new_card = edit_card(&card)?;
+                let mut new_card = card.clone();
+                edit_card(&mut new_card)?;
                 if new_card != card {
                     eprintln!("Changes detected - uploading card contents");
                     Card::update(client, &new_card)?;

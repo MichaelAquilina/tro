@@ -175,6 +175,12 @@ impl TrelloObject for Board {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct CardContents {
+    pub name: String,
+    pub desc: String,
+}
+
 impl Card {
     pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>, url: &str) -> Card {
         Card {
@@ -188,27 +194,20 @@ impl Card {
     }
 
     /// Takes a buffer of contents that represent a Card render and parses
-    /// it into a Card structure. This is similar to a deserialization process
+    /// it into a CardContents structure. This is similar to a deserialization process
     /// except this is quite unstructured and is not very strict in order to allow
     /// the user to more easily edit card contents.
-    ///
-    /// Card id is left empty as there is no way to derive that from the contents.
-    /// The resultant card is also assumed to be open.
     /// ```
     /// # use simple_error::SimpleError;
     /// # fn main() -> Result<(), SimpleError> {
     /// let buffer = "Hello World\n===\nThis is my card";
-    /// let card = trello::Card::parse(buffer)?;
+    /// let card_contents = trello::Card::parse(buffer)?;
     ///
     /// assert_eq!(
-    ///     card,
-    ///     trello::Card {
-    ///         id: String::new(),
+    ///     card_contents,
+    ///     trello::CardContents {
     ///         name: String::from("Hello World"),
     ///         desc: String::from("This is my card"),
-    ///         labels: None,
-    ///         closed: false,
-    ///         url: String::new(),
     ///     },
     /// );
     /// # Ok(())
@@ -225,7 +224,7 @@ impl Card {
     ///     Err(SimpleError::new("Unable to parse - Unable to find name delimiter '===='"))
     /// );
     /// ```
-    pub fn parse(buffer: &str) -> Result<Card, SimpleError> {
+    pub fn parse(buffer: &str) -> Result<CardContents, SimpleError> {
         // this is guaranteed to give at least one result
         let mut contents = buffer.split("\n").collect::<Vec<&str>>();
         trace!("{:?}", contents);
@@ -256,13 +255,9 @@ impl Card {
         // The rest of the contents is assumed to be the description
         let desc = contents.join("\n");
 
-        Ok(Card {
-            id: String::new(),
+        Ok(CardContents {
             name: String::from(name),
             desc: String::from(desc),
-            labels: None,
-            closed: false,
-            url: String::new(),
         })
     }
 
