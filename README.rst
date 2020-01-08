@@ -52,6 +52,13 @@ Some examples of commands you can run:
     $ cargo run create TODO Today
     Card name: my new card
 
+OR
+
+::
+
+    $ cargo run show TODO Today -n
+    <your $EDITOR will open>
+
 **Edit an existing card**
 
 ::

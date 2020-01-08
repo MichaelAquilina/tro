@@ -12,6 +12,7 @@ mod test_main;
 use clap::ArgMatches;
 use regex::RegexBuilder;
 use serde::Deserialize;
+use simple_error::SimpleError;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
 use std::io::{stdin, Read, Write};
@@ -34,9 +35,6 @@ struct TrelloConfig {
 // TODO: Tests for all the subcommands
 // TODO: Unified/Streamlined CLI interface
 // TODO: Better Trello API interface
-// TODO: Wildcards for easier patterns
-// e.g. tro close TODO - "some card"
-// closes the card "some card" searching all lists in the TODO board
 fn main() {
     if let Err(error) = start() {
         println!("An Error occurred:");
@@ -170,10 +168,20 @@ fn get_trello_object(
     // mean we might retrieve more than we actually need in memory.
     board.retrieve_nested(client)?;
 
-    // TODO: Consider changing struct to use references for List and Card which share
-    // a lifetime with the board
+    if let Some("-") = params.list_name {
+        if let Some(card_name) = params.card_name {
+            let lists = board.lists.as_ref().unwrap();
 
-    if let Some(list_name) = params.list_name {
+            let card = get_card_from_lists(&lists, &card_name, params.ignore_case)?;
+            return Ok(TrelloResult {
+                board: Some(board.clone()),
+                list: None,
+                card: Some(card.clone()),
+            });
+        } else {
+            bail!("Card name must be specified with list '-' wildcard");
+        }
+    } else if let Some(list_name) = params.list_name {
         let lists = &board.lists.as_ref().unwrap();
         let list = get_object_by_name(lists, &list_name, params.ignore_case)?.clone();
 
@@ -378,11 +386,48 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     Ok(())
 }
 
+fn get_card_from_lists<'a>(
+    lists: &'a Vec<List>,
+    card_name: &str,
+    ignore_case: bool,
+) -> Result<&'a Card, SimpleError> {
+    let re = RegexBuilder::new(card_name)
+        .case_insensitive(ignore_case)
+        .build()
+        .expect("Invalid Regex");
+
+    let mut result = vec![];
+    for list in lists {
+        let cards = list
+            .cards
+            .as_ref()
+            .unwrap()
+            .iter()
+            .filter(|c| re.is_match(&c.name))
+            .collect::<Vec<&Card>>();
+        result.extend(cards);
+    }
+
+    if result.len() == 1 {
+        return Ok(result.pop().unwrap());
+    } else if result.len() > 1 {
+        bail!(
+            "Multiple cards found. Specify a more precise filter than '{}'",
+            card_name
+        );
+    } else {
+        bail!(
+            "Card not found. Specify a more precise filter than '{}'",
+            card_name
+        );
+    }
+}
+
 fn get_object_by_name<'a, T: TrelloObject>(
     objects: &'a Vec<T>,
     name: &str,
     ignore_case: bool,
-) -> Result<&'a T, simple_error::SimpleError> {
+) -> Result<&'a T, SimpleError> {
     let re = RegexBuilder::new(name)
         .case_insensitive(ignore_case)
         .build()
