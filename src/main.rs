@@ -37,8 +37,14 @@ struct TrelloConfig {
 // TODO: Wildcards for easier patterns
 // e.g. tro close TODO - "some card"
 // closes the card "some card" searching all lists in the TODO board
+fn main() {
+    if let Err(error) = start() {
+        println!("An Error occurred:");
+        println!("{}", error);
+    }
+}
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn start() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(TrelloCLI =>
         (version: env!("CARGO_PKG_VERSION"))
         (author: env!("CARGO_PKG_AUTHORS"))
