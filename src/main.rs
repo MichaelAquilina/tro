@@ -84,7 +84,7 @@ fn start() -> Result<(), Box<dyn Error>> {
         "DEBUG" => LevelFilter::Debug,
         "INFO" => LevelFilter::Info,
         "ERROR" => LevelFilter::Error,
-        unknown => panic!("Unknown log level '{}'", unknown),
+        unknown => bail!("Unknown log level '{}'", unknown),
     };
 
     CombinedLogger::init(vec![TermLogger::new(
