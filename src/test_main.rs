@@ -113,14 +113,14 @@ mod test_get_object_by_name {
     fn test_more_than_one() {
         let boards = vec![
             Board::new("1", "red", None, ""),
-            Board::new("2", "red", None, ""),
+            Board::new("2", "reddish", None, ""),
         ];
         let result = get_object_by_name(&boards, "red", false);
 
         assert_eq!(
             result,
             Err(simple_error::SimpleError::new(
-                "More than one object found. Specify a more precise filter than 'red'"
+                "More than one object found. Specify a more precise filter than 'red' (Found 'red', 'reddish')"
             ))
         );
     }

@@ -391,8 +391,13 @@ fn get_object_by_name<'a, T: TrelloObject>(
         Ok(objects.pop().unwrap())
     } else if objects.len() > 1 {
         bail!(
-            "More than one object found. Specify a more precise filter than '{}'",
-            name
+            "More than one object found. Specify a more precise filter than '{}' (Found {})",
+            name,
+            objects
+                .iter()
+                .map(|t| format!("'{}'", t.get_name()))
+                .collect::<Vec<String>>()
+                .join(", ")
         );
     } else {
         bail!(

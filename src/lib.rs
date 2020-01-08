@@ -14,6 +14,7 @@ use colored::*;
 use regex::RegexBuilder;
 use serde::Deserialize;
 use std::error::Error;
+use std::fmt::Debug;
 
 use simple_error::SimpleError;
 
@@ -21,7 +22,7 @@ fn header(text: &str, header_char: &str) -> String {
     [text, &header_char.repeat(text.chars().count())].join("\n")
 }
 
-pub trait TrelloObject {
+pub trait TrelloObject: Debug {
     fn get_name(&self) -> &str;
 
     fn get_fields() -> &'static [&'static str];
