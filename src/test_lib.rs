@@ -267,7 +267,12 @@ mod board_tests {
     #[test]
     fn test_render_no_lists() {
         let board = Board::new("", "Knights", None, "");
-        let expected = "Knights\n=======".bold().to_string();
+        #[rustfmt::skip]
+        let expected = [
+            "╔═════════╗",
+            "║ Knights ║",
+            "╚═════════╝",
+        ].join("\n").bold().to_string();
         assert_eq!(board.render(), expected);
     }
 
@@ -282,13 +287,24 @@ mod board_tests {
             ]),
             "",
         );
-
-        let expected = format!(
-            "{}\n\n{}\n\n{}",
-            "Knights\n=======".bold(),
-            "King\n----".bold(),
-            "Shovel\n------".bold(),
-        );
+        #[rustfmt::skip]
+        let expected = [
+            [
+                "╔═════════╗",
+                "║ Knights ║",
+                "╚═════════╝",
+            ].join("\n").bold().to_string(),
+            String::from(""),
+            [
+                "King",
+                "----",
+            ].join("\n").bold().to_string(),
+            String::from(""),
+            [
+                "Shovel",
+                "------",
+            ].join("\n").bold().to_string(),
+        ].join("\n");
         assert_eq!(board.render(), expected);
     }
 
@@ -311,15 +327,26 @@ mod board_tests {
             ]),
             "",
         );
-
-        let expected = format!(
-            "{}\n\n{}\n{}\n\n{}\n{}",
-            "Knights\n=======".bold(),
-            "King\n----".bold(),
-            "* Gyro Boots",
-            "Shovel\n------".bold(),
+        #[rustfmt::skip]
+        let expected = [
+            [
+                "╔═════════╗",
+                "║ Knights ║",
+                "╚═════════╝",
+            ].join("\n").bold().to_string(),
+            String::from(""),
+            [
+                "King",
+                "----",
+            ].join("\n").bold().to_string(),
+            String::from("* Gyro Boots"),
+            String::from(""),
+            [
+                "Shovel",
+                "------",
+            ].join("\n").bold().to_string(),
             format!("* Flare Wand {}", "[...]".dimmed()),
-        );
+        ].join("\n");
         assert_eq!(board.render(), expected);
     }
 

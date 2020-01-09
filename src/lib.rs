@@ -18,6 +18,17 @@ use std::fmt::Debug;
 
 use simple_error::SimpleError;
 
+fn title(text: &str) -> String {
+    let border = "═".repeat(text.chars().count());
+
+    [
+        format!("╔═{}═╗", border),
+        format!("║ {} ║", text),
+        format!("╚═{}═╝", border),
+    ]
+    .join("\n")
+}
+
 fn header(text: &str, header_char: &str) -> String {
     [text, &header_char.repeat(text.chars().count())].join("\n")
 }
@@ -164,7 +175,7 @@ impl TrelloObject for Board {
     }
 
     fn render(&self) -> String {
-        let mut result = vec![header(&self.name, "=").bold().to_string()];
+        let mut result = vec![title(&self.name).bold().to_string()];
         if let Some(lists) = &self.lists {
             for list in lists {
                 result.push(String::from(""));
