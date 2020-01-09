@@ -31,6 +31,11 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Upload card changes on editor write rather than close
+// TODO: Give the option to retry if card upload fails
+// TODO: move command (move a card within the same list, to another list etc...)
+// TODO: re-open command (in case something was closed by mistake)
+// TODO: Consider making case insensitive matching the default
 // TODO: Edit Labels in show card
 // TODO: Tests for all the subcommands
 // TODO: Unified/Streamlined CLI interface
