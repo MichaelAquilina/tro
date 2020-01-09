@@ -418,8 +418,13 @@ fn get_card_from_lists<'a>(
         return Ok(result.pop().unwrap());
     } else if result.len() > 1 {
         bail!(
-            "Multiple cards found. Specify a more precise filter than '{}'",
-            card_name
+            "Multiple cards found. Specify a more precise filter than '{}' (Found {})",
+            card_name,
+            result
+                .iter()
+                .map(|c| format!("'{}'", c.get_name()))
+                .collect::<Vec<String>>()
+                .join(", ")
         );
     } else {
         bail!(
