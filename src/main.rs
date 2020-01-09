@@ -35,7 +35,6 @@ struct TrelloConfig {
 // TODO: Give the option to retry if card upload fails
 // TODO: move command (move a card within the same list, to another list etc...)
 // TODO: re-open command (in case something was closed by mistake)
-// TODO: Consider making case insensitive matching the default
 // TODO: Edit Labels in show card
 // TODO: Tests for all the subcommands
 // TODO: Unified/Streamlined CLI interface
@@ -53,12 +52,12 @@ fn start() -> Result<(), Box<dyn Error>> {
         (author: env!("CARGO_PKG_AUTHORS"))
         (about: env!("CARGO_PKG_DESCRIPTION"))
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
+        (@arg ignore_case: -c --("case-sensitive") "Use case sensitive names when searching")
         (@subcommand show =>
             (about: "Show object contents")
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
-            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
             (@arg show_url: --url "Show url for target Object")
@@ -68,13 +67,11 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
-            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
         (@subcommand create =>
             (about: "Create objects")
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
-            (@arg ignore_case: -i --("ignore-case") "Ignore case when searching")
         )
     )
     .get_matches();
@@ -147,7 +144,7 @@ fn get_trello_params<'a>(matches: &'a ArgMatches) -> TrelloParams<'a> {
         board_name: matches.value_of("board_name"),
         list_name: matches.value_of("list_name"),
         card_name: matches.value_of("card_name"),
-        ignore_case: matches.is_present("ignore_case"),
+        ignore_case: !matches.is_present("case_sensitive"),
     }
 }
 

@@ -343,6 +343,7 @@ impl List {
     /// ```
     pub fn filter(&self, label_filter: &str) -> List {
         let re = RegexBuilder::new(label_filter)
+            .case_insensitive(true)
             .build()
             .expect("Invalid regex for label filter");
 
