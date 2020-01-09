@@ -31,6 +31,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Move usage documentation to this file so that it can be doctested
 // TODO: Upload card changes on editor write rather than close
 // TODO: Give the option to retry if card upload fails
 // TODO: move command (move a card within the same list, to another list etc...)
