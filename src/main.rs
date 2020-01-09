@@ -320,6 +320,10 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
                 println!("{}", board.render());
             }
         } else {
+            println!("Open Boards");
+            println!("===========");
+            println!();
+
             let boards = Board::get_all(client)?;
             for b in boards {
                 println!("* {}", b.name);
