@@ -284,30 +284,32 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
             eprintln!("Card name not entered");
         }
     } else {
-        if let Some(card) = result.card {
-            if show_url {
+        if show_url {
+            if let Some(card) = result.card {
                 println!("{}", card.url);
-            } else {
-                let mut new_card = card.clone();
-                edit_card(&mut new_card)?;
-                if new_card != card {
-                    eprintln!("Changes detected - uploading card contents");
-                    Card::update(client, &new_card)?;
-                }
+            } else if result.list.is_some() {
+                // Lists do not have a target url
+                // We can display the parent board url instead
+                println!("{}", result.board.unwrap().url);
+            } else if let Some(board) = result.board {
+                println!("{}", board.url);
+            }
+            return Ok(());
+        }
+
+        if let Some(card) = result.card {
+            let mut new_card = card.clone();
+            edit_card(&mut new_card)?;
+            if new_card != card {
+                eprintln!("Changes detected - uploading card contents");
+                Card::update(client, &new_card)?;
             }
         } else if let Some(list) = result.list {
             let list = match label_filter {
                 Some(label_filter) => list.filter(label_filter),
                 None => list,
             };
-
-            if show_url {
-                // List does not have a target url
-                // We can be sure we have a board and open that instead
-                println!("{}", result.board.unwrap().url);
-            } else {
-                println!("{}", list.render());
-            }
+            println!("{}", list.render());
         } else if let Some(mut board) = result.board {
             board.retrieve_nested(client)?;
             let board = match label_filter {
@@ -315,11 +317,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
                 None => board,
             };
 
-            if show_url {
-                println!("{}", board.url);
-            } else {
-                println!("{}", board.render());
-            }
+            println!("{}", board.render());
         } else {
             println!("Open Boards");
             println!("===========");
