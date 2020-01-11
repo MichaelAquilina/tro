@@ -33,7 +33,6 @@ struct TrelloConfig {
 
 // TODO: Move usage documentation to this file so that it can be doctested
 // TODO: Upload card changes on editor write rather than close
-// TODO: Give the option to retry if card upload fails
 // TODO: move command (move a card within the same list, to another list etc...)
 // TODO: re-open command (in case something was closed by mistake)
 // TODO: Edit Labels in show card
@@ -43,7 +42,7 @@ struct TrelloConfig {
 fn main() {
     if let Err(error) = start() {
         println!("An Error occurred:");
-        println!("{}", error);
+        println!("{}", error.source().unwrap());
     }
 }
 
@@ -245,6 +244,14 @@ fn edit_card(card: &mut Card) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
+    eprint!("{}", text);
+
+    let mut input = String::new();
+    stdin().read_line(&mut input)?;
+    Ok(String::from(input.trim_end()))
+}
+
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
@@ -270,18 +277,29 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
             "",
         );
 
-        edit_card(&mut card)?;
+        loop {
+            edit_card(&mut card)?;
 
-        // if nothing is edited by the user, remove it
-        if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
-            card.desc = String::from("");
-        }
+            // if nothing is edited by the user, remove it
+            if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
+                card.desc = String::from("");
+            }
 
-        if card.name != CARD_NAME_PLACEHOLDER {
-            let result = Card::create(client, list_id, &card)?;
-            eprintln!("Created new card with id {}", result.id);
-        } else {
-            eprintln!("Card name not entered");
+            if card.name != CARD_NAME_PLACEHOLDER {
+                match Card::create(client, list_id, &card) {
+                    Err(e) => {
+                        eprintln!("An error occurred. Press enter to retry");
+                        get_input(&e.source().unwrap().to_string())?;
+                    }
+                    Ok(card) => {
+                        eprintln!("Created new card with id {}", card.id);
+                        break;
+                    }
+                }
+            } else {
+                eprintln!("Card name not entered. Aborting.");
+                break;
+            }
         }
     } else {
         if show_url {
@@ -299,10 +317,25 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
 
         if let Some(card) = result.card {
             let mut new_card = card.clone();
-            edit_card(&mut new_card)?;
-            if new_card != card {
-                eprintln!("Changes detected - uploading card contents");
-                Card::update(client, &new_card)?;
+
+            // loop until we manage to upload successfully
+            loop {
+                edit_card(&mut new_card)?;
+                if new_card != card {
+                    match Card::update(client, &new_card) {
+                        Err(e) => {
+                            eprintln!("An error occurred. Press enter to retry");
+                            get_input(&e.source().unwrap().to_string())?;
+                        }
+                        Ok(_) => {
+                            eprintln!("Changes detected - uploaded card contents");
+                            break;
+                        }
+                    }
+                } else {
+                    // No changes - needed
+                    break;
+                }
             }
         } else if let Some(list) = result.list {
             let list = match label_filter {
@@ -366,27 +399,18 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
 
     trace!("result: {:?}", result);
 
-    let mut input = String::new();
-
     if let Some(list) = result.list {
-        eprint!("Card name: ");
-        stdin().read_line(&mut input)?;
+        let name = get_input("Card name: ")?;
 
-        Card::create(
-            client,
-            &list.id,
-            &Card::new("", &input.trim_end(), "", None, ""),
-        )?;
+        Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
     } else if let Some(board) = result.board {
-        eprint!("List name: ");
-        stdin().read_line(&mut input)?;
+        let name = get_input("List name: ")?;
 
-        List::create(client, &board.id, &input.trim_end())?;
+        List::create(client, &board.id, &name)?;
     } else {
-        eprint!("Board name: ");
-        stdin().read_line(&mut input)?;
+        let name = get_input("Board name: ")?;
 
-        Board::create(client, &input.trim_end())?;
+        Board::create(client, &name)?;
     }
 
     Ok(())
