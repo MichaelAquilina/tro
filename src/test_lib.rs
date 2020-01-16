@@ -469,6 +469,33 @@ mod board_tests {
     }
 
     #[test]
+    fn test_get_all_labels() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "GET",
+            "/1/boards/123-456/labels?key=some-key&token=some-token&fields=id%2Cname%2Ccolor",
+        )
+        .with_status(200)
+        .with_body(
+            json!([
+                {"name": "Tech", "color": "purple", "id": "1"},
+                {"name": "Bills", "color": "orange", "id": "2"},
+            ])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = Board::get_all_labels(&client, "123-456")?;
+        let expected = vec![
+            Label::new("1", "Tech", "purple"),
+            Label::new("2", "Bills", "orange"),
+        ];
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
     fn test_get_all_lists() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "GET",

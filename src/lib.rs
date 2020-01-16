@@ -75,11 +75,11 @@ impl TrelloObject for Label {
 }
 
 impl Label {
-    pub fn new(name: &str) -> Label {
+    pub fn new(id: &str, name: &str, color: &str) -> Label {
         Label {
+            id: String::from(id),
             name: String::from(name),
-            color: String::from(""),
-            id: String::from(""),
+            color: String::from(color),
         }
     }
 }
@@ -327,7 +327,7 @@ impl List {
     ///     "123",
     ///     "TODO",
     ///     Some(vec![
-    ///         Card::new("1", "Orange", "", Some(vec![Label::new("fruit")]), ""),
+    ///         Card::new("1", "Orange", "", Some(vec![Label::new("", "fruit", "")]), ""),
     ///         Card::new("2", "Green", "", None, ""),
     ///     ])
     /// );
@@ -347,7 +347,7 @@ impl List {
     ///         "123",
     ///         "TODO",
     ///         Some(vec![
-    ///             Card::new("1", "Orange", "", Some(vec![Label::new("fruit")]), "")
+    ///             Card::new("1", "Orange", "", Some(vec![Label::new("", "fruit", "")]), "")
     ///         ])
     ///     )
     /// );
@@ -481,6 +481,17 @@ impl Board {
         let url = client.get_trello_url(
             &format!("/1/boards/{}", board_id),
             &[("fields", &Board::get_fields().join(","))],
+        )?;
+
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+    }
+
+    pub fn get_all_labels(client: &Client, board_id: &str) -> Result<Vec<Label>, Box<dyn Error>> {
+        let fields = Label::get_fields().join(",");
+
+        let url = client.get_trello_url(
+            &format!("/1/boards/{}/labels", board_id),
+            &[("fields", &fields)],
         )?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
