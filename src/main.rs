@@ -16,7 +16,7 @@ use simple_error::SimpleError;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
 use std::io::{stdin, Read, Write};
-use std::process::Command;
+use std::process;
 use std::{env, fs};
 use tempfile::Builder;
 use trello::{Board, Card, Client, List, TrelloObject};
@@ -41,8 +41,13 @@ struct TrelloConfig {
 // TODO: Better Trello API interface
 fn main() {
     if let Err(error) = start() {
-        println!("An Error occurred:");
-        println!("{}", error.source().unwrap());
+        eprintln!("An Error occurred:");
+        if let Some(error) = error.source() {
+            eprintln!("{}", error);
+        } else {
+            eprintln!("{}", error);
+        }
+        process::exit(2);
     }
 }
 
@@ -227,7 +232,9 @@ fn edit_card(card: &mut Card) -> Result<(), Box<dyn Error>> {
 
     writeln!(file, "{}", card.render())?;
 
-    let editor = Command::new(editor_env).arg(file.path()).status()?;
+    let editor = process::Command::new(editor_env)
+        .arg(file.path())
+        .status()?;
 
     debug!("editor exited with {:?}", editor);
 
