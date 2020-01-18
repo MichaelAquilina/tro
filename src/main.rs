@@ -66,7 +66,12 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg card_name: !required "Card Name to retrieve")
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
-            (@arg show_url: --url "Show url for target Object")
+        )
+        (@subcommand url =>
+            (about: "Display object url")
+            (@arg board_name: !required "Board Name to retrieve")
+            (@arg list_name: !required "List Name to retrieve")
+            (@arg card_name: !required "Card Name to retrieve")
         )
         (@subcommand close =>
             (about: "Close objects")
@@ -110,6 +115,8 @@ fn start() -> Result<(), Box<dyn Error>> {
 
     if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("url") {
+        url_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("close") {
         close_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("create") {
@@ -260,11 +267,28 @@ fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     Ok(String::from(input.trim_end()))
 }
 
+fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running url subcommand with {:?}", matches);
+
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
+
+    if let Some(card) = result.card {
+        println!("{}", card.url);
+    } else if result.list.is_some() {
+        // Lists do not have a target url
+        // We can display the parent board url instead
+        println!("{}", result.board.unwrap().url);
+    } else if let Some(board) = result.board {
+        println!("{}", board.url);
+    }
+    Ok(())
+}
+
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
-    let show_url = matches.is_present("show_url");
 
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
@@ -311,19 +335,6 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
             }
         }
     } else {
-        if show_url {
-            if let Some(card) = result.card {
-                println!("{}", card.url);
-            } else if result.list.is_some() {
-                // Lists do not have a target url
-                // We can display the parent board url instead
-                println!("{}", result.board.unwrap().url);
-            } else if let Some(board) = result.board {
-                println!("{}", board.url);
-            }
-            return Ok(());
-        }
-
         if let Some(card) = result.card {
             let mut new_card = card.clone();
 
@@ -428,6 +439,9 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     Ok(())
 }
 
+/// Retrieves a card by name from a collection of lists.
+/// This is different from get_object_by_name which only
+/// retrieves a single object from a single collection
 fn get_card_from_lists<'a>(
     lists: &'a Vec<List>,
     card_name: &str,
