@@ -10,6 +10,7 @@ extern crate simplelog;
 mod test_main;
 
 use clap::ArgMatches;
+use colored::*;
 use regex::RegexBuilder;
 use serde::Deserialize;
 use simple_error::SimpleError;
@@ -384,15 +385,18 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
-        eprintln!("Closed card '{}' (id={})", &card.name, &card.id);
+        eprintln!("Closed card '{}'", &card.name.green());
+        eprintln!("id: {}", &card.id);
     } else if let Some(mut list) = result.list {
         list.closed = true;
         List::update(client, &list)?;
-        eprintln!("Closed list '{}' (id={})", &list.name, &list.id);
+        eprintln!("Closed list '{}'", &list.name.green());
+        eprintln!("id: {}", &list.id);
     } else if let Some(mut board) = result.board {
         board.closed = true;
         Board::update(client, &board)?;
-        eprintln!("Closed board '{}' (id={})", &board.name, &board.id);
+        eprintln!("Closed board '{}'", &board.name.green());
+        eprintln!("id: {}", &board.id);
     }
 
     Ok(())
