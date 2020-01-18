@@ -377,15 +377,15 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
-        eprintln!("Closed card '{}'", &card.name);
+        eprintln!("Closed card '{}' (id={})", &card.name, &card.id);
     } else if let Some(mut list) = result.list {
         list.closed = true;
         List::update(client, &list)?;
-        eprintln!("Closed list '{}'", &list.name);
+        eprintln!("Closed list '{}' (id={})", &list.name, &list.id);
     } else if let Some(mut board) = result.board {
         board.closed = true;
         Board::update(client, &board)?;
-        eprintln!("Closed board '{}'", &board.name);
+        eprintln!("Closed board '{}' (id={})", &board.name, &board.id);
     }
 
     Ok(())
