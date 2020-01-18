@@ -285,32 +285,38 @@ fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn E
     Ok(())
 }
 
-fn new_card(client: &Client, list_id: &str) -> Result<(), Box<dyn Error>> {
-    // we can safely unwrap the list due to the way we've setup clap
-    let mut card = Card::new(
-        "",
-        CARD_NAME_PLACEHOLDER,
-        CARD_DESCRIPTION_PLACEHOLDER,
-        None,
-        "",
-    );
+fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn Error>> {
+
+    let mut new_card = card.clone();
+    let is_new_card = new_card.id == "";
 
     loop {
-        edit_card(&mut card)?;
+        edit_card(&mut new_card)?;
+
+        if &new_card == card {
+            // no changes detected
+            return Ok(())
+        }
 
         // if nothing is edited by the user, remove it
         if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
-            card.desc = String::from("");
+            new_card.desc = String::from("");
         }
 
         if card.name != CARD_NAME_PLACEHOLDER {
-            match Card::create(client, list_id, &card) {
+            let result = if is_new_card {
+                Card::create(client, list_id, &new_card)
+            } else {
+                Card::update(client, &new_card)
+            };
+
+            match result {
                 Err(e) => {
                     eprintln!("An error occurred. Press enter to retry");
                     get_input(&e.source().unwrap().to_string())?;
                 }
                 Ok(card) => {
-                    eprintln!("Created new card '{}'", card.name.green());
+                    eprintln!("'{}'", card.name.green());
                     eprintln!("id: {}", card.id);
                     break;
                 }
@@ -337,30 +343,20 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     // rather than just when it is closed
 
     if matches.is_present("new") {
-        new_card(client, &result.list.unwrap().id)?;
+        let card = Card::new(
+            "",
+            CARD_NAME_PLACEHOLDER,
+            CARD_DESCRIPTION_PLACEHOLDER,
+            None,
+            "",
+        );
+        // we can safely unwrap the list due to the way we've setup clap
+        let list_id = &result.list.unwrap().id;
+
+        show_card(client, &card, list_id)?;
     } else {
         if let Some(card) = result.card {
-            let mut new_card = card.clone();
-
-            // loop until we manage to upload successfully
-            loop {
-                edit_card(&mut new_card)?;
-                if new_card != card {
-                    match Card::update(client, &new_card) {
-                        Err(e) => {
-                            eprintln!("An error occurred. Press enter to retry");
-                            get_input(&e.source().unwrap().to_string())?;
-                        }
-                        Ok(_) => {
-                            eprintln!("Changes detected - uploaded card contents");
-                            break;
-                        }
-                    }
-                } else {
-                    // No changes - needed
-                    break;
-                }
-            }
+            show_card(client, &card, "")?;
         } else if let Some(list) = result.list {
             let list = match label_filter {
                 Some(label_filter) => list.filter(label_filter),
