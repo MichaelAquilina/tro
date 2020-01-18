@@ -285,6 +285,44 @@ fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn E
     Ok(())
 }
 
+fn new_card(client: &Client, list_id: &str) -> Result<(), Box<dyn Error>> {
+    // we can safely unwrap the list due to the way we've setup clap
+    let mut card = Card::new(
+        "",
+        CARD_NAME_PLACEHOLDER,
+        CARD_DESCRIPTION_PLACEHOLDER,
+        None,
+        "",
+    );
+
+    loop {
+        edit_card(&mut card)?;
+
+        // if nothing is edited by the user, remove it
+        if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
+            card.desc = String::from("");
+        }
+
+        if card.name != CARD_NAME_PLACEHOLDER {
+            match Card::create(client, list_id, &card) {
+                Err(e) => {
+                    eprintln!("An error occurred. Press enter to retry");
+                    get_input(&e.source().unwrap().to_string())?;
+                }
+                Ok(card) => {
+                    eprintln!("Created new card '{}'", card.name.green());
+                    eprintln!("id: {}", card.id);
+                    break;
+                }
+            }
+        } else {
+            eprintln!("Card name not entered. Aborting.");
+            break;
+        }
+    }
+    Ok(())
+}
+
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
@@ -299,41 +337,7 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     // rather than just when it is closed
 
     if matches.is_present("new") {
-        // we can safely unwrap the list due to the way we've setup clap
-        let list_id = &result.list.unwrap().id;
-        let mut card = Card::new(
-            "",
-            CARD_NAME_PLACEHOLDER,
-            CARD_DESCRIPTION_PLACEHOLDER,
-            None,
-            "",
-        );
-
-        loop {
-            edit_card(&mut card)?;
-
-            // if nothing is edited by the user, remove it
-            if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
-                card.desc = String::from("");
-            }
-
-            if card.name != CARD_NAME_PLACEHOLDER {
-                match Card::create(client, list_id, &card) {
-                    Err(e) => {
-                        eprintln!("An error occurred. Press enter to retry");
-                        get_input(&e.source().unwrap().to_string())?;
-                    }
-                    Ok(card) => {
-                        eprintln!("Created new card '{}'", card.name.green());
-                        eprintln!("id: {}", card.id);
-                        break;
-                    }
-                }
-            } else {
-                eprintln!("Card name not entered. Aborting.");
-                break;
-            }
-        }
+        new_card(client, &result.list.unwrap().id)?;
     } else {
         if let Some(card) = result.card {
             let mut new_card = card.clone();
