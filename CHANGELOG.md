@@ -1,6 +1,13 @@
 Changelog for trello-rs
 =======================
 
+1.12.0
+------
+* Color output when closing items
+* Small improvements to error handling
+* Display the ids of items that are closed
+* Allow retries of updating/creating cards
+
 1.11.0
 ------
 * Better board titles
