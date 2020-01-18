@@ -300,7 +300,8 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
                         get_input(&e.source().unwrap().to_string())?;
                     }
                     Ok(card) => {
-                        eprintln!("Created new card with id {}", card.id);
+                        eprintln!("Created new card '{}'", card.name.green());
+                        eprintln!("id: {}", card.id);
                         break;
                     }
                 }
