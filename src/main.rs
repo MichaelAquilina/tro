@@ -439,6 +439,7 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     Ok(())
 }
 
+/// TODO: Find a way to make this generic
 /// Retrieves a card by name from a collection of lists.
 /// This is different from get_object_by_name which only
 /// retrieves a single object from a single collection
