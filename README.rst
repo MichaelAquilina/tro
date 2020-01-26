@@ -18,6 +18,29 @@ You can retrieve the values for key and token from https://trello.com/app-key/
 
 Once those are set, simply run with ``cargo run``.
 
+How it works
+------------
+
+Most of the subcommands in this tool work by specifying one or more patterns in the form of:
+
+::
+
+    <board> <list> <card>
+
+Patterns are simple regex pattern matches. You can specify simple patterns such as substrings too.
+
+Trello-rs then attempts to find the object(s) you requested using this process:
+
+* If the tool does not manage to find a match for one or more if the items specified, then it will
+display an appropriate error.
+* If the tool manages to find a unique match for each of the items specified, then it will successfully
+display the object(s) you requested.
+* If one or more of the patterns are matched with multiple possible items, then the tool will fail
+to retrieve the object(s) you requested and do its best to explain why.
+
+Commands
+--------
+
 Some examples of commands you can run:
 
 **Show all board names**
@@ -34,7 +57,7 @@ Some examples of commands you can run:
 
 ::
 
-    $ cargo run show TODO
+    $ cargo run show todo
     TODO
     ====
 
@@ -72,6 +95,13 @@ OR
 
     $ cargo run close TODO Today "my new card"
     Closed card 'my new card'
+
+**Show a url**
+
+::
+
+    $ cargo run url TODO
+    https://trello.com/b/9ftbid5U/todo
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/trello-rs
