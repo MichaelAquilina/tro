@@ -33,8 +33,10 @@ Trello-rs then attempts to find the object(s) you requested using this process:
 
 * If the tool does not manage to find a match for one or more if the items specified, then it will
 display an appropriate error.
+
 * If the tool manages to find a unique match for each of the items specified, then it will successfully
 display the object(s) you requested.
+
 * If one or more of the patterns are matched with multiple possible items, then the tool will fail
 to retrieve the object(s) you requested and do its best to explain why.
 
