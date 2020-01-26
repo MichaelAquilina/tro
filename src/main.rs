@@ -286,7 +286,6 @@ fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn E
 }
 
 fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn Error>> {
-
     let mut new_card = card.clone();
     let is_new_card = new_card.id == "";
 
@@ -295,7 +294,7 @@ fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn 
 
         if &new_card == card {
             // no changes detected
-            return Ok(())
+            return Ok(());
         }
 
         // if nothing is edited by the user, remove it
@@ -504,7 +503,8 @@ fn get_object_by_name<'a, T: TrelloObject>(
         Ok(objects.pop().unwrap())
     } else if objects.len() > 1 {
         bail!(
-            "More than one object found. Specify a more precise filter than '{}' (Found {})",
+            "More than one {} found. Specify a more precise filter than '{}' (Found {})",
+            T::get_type(),
             name,
             objects
                 .iter()
@@ -514,7 +514,8 @@ fn get_object_by_name<'a, T: TrelloObject>(
         );
     } else {
         bail!(
-            "Object not found. Specify a more precise filter than '{}'",
+            "{} not found. Specify a more precise filter than '{}'",
+            T::get_type(),
             name
         );
     }

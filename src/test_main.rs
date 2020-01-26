@@ -91,7 +91,7 @@ mod test_get_object_by_name {
         assert_eq!(
             result,
             Err(simple_error::SimpleError::new(
-                "Object not found. Specify a more precise filter than 'foobar'"
+                "Board not found. Specify a more precise filter than 'foobar'"
             ))
         );
     }
@@ -104,7 +104,7 @@ mod test_get_object_by_name {
         assert_eq!(
             result,
             Err(simple_error::SimpleError::new(
-                "Object not found. Specify a more precise filter than 'foobar'"
+                "Card not found. Specify a more precise filter than 'foobar'"
             ))
         );
     }
@@ -120,7 +120,7 @@ mod test_get_object_by_name {
         assert_eq!(
             result,
             Err(simple_error::SimpleError::new(
-                "More than one object found. Specify a more precise filter than 'red' (Found 'red', 'reddish')"
+                "More than one Board found. Specify a more precise filter than 'red' (Found 'red', 'reddish')"
             ))
         );
     }

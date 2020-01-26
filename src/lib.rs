@@ -34,6 +34,8 @@ fn header(text: &str, header_char: &str) -> String {
 }
 
 pub trait TrelloObject: Debug {
+    fn get_type() -> String;
+
     fn get_name(&self) -> &str;
 
     fn get_fields() -> &'static [&'static str];
@@ -61,6 +63,10 @@ fn map_color(color: &str) -> &str {
 }
 
 impl TrelloObject for Label {
+    fn get_type() -> String {
+        String::from("Label")
+    }
+
     fn get_name(&self) -> &str {
         &self.name
     }
@@ -96,6 +102,10 @@ pub struct Card {
 }
 
 impl TrelloObject for Card {
+    fn get_type() -> String {
+        String::from("Card")
+    }
+
     fn get_name(&self) -> &str {
         &self.name
     }
@@ -119,6 +129,10 @@ pub struct List {
 }
 
 impl TrelloObject for List {
+    fn get_type() -> String {
+        String::from("List")
+    }
+
     fn get_name(&self) -> &str {
         &self.name
     }
@@ -166,6 +180,10 @@ pub struct Board {
 }
 
 impl TrelloObject for Board {
+    fn get_type() -> String {
+        String::from("Board")
+    }
+
     fn get_name(&self) -> &str {
         &self.name
     }
