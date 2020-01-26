@@ -1,6 +1,11 @@
 Changelog for trello-rs
 =======================
 
+1.13.0
+------
+* Add url subcommand
+* Specify type in output when an issue with matching patterns occurs
+
 1.12.0
 ------
 * Color output when closing items
