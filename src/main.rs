@@ -298,11 +298,11 @@ fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn 
         }
 
         // if nothing is edited by the user, remove it
-        if card.desc == CARD_DESCRIPTION_PLACEHOLDER {
+        if new_card.desc == CARD_DESCRIPTION_PLACEHOLDER {
             new_card.desc = String::from("");
         }
 
-        if card.name != CARD_NAME_PLACEHOLDER {
+        if new_card.name != CARD_NAME_PLACEHOLDER {
             let result = if is_new_card {
                 Card::create(client, list_id, &new_card)
             } else {
@@ -315,8 +315,8 @@ fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn 
                     get_input(&e.source().unwrap().to_string())?;
                 }
                 Ok(card) => {
-                    eprintln!("'{}'", card.name.green());
-                    eprintln!("id: {}", card.id);
+                    eprintln!("'{}'", new_card.name.green());
+                    eprintln!("id: {}", new_card.id);
                     break;
                 }
             }
