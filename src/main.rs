@@ -315,8 +315,8 @@ fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn 
                     get_input(&e.source().unwrap().to_string())?;
                 }
                 Ok(card) => {
-                    eprintln!("'{}'", new_card.name.green());
-                    eprintln!("id: {}", new_card.id);
+                    eprintln!("'{}'", card.name.green());
+                    eprintln!("id: {}", card.id);
                     break;
                 }
             }

@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.13.1
+------
+* Fix regression preventing correct editing/creating of cards using -n
+
 1.13.0
 ------
 * Add url subcommand
