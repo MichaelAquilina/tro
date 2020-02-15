@@ -76,7 +76,7 @@ impl TrelloObject for Label {
     }
 
     fn render(&self) -> String {
-        format!("[{}]", self.name.color(map_color(&self.color)))
+        format!("[{}]", self.colored_name())
     }
 }
 
@@ -87,6 +87,10 @@ impl Label {
             name: String::from(name),
             color: String::from(color),
         }
+    }
+
+    pub fn colored_name(&self) -> ColoredString {
+        self.name.color(map_color(&self.color))
     }
 }
 
