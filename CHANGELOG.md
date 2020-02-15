@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.14.0
+------
+* Add label subcommand
+
 1.13.1
 ------
 * Fix regression preventing correct editing/creating of cards using -n
