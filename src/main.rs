@@ -67,6 +67,13 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
         )
+        (@subcommand label =>
+            (about: "Apply a label to a card")
+            (@arg board_name: +required "Board name to retrieve")
+            (@arg list_name: +required "List name to retrieve")
+            (@arg card_name: +required "Card name to retrieve")
+            (@arg label_name: +required "Label name to apply")
+        )
         (@subcommand url =>
             (about: "Display object url")
             (@arg board_name: !required "Board Name to retrieve")
@@ -115,6 +122,8 @@ fn start() -> Result<(), Box<dyn Error>> {
 
     if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("label") {
+        label_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("url") {
         url_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("close") {
@@ -269,6 +278,44 @@ fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     let mut input = String::new();
     stdin().read_line(&mut input)?;
     Ok(String::from(input.trim_end()))
+}
+
+fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running label subcommand with {:?}", matches);
+
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
+
+    let labels = Board::get_all_labels(&client, &result.board.unwrap().id)?;
+    let card = result.card.ok_or("Unable to find card")?;
+
+    let label_name = matches.value_of("label_name").unwrap();
+
+    let label = get_object_by_name(&labels, label_name, params.ignore_case)?;
+
+    if card
+        .labels
+        .unwrap()
+        .iter()
+        .find(|l| &l.id == &label.id)
+        .is_some()
+    {
+        eprintln!(
+            "Label [{}] already exists on '{}'",
+            &label.colored_name(),
+            &card.name.green()
+        );
+    } else {
+        Card::apply_label(client, &card.id, &label.id)?;
+
+        eprintln!(
+            "Applied [{}] label to '{}'",
+            &label.colored_name(),
+            &card.name.green()
+        );
+    }
+
+    Ok(())
 }
 
 fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
