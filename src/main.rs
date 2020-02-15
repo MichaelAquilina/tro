@@ -128,11 +128,15 @@ fn start() -> Result<(), Box<dyn Error>> {
 }
 
 fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
-    let mut config_path = dirs::config_dir().expect("Unable to determine config directory");
+    let mut config_path = dirs::config_dir().ok_or("Unable to determine config directory")?;
     config_path.push("tro/config.toml");
 
+    let path = config_path
+        .to_str()
+        .ok_or("Could not convert Path to string")?;
+
     debug!("Loading configuration from {:?}", config_path);
-    let contents = fs::read_to_string(config_path.to_str().unwrap())?;
+    let contents = fs::read_to_string(path)?;
 
     Ok(toml::from_str(&contents)?)
 }
