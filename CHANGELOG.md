@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.15.1
+------
+* Fix crash in edit card retry mechanism
+
 1.15.0
 ------
 * Add --delete flag for label subcommand
