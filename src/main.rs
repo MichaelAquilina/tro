@@ -32,6 +32,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Enable truecolor support for labels
 // TODO: Move usage documentation to this file so that it can be doctested
 // TODO: Upload card changes on editor write rather than close
 // TODO: move command (move a card within the same list, to another list etc...)
