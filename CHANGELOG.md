@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.15.0
+------
+* Add --delete flag for label subcommand
+
 1.14.0
 ------
 * Add label subcommand
