@@ -328,6 +328,22 @@ impl Card {
             .json()?)
     }
 
+    pub fn remove_label(
+        client: &Client,
+        card_id: &str,
+        label_id: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        let url =
+            client.get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
+
+        reqwest::Client::new()
+            .delete(url)
+            .send()?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
     pub fn apply_label(
         client: &Client,
         card_id: &str,

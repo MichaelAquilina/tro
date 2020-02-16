@@ -133,6 +133,22 @@ mod card_tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_remove_label() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "DELETE",
+            "/1/cards/FOO-CARD/idLabels/BAR-LABEL?key=some-key&token=some-token",
+        )
+        .with_status(200)
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+
+        Card::remove_label(&client, "FOO-CARD", "BAR-LABEL")?;
+
+        Ok(())
+    }
 }
 
 mod list_tests {
