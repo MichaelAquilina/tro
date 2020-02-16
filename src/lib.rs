@@ -312,17 +312,17 @@ impl Card {
     }
 
     pub fn update(client: &Client, card: &Card) -> Result<Card, Box<dyn Error>> {
-        let url = client.get_trello_url(
-            &format!("/1/cards/{}/", &card.id),
-            &[
-                ("name", &card.name),
-                ("desc", &card.desc),
-                ("closed", &card.closed.to_string()),
-            ],
-        )?;
+        let url = client.get_trello_url(&format!("/1/cards/{}/", &card.id), &[])?;
+
+        let params = [
+            ("name", &card.name),
+            ("desc", &card.desc),
+            ("closed", &card.closed.to_string()),
+        ];
 
         Ok(reqwest::Client::new()
             .put(url)
+            .form(&params)
             .send()?
             .error_for_status()?
             .json()?)

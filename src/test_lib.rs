@@ -84,22 +84,20 @@ mod card_tests {
 
     #[test]
     fn test_update() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock(
-            "PUT",
-            "/1/cards/MY-CARD-ID/?key=some-key&token=some-token&name=Laundry&desc=hello&closed=true",
-        )
-        .with_status(200)
-        .with_body(
-            json!({
-                "name": "Laundry",
-                "desc": "hello",
-                "id": "MY-CARD-ID",
-                "closed": true,
-                "url": "https://trello.com/abcdef",
-            })
-            .to_string(),
-        )
-        .create();
+        let _m = mockito::mock("PUT", "/1/cards/MY-CARD-ID/?key=some-key&token=some-token")
+            .match_body("name=Laundry&desc=hello&closed=true")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "name": "Laundry",
+                    "desc": "hello",
+                    "id": "MY-CARD-ID",
+                    "closed": true,
+                    "url": "https://trello.com/abcdef",
+                })
+                .to_string(),
+            )
+            .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
 
