@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.16.0
+------
+* Use post and put body for creating/updating cards
+
 1.15.1
 ------
 * Fix crash in edit card retry mechanism
