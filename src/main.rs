@@ -383,7 +383,12 @@ fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn 
             match result {
                 Err(e) => {
                     eprintln!("An error occurred. Press enter to retry");
-                    get_input(&e.source().unwrap().to_string())?;
+
+                    if let Some(source) = &e.source() {
+                        get_input(&source.to_string())?;
+                    } else {
+                        get_input(&e.to_string())?;
+                    }
                 }
                 Ok(card) => {
                     eprintln!("'{}'", card.name.green());
