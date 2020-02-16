@@ -53,22 +53,20 @@ mod card_tests {
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock(
-            "POST",
-            "/1/cards/?key=some-key&token=some-token&name=Laundry&desc=Desky&idList=FOOBAR",
-        )
-        .with_status(200)
-        .with_body(
-            json!({
-                "name": "Laundry",
-                "desc": "",
-                "id": "88888",
-                "closed": false,
-                "url": "https://example.com/1/12/",
-            })
-            .to_string(),
-        )
-        .create();
+        let _m = mockito::mock("POST", "/1/cards/?key=some-key&token=some-token")
+            .match_body("name=Laundry&desc=Desky&idList=FOOBAR")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "name": "Laundry",
+                    "desc": "Desky",
+                    "id": "88888",
+                    "closed": false,
+                    "url": "https://example.com/1/12/",
+                })
+                .to_string(),
+            )
+            .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = Card::create(
@@ -76,7 +74,13 @@ mod card_tests {
             "FOOBAR",
             &Card::new("", "Laundry", "Desky", None, ""),
         )?;
-        let expected = Card::new("88888", "Laundry", "", None, "https://example.com/1/12/");
+        let expected = Card::new(
+            "88888",
+            "Laundry",
+            "Desky",
+            None,
+            "https://example.com/1/12/",
+        );
 
         assert_eq!(result, expected);
         Ok(())

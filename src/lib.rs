@@ -295,17 +295,17 @@ impl Card {
     }
 
     pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card, Box<dyn Error>> {
-        let url = client.get_trello_url(
-            "/1/cards/",
-            &[
-                ("name", &card.name),
-                ("desc", &card.desc),
-                ("idList", list_id),
-            ],
-        )?;
+        let url = client.get_trello_url("/1/cards/", &[])?;
+
+        let params: [(&str, &str); 3] = [
+            ("name", &card.name),
+            ("desc", &card.desc),
+            ("idList", list_id),
+        ];
 
         Ok(reqwest::Client::new()
             .post(url)
+            .form(&params)
             .send()?
             .error_for_status()?
             .json()?)
