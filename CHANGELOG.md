@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.17.0
+------
+* Use POST and PUT body to send data when applicable
+
 1.16.0
 ------
 * Use post and put body for creating/updating cards
