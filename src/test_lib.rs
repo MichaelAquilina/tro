@@ -123,8 +123,9 @@ mod card_tests {
     fn test_apply_label() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "POST",
-            "/1/cards/SOME-CARD-ID/idLabels?key=some-key&token=some-token&value=MY-LABEL-ID",
+            "/1/cards/SOME-CARD-ID/idLabels?key=some-key&token=some-token",
         )
+        .match_body("value=MY-LABEL-ID")
         .with_status(200)
         .with_body(json!({}).to_string())
         .create();

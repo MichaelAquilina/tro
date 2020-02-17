@@ -349,13 +349,13 @@ impl Card {
         card_id: &str,
         label_id: &str,
     ) -> Result<(), Box<dyn Error>> {
-        let url = client.get_trello_url(
-            &format!("/1/cards/{}/idLabels", card_id),
-            &[("value", label_id)],
-        )?;
+        let url = client.get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
+
+        let params = [("value", label_id)];
 
         reqwest::Client::new()
             .post(url)
+            .form(&params)
             .send()?
             .error_for_status()?;
 
