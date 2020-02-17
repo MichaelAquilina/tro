@@ -229,20 +229,18 @@ mod list_tests {
 
     #[test]
     fn test_update() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock(
-            "PUT",
-            "/1/lists/MY-LIST-ID/?key=some-key&token=some-token&name=Today&closed=true",
-        )
-        .with_status(200)
-        .with_body(
-            json!({
-                "name": "Today",
-                "id": "MY-LIST-ID",
-                "closed": true,
-            })
-            .to_string(),
-        )
-        .create();
+        let _m = mockito::mock("PUT", "/1/lists/MY-LIST-ID/?key=some-key&token=some-token")
+            .with_body("name=Today&closed=True")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "name": "Today",
+                    "id": "MY-LIST-ID",
+                    "closed": true,
+                })
+                .to_string(),
+            )
+            .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
 
