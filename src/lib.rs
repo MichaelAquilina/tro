@@ -515,13 +515,13 @@ impl Board {
     }
 
     pub fn update(client: &Client, board: &Board) -> Result<Board, Box<dyn Error>> {
-        let url = client.get_trello_url(
-            &format!("/1/boards/{}/", &board.id),
-            &[("name", &board.name), ("closed", &board.closed.to_string())],
-        )?;
+        let url = client.get_trello_url(&format!("/1/boards/{}/", &board.id), &[])?;
+
+        let params = [("name", &board.name), ("closed", &board.closed.to_string())];
 
         Ok(reqwest::Client::new()
             .put(url)
+            .form(&params)
             .send()?
             .error_for_status()?
             .json()?)

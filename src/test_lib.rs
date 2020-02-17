@@ -415,8 +415,9 @@ mod board_tests {
     fn test_update() -> Result<(), Box<dyn Error>> {
         let _m = mockito::mock(
             "PUT",
-            "/1/boards/MY-BOARD-ID/?key=some-key&token=some-token&name=TODO&closed=true",
+            "/1/boards/MY-BOARD-ID/?key=some-key&token=some-token",
         )
+        .match_body("name=TODO&closed=true")
         .with_status(200)
         .with_body(
             json!({
