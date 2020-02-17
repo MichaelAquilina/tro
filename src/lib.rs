@@ -435,10 +435,13 @@ impl List {
     }
 
     pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List, Box<dyn Error>> {
-        let url = client.get_trello_url("/1/lists/", &[("name", name), ("idBoard", board_id)])?;
+        let url = client.get_trello_url("/1/lists/", &[])?;
+
+        let params = [("name", name), ("idBoard", board_id)];
 
         Ok(reqwest::Client::new()
             .post(url)
+            .form(&params)
             .send()?
             .error_for_status()?
             .json()?)

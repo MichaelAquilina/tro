@@ -207,20 +207,18 @@ mod list_tests {
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock(
-            "POST",
-            "/1/lists/?key=some-key&token=some-token&name=Today&idBoard=LEONSK",
-        )
-        .with_status(200)
-        .with_body(
-            json!({
-                "name": "Today",
-                "id": "MTLDA",
-                "closed": false,
-            })
-            .to_string(),
-        )
-        .create();
+        let _m = mockito::mock("POST", "/1/lists/?key=some-key&token=some-token")
+            .match_body("name=Today&idBoard=LEONSK")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "name": "Today",
+                    "id": "MTLDA",
+                    "closed": false,
+                })
+                .to_string(),
+            )
+            .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
         let result = List::create(&client, "LEONSK", "Today")?;
