@@ -502,10 +502,13 @@ impl Board {
     }
 
     pub fn create(client: &Client, name: &str) -> Result<Board, Box<dyn Error>> {
-        let url = client.get_trello_url("/1/boards/", &[("name", name)])?;
+        let url = client.get_trello_url("/1/boards/", &[])?;
+
+        let params = [("name", name)];
 
         Ok(reqwest::Client::new()
             .post(url)
+            .form(&params)
             .send()?
             .error_for_status()?
             .json()?)

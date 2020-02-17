@@ -384,27 +384,25 @@ mod board_tests {
 
     #[test]
     fn test_create() -> Result<(), Box<dyn Error>> {
-        let _m = mockito::mock(
-            "POST",
-            "/1/boards/?key=some-key&token=some-token&name=MY-TEST-BOARD",
-        )
-        .with_status(200)
-        .with_body(
-            json!({
-                "name": "MY-TEST-BOARD",
-                "id": "231dgfe4r343",
-                "closed": false,
-                "url": "https://example.com/board",
-            })
-            .to_string(),
-        )
-        .create();
+        let _m = mockito::mock("POST", "/1/boards/?key=some-key&token=some-token")
+            .match_body("name=MYTESTBOARD")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "name": "MYTESTBOARD",
+                    "id": "231dgfe4r343",
+                    "closed": false,
+                    "url": "https://example.com/board",
+                })
+                .to_string(),
+            )
+            .create();
 
         let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-        let result = Board::create(&client, "MY-TEST-BOARD")?;
+        let result = Board::create(&client, "MYTESTBOARD")?;
         let expected = Board::new(
             "231dgfe4r343",
-            "MY-TEST-BOARD",
+            "MYTESTBOARD",
             None,
             "https://example.com/board",
         );
