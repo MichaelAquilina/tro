@@ -31,14 +31,11 @@ Patterns are simple regex pattern matches. You can specify simple patterns such 
 
 Trello-rs then attempts to find the object(s) you requested using this process:
 
-* If the tool does not manage to find a match for one or more if the items specified, then it will
-display an appropriate error.
+* If the tool does not manage to find a match for one or more if the items specified, then it will display an appropriate error.
 
-* If the tool manages to find a unique match for each of the items specified, then it will successfully
-display the object(s) you requested.
+* If the tool manages to find a unique match for each of the items specified, then it will successfully display the object(s) you requested.
 
-* If one or more of the patterns are matched with multiple possible items, then the tool will fail
-to retrieve the object(s) you requested and do its best to explain why.
+* If one or more of the patterns are matched with multiple possible items, then the tool will fail to retrieve the object(s) you requested and do its best to explain why.
 
 Commands
 --------
@@ -49,7 +46,7 @@ Some examples of commands you can run:
 
 ::
 
-    $ cargo run show
+    $ tro show
     * TODO
     * Groceries
     * Recipes
@@ -59,7 +56,7 @@ Some examples of commands you can run:
 
 ::
 
-    $ cargo run show todo
+    $ tro show todo
     TODO
     ====
 
@@ -74,35 +71,35 @@ Some examples of commands you can run:
 
 ::
 
-    $ cargo run create TODO Today
+    $ tro create TODO Today
     Card name: my new card
 
 OR
 
 ::
 
-    $ cargo run show TODO Today -n
+    $ tro show TODO Today -n
     <your $EDITOR will open>
 
 **Edit an existing card**
 
 ::
 
-    $ cargo run show TODO Today "my new card"
+    $ tro show TODO Today "my new card"
     <your $EDITOR will open>
 
 **Close a card**
 
 ::
 
-    $ cargo run close TODO Today "my new card"
+    $ tro close TODO Today "my new card"
     Closed card 'my new card'
 
 **Show a url**
 
 ::
 
-    $ cargo run url TODO
+    $ tro url TODO
     https://trello.com/b/9ftbid5U/todo
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
