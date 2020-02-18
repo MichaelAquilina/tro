@@ -26,6 +26,41 @@ mod header_tests {
     }
 }
 
+mod attachment_tests {
+    use super::*;
+
+    #[test]
+    fn test_get_all() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock(
+            "GET",
+            "/1/cards/FOO-CARD/attachments?key=sekret&token=my-token&fields=id%2Cname%2Curl",
+        )
+        .with_status(200)
+        .with_body(
+            json!([{
+                "name": "IMG_2000.png",
+                "id": "0012310",
+                "url": "https://example.com/1/12/IMG_2000.png",
+            }])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "my-token", "sekret");
+        let result = Attachment::get_all(&client, "FOO-CARD")?;
+
+        let expected = [Attachment {
+            id: String::from("0012310"),
+            name: String::from("IMG_2000.png"),
+            url: String::from("https://example.com/1/12/IMG_2000.png"),
+        }];
+
+        assert_eq!(result, expected);
+
+        Ok(())
+    }
+}
+
 mod card_tests {
     use super::*;
 

@@ -20,7 +20,7 @@ use std::io::{stdin, Read, Write};
 use std::process;
 use std::{env, fs};
 use tempfile::Builder;
-use trello::{Board, Card, Client, List, TrelloObject};
+use trello::{Attachment, Board, Card, Client, List, TrelloObject};
 
 const CARD_DESCRIPTION_PLACEHOLDER: &str = "<Enter Description Here>";
 const CARD_NAME_PLACEHOLDER: &str = "<Enter Card Name Here>";
@@ -67,6 +67,12 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg card_name: !required "Card Name to retrieve")
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
+        )
+        (@subcommand attachments =>
+            (about: "View attachments")
+            (@arg board_name: +required "Board name to retrieve")
+            (@arg list_name: +required "List name to retrieve")
+            (@arg card_name: +required "Card name to retrieve")
         )
         (@subcommand label =>
             (about: "Apply or remove a label on a card")
@@ -124,6 +130,8 @@ fn start() -> Result<(), Box<dyn Error>> {
 
     if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("attachments") {
+        attachments_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("label") {
         label_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("url") {
@@ -282,13 +290,31 @@ fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     Ok(String::from(input.trim_end()))
 }
 
+fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running attachments subcommand with {:?}", matches);
+
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
+
+    let card = result.card.ok_or("Unable to find card")?;
+
+    let attachments = Attachment::get_all(client, &card.id)?;
+
+    for att in attachments {
+        println!("{}", &att.url);
+    }
+
+    Ok(())
+}
+
 fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running label subcommand with {:?}", matches);
 
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
 
-    let labels = Board::get_all_labels(&client, &result.board.unwrap().id)?;
+    let labels =
+        Board::get_all_labels(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
     let card = result.card.ok_or("Unable to find card")?;
 
     let label_name = matches.value_of("label_name").unwrap();
@@ -297,7 +323,7 @@ fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     let label = get_object_by_name(&labels, label_name, params.ignore_case)?;
     let card_has_label = card
         .labels
-        .unwrap()
+        .ok_or("Unable to retrieve Card labels")?
         .iter()
         .find(|l| &l.id == &label.id)
         .is_some();
