@@ -1,6 +1,11 @@
 Changelog for trello-rs
 =======================
 
+1.18.0
+------
+* Add attachments subcommand
+* Add attach subcommand
+
 1.17.0
 ------
 * Use POST and PUT body to send data when applicable
