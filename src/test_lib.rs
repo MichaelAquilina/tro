@@ -3,6 +3,8 @@ use colored::*;
 use mockito;
 use serde_json::json;
 use std::error::Error;
+use std::io::Write;
+use tempfile::NamedTempFile;
 
 mod header_tests {
     use super::*;
@@ -151,6 +153,44 @@ mod card_tests {
 
         let result = Card::update(&client, &card)?;
         assert_eq!(result, card);
+        Ok(())
+    }
+
+    #[test]
+    fn test_apply_attachment() -> Result<(), Box<dyn Error>> {
+        let _m = mockito::mock("POST", "/1/cards/CARD-23/attachments?key=KEY&token=TOKEN")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "id": "my-attachment",
+                    "name": "My Attachment",
+                    "url": "https://some-example.com/attachment.txt",
+                })
+                .to_string(),
+            )
+            .create();
+
+        let mut file1 = NamedTempFile::new()?;
+        file1.write_all("some data".as_bytes())?;
+
+        let path = file1
+            .path()
+            .to_str()
+            .ok_or("Unable to get temp file path")?;
+
+        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
+
+        let result = Card::apply_attachment(&client, "CARD-23", path)?;
+
+        assert_eq!(
+            result,
+            Attachment {
+                id: String::from("my-attachment"),
+                name: String::from("My Attachment"),
+                url: String::from("https://some-example.com/attachment.txt"),
+            }
+        );
+
         Ok(())
     }
 
