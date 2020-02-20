@@ -365,6 +365,23 @@ impl Card {
             .json()?)
     }
 
+    pub fn apply_attachment(
+        client: &Client,
+        card_id: &str,
+        file: &str,
+    ) -> Result<Attachment, Box<dyn Error>> {
+        let url = client.get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
+
+        let form = reqwest::multipart::Form::new().file("file", file)?;
+
+        Ok(reqwest::Client::new()
+            .post(url)
+            .multipart(form)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
     pub fn remove_label(
         client: &Client,
         card_id: &str,

@@ -68,6 +68,13 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
         )
+        (@subcommand attach =>
+            (about: "Attach a file to a card")
+            (@arg board_name: +required "Board name to retrieve")
+            (@arg list_name: +required "List name to retrieve")
+            (@arg card_name: +required "Card name to retrieve")
+            (@arg path: +required "Path of file to upload")
+        )
         (@subcommand attachments =>
             (about: "View attachments")
             (@arg board_name: +required "Board name to retrieve")
@@ -130,6 +137,8 @@ fn start() -> Result<(), Box<dyn Error>> {
 
     if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("attach") {
+        attach_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attachments") {
         attachments_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("label") {
@@ -288,6 +297,23 @@ fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     let mut input = String::new();
     stdin().read_line(&mut input)?;
     Ok(String::from(input.trim_end()))
+}
+
+fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running attach subcommand with {:?}", matches);
+
+    let params = get_trello_params(matches);
+    let result = get_trello_object(client, &params)?;
+
+    let path = matches.value_of("path").unwrap();
+
+    let card = result.card.ok_or("Unable to find card")?;
+
+    let attachment = Card::apply_attachment(client, &card.id, path)?;
+
+    println!("{}", attachment.render());
+
+    Ok(())
 }
 
 fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
