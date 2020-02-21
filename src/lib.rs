@@ -80,6 +80,7 @@ impl Attachment {
     }
 }
 
+// https://developers.trello.com/reference/#label-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Label {
@@ -131,6 +132,7 @@ impl Label {
     }
 }
 
+// https://developers.trello.com/reference/#card-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Card {
@@ -160,6 +162,7 @@ impl TrelloObject for Card {
     }
 }
 
+// https://developers.trello.com/reference/#list-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct List {
@@ -210,6 +213,7 @@ impl TrelloObject for List {
     }
 }
 
+// https://developers.trello.com/reference/#board-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Board {
