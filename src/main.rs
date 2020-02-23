@@ -612,6 +612,11 @@ fn get_card_from_lists<'a>(
     }
 }
 
+/// Searches through a collection of Trello objects and tries
+/// to match one and only one object to the name pattern provided.
+/// * If no matches are found, an Error is returned
+/// * If more than match is found, an Error is returned
+/// * If only one item is matched, then it is returned
 fn get_object_by_name<'a, T: TrelloObject>(
     objects: &'a Vec<T>,
     name: &str,
