@@ -326,11 +326,14 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     let mut new_card = card.clone();
 
     loop {
-        let mut exit = false;
         if let Some(ecode) = editor.try_wait()? {
-            debug!("editor exited with {:?}", ecode);
-            exit = true;
+            debug!("Exiting editor loop with code: {}", ecode);
+            break;
         }
+
+        const SLEEP_TIME: u64 = 500;
+        debug!("Sleeping for {}ms", SLEEP_TIME);
+        thread::sleep(time::Duration::from_millis(SLEEP_TIME));
 
         let mut buf = String::new();
         file.reopen()?.read_to_string(&mut buf)?;
@@ -338,25 +341,19 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
         // Trim end because a lot of editors will use auto add new lines at the end of the file
         let contents = Card::parse(buf.trim_end())?;
 
-        if &new_card.name != &contents.name || &new_card.desc != &contents.desc {
-            new_card.name = contents.name;
-            new_card.desc = contents.desc;
-
-            debug!("Updating card: {:?}", new_card);
-            match Card::update(client, &new_card) {
-                Ok(_) => debug!("Updated card"),
-                Err(e) => debug!("Error updating card {:?}", e),
-            };
+        if &new_card.name == &contents.name && &new_card.desc == &contents.desc {
+            continue;
         }
 
-        if exit {
-            debug!("Exiting editor loop");
-            break;
-        } else {
-            const SLEEP_TIME: u64 = 200;
-            debug!("Sleeping for {}ms", SLEEP_TIME);
-            thread::sleep(time::Duration::from_millis(SLEEP_TIME));
-        }
+        new_card.name = contents.name;
+        new_card.desc = contents.desc;
+
+        debug!("Updating card: {:?}", new_card);
+        let result = Card::update(client, &new_card);
+        match result {
+            Ok(_) => debug!("Updated card"),
+            Err(e) => debug!("Error updating card {:?}", e),
+        };
     }
 
     Ok(())
