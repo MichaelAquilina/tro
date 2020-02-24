@@ -263,12 +263,55 @@ fn get_trello_object(
     }
 }
 
+fn create_card(client: &Client, list_id: &str) -> Result<Option<Card>, Box<dyn Error>> {
+    let mut file = Builder::new().suffix(".md").tempfile()?;
+    let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
+
+    let mut new_card = Card::new(
+        "",
+        CARD_NAME_PLACEHOLDER,
+        CARD_DESCRIPTION_PLACEHOLDER,
+        None,
+        "",
+    );
+
+    debug!("Using editor: {}", editor_env);
+
+    writeln!(file, "{}", new_card.render())?;
+
+    let mut editor = process::Command::new(editor_env).arg(file.path()).spawn()?;
+
+    let ecode = editor.wait()?;
+
+    debug!("Editor exited with code: {}", ecode);
+
+    let mut buf = String::new();
+    file.reopen()?.read_to_string(&mut buf)?;
+
+    // Trim end because a lot of editors will use auto add new lines at the end of the file
+    let contents = Card::parse(buf.trim_end())?;
+
+    if contents.name == CARD_NAME_PLACEHOLDER {
+        return Ok(None);
+    }
+
+    new_card.name = contents.name;
+
+    if contents.desc == CARD_DESCRIPTION_PLACEHOLDER {
+        new_card.desc = String::from("");
+    }
+
+    debug!("Creating a new card: {:?}", new_card);
+
+    Ok(Some(Card::create(client, list_id, &new_card)?))
+}
+
 /// Opens the users chosen editor (specified by the $EDITOR environment variable)
 /// to edit a specified card. If $EDITOR is not set, the default editor will fallback
 /// to vi.
 ///
-/// Once the editor is closed, a new card is populated and returned based on the
-/// contents of what was written by the editor.
+/// This function will upload any changes written by the editor to Trello. This includes
+/// when the editor is not closed but content is saved.
 fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     let mut file = Builder::new().suffix(".md").tempfile()?;
     let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
@@ -452,18 +495,10 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     // rather than just when it is closed
 
     if matches.is_present("new") {
-        let card = Card::new(
-            "",
-            CARD_NAME_PLACEHOLDER,
-            CARD_DESCRIPTION_PLACEHOLDER,
-            None,
-            "",
-        );
         // we can safely unwrap the list due to the way we've setup clap
         let list_id = &result.list.unwrap().id;
 
-        eprintln!("Currently disabled due to WIP feature");
-    // create_card(client, &card, list_id)?;
+        create_card(client, &list_id)?;
     } else {
         if let Some(card) = result.card {
             edit_card(client, &card)?;
