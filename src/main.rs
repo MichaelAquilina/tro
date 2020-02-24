@@ -443,8 +443,12 @@ fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn 
                     }
                 }
                 Ok(card) => {
-                    eprintln!("'{}'", card.name.green());
-                    eprintln!("id: {}", card.id);
+                    let action = match is_new_card {
+                        true => "Created",
+                        false => "Updated",
+                    };
+
+                    eprintln!("{} card: '{}'", action, card.name.green());
                     break;
                 }
             }
@@ -524,17 +528,17 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
-        eprintln!("Closed card '{}'", &card.name.green());
+        eprintln!("Closed card: '{}'", &card.name.green());
         eprintln!("id: {}", &card.id);
     } else if let Some(mut list) = result.list {
         list.closed = true;
         List::update(client, &list)?;
-        eprintln!("Closed list '{}'", &list.name.green());
+        eprintln!("Closed list: '{}'", &list.name.green());
         eprintln!("id: {}", &list.id);
     } else if let Some(mut board) = result.board {
         board.closed = true;
         Board::update(client, &board)?;
-        eprintln!("Closed board '{}'", &board.name.green());
+        eprintln!("Closed board: '{}'", &board.name.green());
         eprintln!("id: {}", &board.id);
     }
 
