@@ -276,12 +276,14 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
 
     let mut new_card = card.clone();
 
+    // Outer retry loop - reopen editor if last upload attempt failed
     loop {
         let mut editor = process::Command::new(&editor_env)
             .arg(file.path())
             .spawn()?;
         let mut result: Option<Result<Card, Box<dyn Error>>> = None;
 
+        // Inner watch loop - look out for card changes to upload
         loop {
             if let Some(ecode) = editor.try_wait()? {
                 debug!("Exiting editor loop with code: {}", ecode);
