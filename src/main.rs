@@ -285,11 +285,6 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
 
         // Inner watch loop - look out for card changes to upload
         loop {
-            if let Some(ecode) = editor.try_wait()? {
-                debug!("Exiting editor loop with code: {}", ecode);
-                break;
-            }
-
             const SLEEP_TIME: u64 = 500;
             debug!("Sleeping for {}ms", SLEEP_TIME);
             thread::sleep(time::Duration::from_millis(SLEEP_TIME));
@@ -300,30 +295,30 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             // Trim end because a lot of editors will use auto add new lines at the end of the file
             let contents = Card::parse(buf.trim_end())?;
 
-            // if previous loop had a failure then don't skip this next attempt
-            // TODO: Fix this super complex if statement
-            if result.is_some()
-                && result.as_ref().unwrap().is_ok()
-                && &new_card.name == &contents.name
-                && &new_card.desc == &contents.desc
+            // if no upload attempts
+            // if previous loop had a failure then don't skip
+            // if card in memory is different to card in file
+            if result.is_none()
+                || result.as_ref().unwrap().is_err()
+                || &new_card.name != &contents.name
+                || &new_card.desc != &contents.desc
             {
-                continue;
+                new_card.name = contents.name;
+                new_card.desc = contents.desc;
+
+                debug!("Updating card: {:?}", new_card);
+                result = Some(Card::update(client, &new_card));
+
+                match result.as_ref().unwrap() {
+                    Ok(_) => debug!("Updated card"),
+                    Err(e) => debug!("Error updating card {:?}", e),
+                };
             }
 
-            new_card.name = contents.name;
-            new_card.desc = contents.desc;
-
-            debug!("Updating card: {:?}", new_card);
-            result = Some(Card::update(client, &new_card));
-
-            match result.as_ref().unwrap() {
-                Ok(_) => {
-                    debug!("Updated card");
-                }
-                Err(e) => {
-                    debug!("Error updating card {:?}", e);
-                }
-            };
+            if let Some(ecode) = editor.try_wait()? {
+                debug!("Exiting editor loop with code: {}", ecode);
+                break;
+            }
         }
 
         if result.is_none() {
@@ -339,6 +334,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             Err(e) => {
                 eprintln!("An error occurred while trying to update the card.");
                 eprintln!("{}", e);
+                eprintln!();
                 get_input("Press entry to re-enter editor")?;
             }
         }
