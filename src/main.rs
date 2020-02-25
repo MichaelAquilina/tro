@@ -23,9 +23,6 @@ use std::{thread, time};
 use tempfile::Builder;
 use trello::{Attachment, Board, Card, Client, List, TrelloObject};
 
-const CARD_DESCRIPTION_PLACEHOLDER: &str = "<Enter Description Here>";
-const CARD_NAME_PLACEHOLDER: &str = "<Enter Card Name Here>";
-
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
     host: String,
@@ -63,7 +60,6 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
-            (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
         )
@@ -262,49 +258,6 @@ fn get_trello_object(
     }
 }
 
-fn create_card(client: &Client, list_id: &str) -> Result<Option<Card>, Box<dyn Error>> {
-    let mut file = Builder::new().suffix(".md").tempfile()?;
-    let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
-
-    let mut new_card = Card::new(
-        "",
-        CARD_NAME_PLACEHOLDER,
-        CARD_DESCRIPTION_PLACEHOLDER,
-        None,
-        "",
-    );
-
-    debug!("Using editor: {}", editor_env);
-
-    writeln!(file, "{}", new_card.render())?;
-
-    let mut editor = process::Command::new(editor_env).arg(file.path()).spawn()?;
-
-    let ecode = editor.wait()?;
-
-    debug!("Editor exited with code: {}", ecode);
-
-    let mut buf = String::new();
-    file.reopen()?.read_to_string(&mut buf)?;
-
-    // Trim end because a lot of editors will use auto add new lines at the end of the file
-    let contents = Card::parse(buf.trim_end())?;
-
-    if contents.name == CARD_NAME_PLACEHOLDER {
-        return Ok(None);
-    }
-
-    new_card.name = contents.name;
-
-    if contents.desc == CARD_DESCRIPTION_PLACEHOLDER {
-        new_card.desc = String::from("");
-    }
-
-    debug!("Creating a new card: {:?}", new_card);
-
-    Ok(Some(Card::create(client, list_id, &new_card)?))
-}
-
 /// Opens the users chosen editor (specified by the $EDITOR environment variable)
 /// to edit a specified card. If $EDITOR is not set, the default editor will fallback
 /// to vi.
@@ -487,40 +440,30 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     let result = get_trello_object(client, &params)?;
     trace!("result: {:?}", result);
 
-    // TODO: Upload data every time the editor saves the file
-    // rather than just when it is closed
+    if let Some(card) = result.card {
+        edit_card(client, &card)?;
+    } else if let Some(list) = result.list {
+        let list = match label_filter {
+            Some(label_filter) => list.filter(label_filter),
+            None => list,
+        };
+        println!("{}", list.render());
+    } else if let Some(mut board) = result.board {
+        board.retrieve_nested(client)?;
+        let board = match label_filter {
+            Some(label_filter) => board.filter(label_filter),
+            None => board,
+        };
 
-    if matches.is_present("new") {
-        // we can safely unwrap the list due to the way we've setup clap
-        let list_id = &result.list.unwrap().id;
-
-        create_card(client, &list_id)?;
+        println!("{}", board.render());
     } else {
-        if let Some(card) = result.card {
-            edit_card(client, &card)?;
-        } else if let Some(list) = result.list {
-            let list = match label_filter {
-                Some(label_filter) => list.filter(label_filter),
-                None => list,
-            };
-            println!("{}", list.render());
-        } else if let Some(mut board) = result.board {
-            board.retrieve_nested(client)?;
-            let board = match label_filter {
-                Some(label_filter) => board.filter(label_filter),
-                None => board,
-            };
+        println!("Open Boards");
+        println!("===========");
+        println!();
 
-            println!("{}", board.render());
-        } else {
-            println!("Open Boards");
-            println!("===========");
-            println!();
-
-            let boards = Board::get_all(client)?;
-            for b in boards {
-                println!("* {}", b.name);
-            }
+        let boards = Board::get_all(client)?;
+        for b in boards {
+            println!("* {}", b.name);
         }
     }
 
