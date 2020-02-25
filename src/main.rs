@@ -58,6 +58,9 @@ fn start() -> Result<(), Box<dyn Error>> {
         (author: env!("CARGO_PKG_AUTHORS"))
         (about: env!("CARGO_PKG_DESCRIPTION"))
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
+        (@subcommand version =>
+            (about: "Print TrelloCLI version")
+        )
         (@subcommand show =>
             (about: "Show object contents")
             (@arg board_name: !required "Board Name to retrieve")
@@ -140,7 +143,9 @@ fn start() -> Result<(), Box<dyn Error>> {
 
     debug!("Loaded configuration: {:?}", config);
 
-    if let Some(matches) = matches.subcommand_matches("show") {
+    if matches.subcommand_matches("version").is_some() {
+        eprintln!(env!("CARGO_PKG_VERSION"));
+    } else if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attach") {
         attach_subcommand(&client, &matches)?;
