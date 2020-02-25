@@ -58,13 +58,13 @@ fn start() -> Result<(), Box<dyn Error>> {
         (author: env!("CARGO_PKG_AUTHORS"))
         (about: env!("CARGO_PKG_DESCRIPTION"))
         (@arg log_level: -l --("log-level") +takes_value default_value[ERROR] "Specify the log level")
-        (@arg ignore_case: -c --("case-sensitive") "Use case sensitive names when searching")
         (@subcommand show =>
             (about: "Show object contents")
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
         )
         (@subcommand attach =>
@@ -72,6 +72,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: +required "Board name to retrieve")
             (@arg list_name: +required "List name to retrieve")
             (@arg card_name: +required "Card name to retrieve")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg path: +required "Path of file to upload")
         )
         (@subcommand attachments =>
@@ -79,6 +80,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: +required "Board name to retrieve")
             (@arg list_name: +required "List name to retrieve")
             (@arg card_name: +required "Card name to retrieve")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
         (@subcommand label =>
             (about: "Apply or remove a label on a card")
@@ -87,23 +89,27 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg card_name: +required "Card name to retrieve")
             (@arg label_name: +required "Label name to apply")
             (@arg delete: -d --delete "Delete specified label")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
         (@subcommand url =>
             (about: "Display object url")
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
         (@subcommand close =>
             (about: "Close objects")
             (@arg board_name: +required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
         (@subcommand create =>
             (about: "Create objects")
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
     )
     .get_matches();
@@ -466,8 +472,9 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     let label_filter = matches.value_of("label_filter");
 
     let params = get_trello_params(matches);
-    let result = get_trello_object(client, &params)?;
+    debug!("Trello Params: {:?}", params);
 
+    let result = get_trello_object(client, &params)?;
     trace!("result: {:?}", result);
 
     // TODO: Upload data every time the editor saves the file
