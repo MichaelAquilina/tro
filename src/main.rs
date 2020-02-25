@@ -106,6 +106,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
+            (@arg show: --show -s "Show the item once created")
         )
     )
     .get_matches();
@@ -504,12 +505,18 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
 
+    let show = matches.is_present("show");
+
     trace!("result: {:?}", result);
 
     if let Some(list) = result.list {
         let name = get_input("Card name: ")?;
 
-        Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
+        let card = Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
+
+        if show {
+            edit_card(client, &card)?;
+        }
     } else if let Some(board) = result.board {
         let name = get_input("List name: ")?;
 
