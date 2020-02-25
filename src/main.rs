@@ -19,11 +19,9 @@ use std::error::Error;
 use std::io::{stdin, Read, Write};
 use std::process;
 use std::{env, fs};
+use std::{thread, time};
 use tempfile::Builder;
 use trello::{Attachment, Board, Card, Client, List, TrelloObject};
-
-const CARD_DESCRIPTION_PLACEHOLDER: &str = "<Enter Description Here>";
-const CARD_NAME_PLACEHOLDER: &str = "<Enter Card Name Here>";
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
@@ -34,7 +32,6 @@ struct TrelloConfig {
 
 // TODO: Enable truecolor support for labels
 // TODO: Move usage documentation to this file so that it can be doctested
-// TODO: Upload card changes on editor write rather than close
 // TODO: move command (move a card within the same list, to another list etc...)
 // TODO: re-open command (in case something was closed by mistake)
 // TODO: Tests for all the subcommands
@@ -66,7 +63,6 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
-            (@arg new: -n --new requires("list_name") conflicts_with("card_name") "Create new Card")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
         )
@@ -113,6 +109,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: !required "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
+            (@arg show: --show -s "Show the item once created")
         )
     )
     .get_matches();
@@ -271,9 +268,9 @@ fn get_trello_object(
 /// to edit a specified card. If $EDITOR is not set, the default editor will fallback
 /// to vi.
 ///
-/// Once the editor is closed, a new card is populated and returned based on the
-/// contents of what was written by the editor.
-fn edit_card(card: &mut Card) -> Result<(), Box<dyn Error>> {
+/// This function will upload any changes written by the editor to Trello. This includes
+/// when the editor is not closed but content is saved.
+fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     let mut file = Builder::new().suffix(".md").tempfile()?;
     let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
 
@@ -282,21 +279,71 @@ fn edit_card(card: &mut Card) -> Result<(), Box<dyn Error>> {
 
     writeln!(file, "{}", card.render())?;
 
-    let editor = process::Command::new(editor_env)
-        .arg(file.path())
-        .status()?;
+    let mut new_card = card.clone();
 
-    debug!("editor exited with {:?}", editor);
+    // Outer retry loop - reopen editor if last upload attempt failed
+    loop {
+        let mut editor = process::Command::new(&editor_env)
+            .arg(file.path())
+            .spawn()?;
+        let mut result: Option<Result<Card, Box<dyn Error>>> = None;
 
-    let mut buf = String::new();
-    file.reopen()?.read_to_string(&mut buf)?;
+        // Inner watch loop - look out for card changes to upload
+        loop {
+            const SLEEP_TIME: u64 = 500;
+            debug!("Sleeping for {}ms", SLEEP_TIME);
+            thread::sleep(time::Duration::from_millis(SLEEP_TIME));
 
-    // Trim end because a lot of editors will auto add new lines at the end of the file
-    let card_contents = Card::parse(buf.trim_end())?;
-    card.name = card_contents.name;
-    card.desc = card_contents.desc;
+            let mut buf = String::new();
+            file.reopen()?.read_to_string(&mut buf)?;
 
-    debug!("New card: {:?}", card);
+            // Trim end because a lot of editors will use auto add new lines at the end of the file
+            let contents = Card::parse(buf.trim_end())?;
+
+            // if no upload attempts
+            // if previous loop had a failure then don't skip
+            // if card in memory is different to card in file
+            if result.is_none()
+                || result.as_ref().unwrap().is_err()
+                || &new_card.name != &contents.name
+                || &new_card.desc != &contents.desc
+            {
+                new_card.name = contents.name;
+                new_card.desc = contents.desc;
+
+                debug!("Updating card: {:?}", new_card);
+                result = Some(Card::update(client, &new_card));
+
+                match result.as_ref().unwrap() {
+                    Ok(_) => debug!("Updated card"),
+                    Err(e) => debug!("Error updating card {:?}", e),
+                };
+            }
+
+            if let Some(ecode) = editor.try_wait()? {
+                debug!("Exiting editor loop with code: {}", ecode);
+                break;
+            }
+        }
+
+        if result.is_none() {
+            debug!("Breaking out of retry loop because no result was ever retrieved");
+            break;
+        }
+
+        match result.as_ref().unwrap() {
+            Ok(_) => {
+                debug!("Exiting retry loop due to successful last update");
+                break;
+            }
+            Err(e) => {
+                eprintln!("An error occurred while trying to update the card.");
+                eprintln!("{}", e);
+                eprintln!();
+                get_input("Press entry to re-enter editor")?;
+            }
+        }
+    }
 
     Ok(())
 }
@@ -419,58 +466,6 @@ fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn E
     Ok(())
 }
 
-fn show_card(client: &Client, card: &Card, list_id: &str) -> Result<(), Box<dyn Error>> {
-    let mut new_card = card.clone();
-    let is_new_card = new_card.id == "";
-
-    loop {
-        edit_card(&mut new_card)?;
-
-        if &new_card == card {
-            // no changes detected
-            return Ok(());
-        }
-
-        // if nothing is edited by the user, remove it
-        if new_card.desc == CARD_DESCRIPTION_PLACEHOLDER {
-            new_card.desc = String::from("");
-        }
-
-        if new_card.name != CARD_NAME_PLACEHOLDER {
-            let result = if is_new_card {
-                Card::create(client, list_id, &new_card)
-            } else {
-                Card::update(client, &new_card)
-            };
-
-            match result {
-                Err(e) => {
-                    eprintln!("An error occurred. Press enter to retry");
-
-                    if let Some(source) = &e.source() {
-                        get_input(&source.to_string())?;
-                    } else {
-                        get_input(&e.to_string())?;
-                    }
-                }
-                Ok(card) => {
-                    let action = match is_new_card {
-                        true => "Created",
-                        false => "Updated",
-                    };
-
-                    eprintln!("{} card: '{}'", action, card.name.green());
-                    break;
-                }
-            }
-        } else {
-            eprintln!("Card name not entered. Aborting.");
-            break;
-        }
-    }
-    Ok(())
-}
-
 fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
     debug!("Running show subcommand with {:?}", matches);
 
@@ -482,47 +477,30 @@ fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn 
     let result = get_trello_object(client, &params)?;
     trace!("result: {:?}", result);
 
-    // TODO: Upload data every time the editor saves the file
-    // rather than just when it is closed
+    if let Some(card) = result.card {
+        edit_card(client, &card)?;
+    } else if let Some(list) = result.list {
+        let list = match label_filter {
+            Some(label_filter) => list.filter(label_filter),
+            None => list,
+        };
+        println!("{}", list.render());
+    } else if let Some(mut board) = result.board {
+        board.retrieve_nested(client)?;
+        let board = match label_filter {
+            Some(label_filter) => board.filter(label_filter),
+            None => board,
+        };
 
-    if matches.is_present("new") {
-        let card = Card::new(
-            "",
-            CARD_NAME_PLACEHOLDER,
-            CARD_DESCRIPTION_PLACEHOLDER,
-            None,
-            "",
-        );
-        // we can safely unwrap the list due to the way we've setup clap
-        let list_id = &result.list.unwrap().id;
-
-        show_card(client, &card, list_id)?;
+        println!("{}", board.render());
     } else {
-        if let Some(card) = result.card {
-            show_card(client, &card, "")?;
-        } else if let Some(list) = result.list {
-            let list = match label_filter {
-                Some(label_filter) => list.filter(label_filter),
-                None => list,
-            };
-            println!("{}", list.render());
-        } else if let Some(mut board) = result.board {
-            board.retrieve_nested(client)?;
-            let board = match label_filter {
-                Some(label_filter) => board.filter(label_filter),
-                None => board,
-            };
+        println!("Open Boards");
+        println!("===========");
+        println!();
 
-            println!("{}", board.render());
-        } else {
-            println!("Open Boards");
-            println!("===========");
-            println!();
-
-            let boards = Board::get_all(client)?;
-            for b in boards {
-                println!("* {}", b.name);
-            }
+        let boards = Board::get_all(client)?;
+        for b in boards {
+            println!("* {}", b.name);
         }
     }
 
@@ -563,12 +541,18 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
 
+    let show = matches.is_present("show");
+
     trace!("result: {:?}", result);
 
     if let Some(list) = result.list {
         let name = get_input("Card name: ")?;
 
-        Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
+        let card = Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
+
+        if show {
+            edit_card(client, &card)?;
+        }
     } else if let Some(board) = result.board {
         let name = get_input("List name: ")?;
 
