@@ -274,39 +274,72 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
 
     writeln!(file, "{}", card.render())?;
 
-    let mut editor = process::Command::new(editor_env).arg(file.path()).spawn()?;
-
     let mut new_card = card.clone();
 
     loop {
-        if let Some(ecode) = editor.try_wait()? {
-            debug!("Exiting editor loop with code: {}", ecode);
+        let mut editor = process::Command::new(&editor_env)
+            .arg(file.path())
+            .spawn()?;
+        let mut result: Option<Result<Card, Box<dyn Error>>> = None;
+
+        loop {
+            if let Some(ecode) = editor.try_wait()? {
+                debug!("Exiting editor loop with code: {}", ecode);
+                break;
+            }
+
+            const SLEEP_TIME: u64 = 500;
+            debug!("Sleeping for {}ms", SLEEP_TIME);
+            thread::sleep(time::Duration::from_millis(SLEEP_TIME));
+
+            let mut buf = String::new();
+            file.reopen()?.read_to_string(&mut buf)?;
+
+            // Trim end because a lot of editors will use auto add new lines at the end of the file
+            let contents = Card::parse(buf.trim_end())?;
+
+            // if previous loop had a failure then don't skip this next attempt
+            // TODO: Fix this super complex if statement
+            if result.is_some()
+                && result.as_ref().unwrap().is_ok()
+                && &new_card.name == &contents.name
+                && &new_card.desc == &contents.desc
+            {
+                continue;
+            }
+
+            new_card.name = contents.name;
+            new_card.desc = contents.desc;
+
+            debug!("Updating card: {:?}", new_card);
+            result = Some(Card::update(client, &new_card));
+
+            match result.as_ref().unwrap() {
+                Ok(_) => {
+                    debug!("Updated card");
+                }
+                Err(e) => {
+                    debug!("Error updating card {:?}", e);
+                }
+            };
+        }
+
+        if result.is_none() {
+            debug!("Breaking out of retry loop because no result was ever retrieved");
             break;
         }
 
-        const SLEEP_TIME: u64 = 500;
-        debug!("Sleeping for {}ms", SLEEP_TIME);
-        thread::sleep(time::Duration::from_millis(SLEEP_TIME));
-
-        let mut buf = String::new();
-        file.reopen()?.read_to_string(&mut buf)?;
-
-        // Trim end because a lot of editors will use auto add new lines at the end of the file
-        let contents = Card::parse(buf.trim_end())?;
-
-        if &new_card.name == &contents.name && &new_card.desc == &contents.desc {
-            continue;
+        match result.as_ref().unwrap() {
+            Ok(_) => {
+                debug!("Exiting retry loop due to successful last update");
+                break;
+            }
+            Err(e) => {
+                eprintln!("An error occurred while trying to update the card.");
+                eprintln!("{}", e);
+                get_input("Press entry to re-enter editor")?;
+            }
         }
-
-        new_card.name = contents.name;
-        new_card.desc = contents.desc;
-
-        debug!("Updating card: {:?}", new_card);
-        let result = Card::update(client, &new_card);
-        match result {
-            Ok(_) => debug!("Updated card"),
-            Err(e) => debug!("Error updating card {:?}", e),
-        };
     }
 
     Ok(())
