@@ -103,6 +103,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
+            (@arg show: -s --show "Show the board associated with the closed object once done")
         )
         (@subcommand create =>
             (about: "Create objects")
@@ -513,16 +514,30 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
 
+    let show = matches.is_present("show");
+
     trace!("result: {:?}", result);
 
     if let Some(mut card) = result.card {
         card.closed = true;
         Card::update(client, &card)?;
+
+        if show {
+            println!("{}", result.board.unwrap().render());
+            println!();
+        }
+
         eprintln!("Closed card: '{}'", &card.name.green());
         eprintln!("id: {}", &card.id);
     } else if let Some(mut list) = result.list {
         list.closed = true;
         List::update(client, &list)?;
+
+        if show {
+            println!("{}", result.board.unwrap().render());
+            println!();
+        }
+
         eprintln!("Closed list: '{}'", &list.name.green());
         eprintln!("id: {}", &list.id);
     } else if let Some(mut board) = result.board {
