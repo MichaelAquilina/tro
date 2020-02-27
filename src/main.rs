@@ -328,17 +328,16 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             }
         }
 
-        if result.is_none() {
-            debug!("Breaking out of retry loop because no result was ever retrieved");
-            break;
-        }
-
-        match result.as_ref().unwrap() {
-            Ok(_) => {
+        match result {
+            None => {
+                debug!("Exiting retry loop due to no result being ever retrieved");
+                break;
+            }
+            Some(Ok(_)) => {
                 debug!("Exiting retry loop due to successful last update");
                 break;
             }
-            Err(e) => {
+            Some(Err(e)) => {
                 eprintln!("An error occurred while trying to update the card.");
                 eprintln!("{}", e);
                 eprintln!();
