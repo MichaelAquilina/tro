@@ -1,6 +1,11 @@
 Changelog for trello-rs
 =======================
 
+1.20.0
+------
+* Add --show flag to close subcommand
+* Small improvements to error handling
+
 1.19.0
 ------
 * Saving a card being edited while the editor is still open will now upload contents in the background
