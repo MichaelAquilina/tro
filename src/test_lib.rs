@@ -2,7 +2,6 @@ use super::*;
 use colored::*;
 use mockito;
 use serde_json::json;
-use std::error::Error;
 use std::io::Write;
 use tempfile::NamedTempFile;
 
@@ -32,7 +31,7 @@ mod attachment_tests {
     use super::*;
 
     #[test]
-    fn test_get_all() -> Result<(), Box<dyn Error>> {
+    fn test_get_all() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/cards/FOO-CARD/attachments?key=sekret&token=my-token&fields=id%2Cname%2Curl",
@@ -89,7 +88,7 @@ mod card_tests {
     }
 
     #[test]
-    fn test_create() -> Result<(), Box<dyn Error>> {
+    fn test_create() -> Result<()> {
         let _m = mockito::mock("POST", "/1/cards/?key=some-key&token=some-token")
             .match_body("name=Laundry&desc=Desky&idList=FOOBAR")
             .with_status(200)
@@ -124,7 +123,7 @@ mod card_tests {
     }
 
     #[test]
-    fn test_update() -> Result<(), Box<dyn Error>> {
+    fn test_update() -> Result<()> {
         let _m = mockito::mock("PUT", "/1/cards/MY-CARD-ID/?key=some-key&token=some-token")
             .match_body("name=Laundry&desc=hello&closed=true")
             .with_status(200)
@@ -157,7 +156,7 @@ mod card_tests {
     }
 
     #[test]
-    fn test_apply_attachment() -> Result<(), Box<dyn Error>> {
+    fn test_apply_attachment() -> Result<()> {
         let _m = mockito::mock("POST", "/1/cards/CARD-23/attachments?key=KEY&token=TOKEN")
             .with_status(200)
             .with_body(
@@ -173,10 +172,7 @@ mod card_tests {
         let mut file1 = NamedTempFile::new()?;
         file1.write_all("some data".as_bytes())?;
 
-        let path = file1
-            .path()
-            .to_str()
-            .ok_or("Unable to get temp file path")?;
+        let path = file1.path().to_str().unwrap();
 
         let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
 
@@ -195,7 +191,7 @@ mod card_tests {
     }
 
     #[test]
-    fn test_apply_label() -> Result<(), Box<dyn Error>> {
+    fn test_apply_label() -> Result<()> {
         let _m = mockito::mock(
             "POST",
             "/1/cards/SOME-CARD-ID/idLabels?key=some-key&token=some-token",
@@ -213,7 +209,7 @@ mod card_tests {
     }
 
     #[test]
-    fn test_remove_label() -> Result<(), Box<dyn Error>> {
+    fn test_remove_label() -> Result<()> {
         let _m = mockito::mock(
             "DELETE",
             "/1/cards/FOO-CARD/idLabels/BAR-LABEL?key=some-key&token=some-token",
@@ -281,7 +277,7 @@ mod list_tests {
     }
 
     #[test]
-    fn test_create() -> Result<(), Box<dyn Error>> {
+    fn test_create() -> Result<()> {
         let _m = mockito::mock("POST", "/1/lists/?key=some-key&token=some-token")
             .match_body("name=Today&idBoard=LEONSK")
             .with_status(200)
@@ -303,7 +299,7 @@ mod list_tests {
     }
 
     #[test]
-    fn test_update() -> Result<(), Box<dyn Error>> {
+    fn test_update() -> Result<()> {
         let _m = mockito::mock("PUT", "/1/lists/MY-LIST-ID/?key=some-key&token=some-token")
             .with_body("name=Today&closed=True")
             .with_status(200)
@@ -328,7 +324,7 @@ mod list_tests {
     }
 
     #[test]
-    fn test_get_all_cards() -> Result<(), Box<dyn Error>> {
+    fn test_get_all_cards() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Clabels%2Cclosed%2Curl",
@@ -458,7 +454,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_create() -> Result<(), Box<dyn Error>> {
+    fn test_create() -> Result<()> {
         let _m = mockito::mock("POST", "/1/boards/?key=some-key&token=some-token")
             .match_body("name=MYTESTBOARD")
             .with_status(200)
@@ -487,7 +483,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_update() -> Result<(), Box<dyn Error>> {
+    fn test_update() -> Result<()> {
         let _m = mockito::mock(
             "PUT",
             "/1/boards/MY-BOARD-ID/?key=some-key&token=some-token",
@@ -517,7 +513,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_get_all() -> Result<(), Box<dyn Error>> {
+    fn test_get_all() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/members/me/boards/?key=some-key&token=some-secret-token&filter=open&fields=id%2Cname%2Cclosed%2Curl",
@@ -544,7 +540,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_get() -> Result<(), Box<dyn Error>> {
+    fn test_get() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/boards/some-board-id?key=KEY&token=TOKEN&fields=id%2Cname%2Cclosed%2Curl",
@@ -575,7 +571,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_get_all_labels() -> Result<(), Box<dyn Error>> {
+    fn test_get_all_labels() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/boards/123-456/labels?key=some-key&token=some-token&fields=id%2Cname%2Ccolor",
@@ -602,7 +598,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_get_all_lists() -> Result<(), Box<dyn Error>> {
+    fn test_get_all_lists() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/boards/some-board-id/lists?key=some-key&token=some-token&fields=id%2Cname%2Cclosed",
@@ -628,7 +624,7 @@ mod board_tests {
     }
 
     #[test]
-    fn test_get_all_lists_with_cards() -> Result<(), Box<dyn Error>> {
+    fn test_get_all_lists_with_cards() -> Result<()> {
         let _m = mockito::mock(
             "GET",
             "/1/boards/some-board-id/lists?key=some-key&token=some-token&fields=id%2Cname%2Cclosed&cards=open",

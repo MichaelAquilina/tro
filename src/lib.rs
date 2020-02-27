@@ -1,22 +1,21 @@
 #[macro_use]
-extern crate simple_error;
-#[macro_use]
 extern crate log;
 
 mod client;
+mod trello_error;
 
 #[cfg(test)]
 mod test_lib;
 
 pub use client::Client;
+pub use trello_error::TrelloError;
 
 use colored::*;
 use regex::RegexBuilder;
 use serde::Deserialize;
-use std::error::Error;
 use std::fmt::Debug;
 
-use simple_error::SimpleError;
+type Result<T> = std::result::Result<T, TrelloError>;
 
 fn title(text: &str) -> String {
     let border = "═".repeat(text.chars().count());
@@ -70,7 +69,7 @@ impl TrelloObject for Attachment {
 }
 
 impl Attachment {
-    pub fn get_all(client: &Client, card_id: &str) -> Result<Vec<Attachment>, Box<dyn Error>> {
+    pub fn get_all(client: &Client, card_id: &str) -> Result<Vec<Attachment>> {
         let url = client.get_trello_url(
             &format!("/1/cards/{}/attachments", card_id),
             &[("fields", &Attachment::get_fields().join(","))],
@@ -272,8 +271,7 @@ impl Card {
     /// except this is quite unstructured and is not very strict in order to allow
     /// the user to more easily edit card contents.
     /// ```
-    /// # use simple_error::SimpleError;
-    /// # fn main() -> Result<(), SimpleError> {
+    /// # fn main() -> Result<(), trello::TrelloError> {
     /// let buffer = "Hello World\n===\nThis is my card";
     /// let card_contents = trello::Card::parse(buffer)?;
     ///
@@ -288,17 +286,7 @@ impl Card {
     /// # }
     /// ```
     /// Invalid data will result in an appropriate error being returned.
-    ///
-    /// ```
-    /// use simple_error::SimpleError;
-    /// let buffer = "";
-    /// let result = trello::Card::parse(buffer);
-    /// assert_eq!(
-    ///     result,
-    ///     Err(SimpleError::new("Unable to parse - Unable to find name delimiter '===='"))
-    /// );
-    /// ```
-    pub fn parse(buffer: &str) -> Result<CardContents, SimpleError> {
+    pub fn parse(buffer: &str) -> Result<CardContents> {
         // this is guaranteed to give at least one result
         let mut contents = buffer.split("\n").collect::<Vec<&str>>();
         trace!("{:?}", contents);
@@ -322,7 +310,9 @@ impl Card {
         }
 
         if !found {
-            bail!("Unable to parse - Unable to find name delimiter '===='");
+            return Err(TrelloError::CardParse(
+                "Unable to find name delimiter '===='".to_owned(),
+            ));
         }
 
         let name = name.join("\n");
@@ -335,7 +325,7 @@ impl Card {
         })
     }
 
-    pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card, Box<dyn Error>> {
+    pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card> {
         let url = client.get_trello_url("/1/cards/", &[])?;
 
         let params: [(&str, &str); 3] = [
@@ -352,7 +342,7 @@ impl Card {
             .json()?)
     }
 
-    pub fn update(client: &Client, card: &Card) -> Result<Card, Box<dyn Error>> {
+    pub fn update(client: &Client, card: &Card) -> Result<Card> {
         let url = client.get_trello_url(&format!("/1/cards/{}/", &card.id), &[])?;
 
         let params = [
@@ -369,11 +359,7 @@ impl Card {
             .json()?)
     }
 
-    pub fn apply_attachment(
-        client: &Client,
-        card_id: &str,
-        file: &str,
-    ) -> Result<Attachment, Box<dyn Error>> {
+    pub fn apply_attachment(client: &Client, card_id: &str, file: &str) -> Result<Attachment> {
         let url = client.get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
 
         let form = reqwest::multipart::Form::new().file("file", file)?;
@@ -386,11 +372,7 @@ impl Card {
             .json()?)
     }
 
-    pub fn remove_label(
-        client: &Client,
-        card_id: &str,
-        label_id: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn remove_label(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
         let url =
             client.get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
 
@@ -402,11 +384,7 @@ impl Card {
         Ok(())
     }
 
-    pub fn apply_label(
-        client: &Client,
-        card_id: &str,
-        label_id: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn apply_label(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
         let url = client.get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
 
         let params = [("value", label_id)];
@@ -492,7 +470,7 @@ impl List {
         result
     }
 
-    pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List, Box<dyn Error>> {
+    pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List> {
         let url = client.get_trello_url("/1/lists/", &[])?;
 
         let params = [("name", name), ("idBoard", board_id)];
@@ -505,7 +483,7 @@ impl List {
             .json()?)
     }
 
-    pub fn update(client: &Client, list: &List) -> Result<List, Box<dyn Error>> {
+    pub fn update(client: &Client, list: &List) -> Result<List> {
         let url = client.get_trello_url(&format!("/1/lists/{}/", &list.id), &[])?;
 
         let params = [("name", &list.name), ("closed", &list.closed.to_string())];
@@ -518,7 +496,7 @@ impl List {
             .json()?)
     }
 
-    pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>, Box<dyn Error>> {
+    pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>> {
         let url = client.get_trello_url(
             &format!("/1/lists/{}/cards/", list_id),
             &[("fields", &Card::get_fields().join(","))],
@@ -553,13 +531,13 @@ impl Board {
     /// means one or more network requests in order to retrieve the data. The Board
     /// will be mutated to include all its associated lists. The lists will also in turn
     /// contain the associated card resources.
-    pub fn retrieve_nested(&mut self, client: &Client) -> Result<(), Box<dyn Error>> {
+    pub fn retrieve_nested(&mut self, client: &Client) -> Result<()> {
         self.lists = Some(Board::get_all_lists(client, &self.id, true)?);
 
         Ok(())
     }
 
-    pub fn create(client: &Client, name: &str) -> Result<Board, Box<dyn Error>> {
+    pub fn create(client: &Client, name: &str) -> Result<Board> {
         let url = client.get_trello_url("/1/boards/", &[])?;
 
         let params = [("name", name)];
@@ -572,7 +550,7 @@ impl Board {
             .json()?)
     }
 
-    pub fn update(client: &Client, board: &Board) -> Result<Board, Box<dyn Error>> {
+    pub fn update(client: &Client, board: &Board) -> Result<Board> {
         let url = client.get_trello_url(&format!("/1/boards/{}/", &board.id), &[])?;
 
         let params = [("name", &board.name), ("closed", &board.closed.to_string())];
@@ -585,7 +563,7 @@ impl Board {
             .json()?)
     }
 
-    pub fn get_all(client: &Client) -> Result<Vec<Board>, Box<dyn Error>> {
+    pub fn get_all(client: &Client) -> Result<Vec<Board>> {
         let url = client.get_trello_url(
             "/1/members/me/boards/",
             &[
@@ -597,7 +575,7 @@ impl Board {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn get(client: &Client, board_id: &str) -> Result<Board, Box<dyn Error>> {
+    pub fn get(client: &Client, board_id: &str) -> Result<Board> {
         let url = client.get_trello_url(
             &format!("/1/boards/{}", board_id),
             &[("fields", &Board::get_fields().join(","))],
@@ -606,7 +584,7 @@ impl Board {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn get_all_labels(client: &Client, board_id: &str) -> Result<Vec<Label>, Box<dyn Error>> {
+    pub fn get_all_labels(client: &Client, board_id: &str) -> Result<Vec<Label>> {
         let fields = Label::get_fields().join(",");
 
         let url = client.get_trello_url(
@@ -617,11 +595,7 @@ impl Board {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn get_all_lists(
-        client: &Client,
-        board_id: &str,
-        cards: bool,
-    ) -> Result<Vec<List>, Box<dyn Error>> {
+    pub fn get_all_lists(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {
         let fields = List::get_fields().join(",");
         let mut params = vec![("fields", fields.as_str())];
 

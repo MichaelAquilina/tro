@@ -22,7 +22,7 @@ use std::process;
 use std::{env, fs};
 use std::{thread, time};
 use tempfile::Builder;
-use trello::{Attachment, Board, Card, Client, List, TrelloObject};
+use trello::{Attachment, Board, Card, Client, List, TrelloError, TrelloObject};
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
@@ -42,9 +42,9 @@ fn main() {
     if let Err(error) = start() {
         eprintln!("An Error occurred:");
         if let Some(error) = error.source() {
-            eprintln!("{}", error);
+            eprintln!("{}", error.description());
         } else {
-            eprintln!("{}", error);
+            eprintln!("{}", error.description());
         }
         process::exit(2);
     }
@@ -288,7 +288,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
         let mut editor = process::Command::new(&editor_env)
             .arg(file.path())
             .spawn()?;
-        let mut result: Option<Result<Card, Box<dyn Error>>> = None;
+        let mut result: Option<Result<Card, TrelloError>> = None;
 
         // Inner watch loop - look out for card changes to upload
         loop {
@@ -340,7 +340,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             }
             Some(Err(e)) => {
                 eprintln!("An error occurred while trying to update the card.");
-                eprintln!("{}", e);
+                eprintln!("{}", e.description());
                 eprintln!();
                 get_input("Press entry to re-enter editor")?;
             }
