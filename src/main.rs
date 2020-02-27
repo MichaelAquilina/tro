@@ -16,6 +16,7 @@ use serde::Deserialize;
 use simple_error::SimpleError;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
+use std::io;
 use std::io::{stdin, Read, Write};
 use std::process;
 use std::{env, fs};
@@ -349,7 +350,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
+fn get_input(text: &str) -> Result<String, io::Error> {
     eprint!("{}", text);
 
     let mut input = String::new();
