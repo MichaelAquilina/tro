@@ -300,6 +300,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             file.reopen()?.read_to_string(&mut buf)?;
 
             // Trim end because a lot of editors will use auto add new lines at the end of the file
+            // FIXME: An error here would break the retry loop completely
             let contents = Card::parse(buf.trim_end())?;
 
             // if no upload attempts
