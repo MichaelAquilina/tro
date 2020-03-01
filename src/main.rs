@@ -317,9 +317,10 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
                 debug!("Updating card: {:?}", new_card);
                 result = Some(Card::update(client, &new_card));
 
-                match result.as_ref().unwrap() {
-                    Ok(_) => debug!("Updated card"),
-                    Err(e) => debug!("Error updating card {:?}", e),
+                match &result {
+                    Some(Ok(_)) => debug!("Updated card"),
+                    Some(Err(e)) => debug!("Error updating card {:?}", e),
+                    None => panic!("This should be impossible"),
                 };
             }
 
@@ -329,7 +330,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             }
         }
 
-        match result {
+        match &result {
             None => {
                 debug!("Exiting retry loop due to no result being ever retrieved");
                 break;
