@@ -1406,7 +1406,7 @@ dependencies = [
 
 [[package]]
 name = "trello-rs"
-version = "1.20.0"
+version = "1.21.0-dev"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored 1.9.1 (registry+https://github.com/rust-lang/crates.io-index)",

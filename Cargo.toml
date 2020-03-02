@@ -1,6 +1,6 @@
 [package]
 name = "trello-rs"
-version = "1.20.0"
+version = "1.21.0-dev"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
 edition = "2018"
 description = "A Trello API client for the command line"
