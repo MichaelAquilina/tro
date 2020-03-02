@@ -342,6 +342,19 @@ impl Card {
             .json()?)
     }
 
+    pub fn open(client: &Client, card_id: &str) -> Result<Card> {
+        let url = client.get_trello_url(&format!("/1/cards/{}", &card_id), &[])?;
+
+        let params = [("closed", "false")];
+
+        Ok(reqwest::Client::new()
+            .put(url)
+            .form(&params)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
     pub fn update(client: &Client, card: &Card) -> Result<Card> {
         let url = client.get_trello_url(&format!("/1/cards/{}/", &card.id), &[])?;
 
@@ -483,6 +496,19 @@ impl List {
             .json()?)
     }
 
+    pub fn open(client: &Client, list_id: &str) -> Result<List> {
+        let url = client.get_trello_url(&format!("/1/lists/{}", &list_id), &[])?;
+
+        let params = [("closed", "false")];
+
+        Ok(reqwest::Client::new()
+            .put(url)
+            .form(&params)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
     pub fn update(client: &Client, list: &List) -> Result<List> {
         let url = client.get_trello_url(&format!("/1/lists/{}/", &list.id), &[])?;
 
@@ -544,6 +570,19 @@ impl Board {
 
         Ok(reqwest::Client::new()
             .post(url)
+            .form(&params)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
+    pub fn open(client: &Client, board_id: &str) -> Result<Board> {
+        let url = client.get_trello_url(&format!("/1/boards/{}", &board_id), &[])?;
+
+        let params = [("closed", "false")];
+
+        Ok(reqwest::Client::new()
+            .put(url)
             .form(&params)
             .send()?
             .error_for_status()?

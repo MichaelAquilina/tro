@@ -99,6 +99,11 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg card_name: !required "Card Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
+        (@subcommand open =>
+            (about: "Open objects that have been closed")
+            (@arg type: +required possible_values(&["board", "list", "card"]) "Type of object")
+            (@arg id: +required "Id of the object to re-open")
+        )
         (@subcommand close =>
             (about: "Close objects")
             (@arg board_name: +required "Board Name to retrieve")
@@ -157,6 +162,8 @@ fn start() -> Result<(), Box<dyn Error>> {
         url_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("close") {
         close_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("open") {
+        open_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("create") {
         create_subcommand(&client, &matches)?;
     } else {
@@ -548,6 +555,37 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         Board::update(client, &board)?;
         eprintln!("Closed board: '{}'", &board.name.green());
         eprintln!("id: {}", &board.id);
+    }
+
+    Ok(())
+}
+
+fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running open subcommand with {:?}", matches);
+
+    let id = matches.value_of("id").ok_or("Id not provided")?;
+    let object_type = matches.value_of("type").ok_or("type not provided")?;
+
+    if object_type == "board" {
+        debug!("Re-opening board with id {}", &id);
+        let board = Board::open(client, &id)?;
+
+        eprintln!("Opened board: {}", &board.name.green());
+        eprintln!("id: {}", &board.id);
+    } else if object_type == "list" {
+        debug!("Re-opening list with id {}", &id);
+        let list = List::open(client, &id)?;
+
+        eprintln!("Opened list: {}", &list.name.green());
+        eprintln!("id: {}", &list.id);
+    } else if object_type == "card" {
+        debug!("Re-openning card with id {}", &id);
+        let card = Card::open(client, &id)?;
+
+        eprintln!("Opened card: {}", &card.name.green());
+        eprintln!("id: {}", &card.id);
+    } else {
+        bail!("Unknown object_type {}", object_type);
     }
 
     Ok(())
