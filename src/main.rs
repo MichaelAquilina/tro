@@ -56,7 +56,7 @@ fn start() -> Result<(), Box<dyn Error>> {
         (version: env!("CARGO_PKG_VERSION"))
         (author: env!("CARGO_PKG_AUTHORS"))
         (about: env!("CARGO_PKG_DESCRIPTION"))
-        (@arg log_level: -l --("log-level") +takes_value possible_values(&["TRACE", "DEBUG", "INFO", "ERROR"]) default_value[ERROR] "Specify the log level")
+        (@arg log_level: -l --("log-level") +takes_value possible_values(&["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]) default_value[ERROR] "Specify the log level")
         (@subcommand version =>
             (about: "Print TrelloCLI version")
         )
@@ -131,6 +131,7 @@ fn start() -> Result<(), Box<dyn Error>> {
         "TRACE" => LevelFilter::Trace,
         "DEBUG" => LevelFilter::Debug,
         "INFO" => LevelFilter::Info,
+        "WARN" => LevelFilter::Warn,
         "ERROR" => LevelFilter::Error,
         unknown => bail!("Unknown log level '{}'", unknown),
     };
