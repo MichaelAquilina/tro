@@ -16,8 +16,7 @@ use serde::Deserialize;
 use simple_error::SimpleError;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::error::Error;
-use std::io;
-use std::io::{stdin, Read, Write};
+use std::io::{Read, Write};
 use std::process;
 use std::{env, fs};
 use std::{thread, time};
@@ -314,7 +313,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             let contents = Card::parse(buf.trim_end())?;
 
             // if no upload attempts
-            // if previous loop had a failure then don't skip
+            // if previous loop had a failure
             // if card in memory is different to card in file
             if result.is_none()
                 || result.as_ref().unwrap().is_err()
@@ -361,12 +360,21 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_input(text: &str) -> Result<String, io::Error> {
-    eprint!("{}", text);
-
-    let mut input = String::new();
-    stdin().read_line(&mut input)?;
-    Ok(String::from(input.trim_end()))
+fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> {
+    let mut rl = rustyline::Editor::<()>::new();
+    rl.bind_sequence(
+        rustyline::KeyPress::ControlLeft,
+        rustyline::Cmd::Move(rustyline::Movement::BackwardWord(1, rustyline::Word::Big)),
+    );
+    rl.bind_sequence(
+        rustyline::KeyPress::ControlRight,
+        rustyline::Cmd::Move(rustyline::Movement::ForwardWord(
+            1,
+            rustyline::At::Start,
+            rustyline::Word::Big,
+        )),
+    );
+    rl.readline(text)
 }
 
 fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
