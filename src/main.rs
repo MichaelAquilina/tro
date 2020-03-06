@@ -31,6 +31,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Search all (including archived) cards
 // TODO: Label card on creation
 // TODO: Enable truecolor support for labels
 // TODO: Move usage documentation to this file so that it can be doctested
