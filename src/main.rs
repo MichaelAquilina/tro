@@ -534,6 +534,7 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         card.closed = true;
         Card::update(client, &card)?;
 
+        // FIXME: Bug shows the board with closed card
         if show {
             println!("{}", result.board.unwrap().render());
             println!();
@@ -545,6 +546,7 @@ fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         list.closed = true;
         List::update(client, &list)?;
 
+        // FIXME: Bug shows the board with the closed list
         if show {
             println!("{}", result.board.unwrap().render());
             println!();
