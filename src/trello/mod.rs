@@ -12,7 +12,7 @@ mod trello_error;
 mod trello_object;
 
 #[cfg(test)]
-mod test_lib;
+mod tests;
 
 pub use attachment::Attachment;
 pub use board::Board;
