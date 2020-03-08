@@ -14,6 +14,7 @@ repository = "https://www.github.com/MichaelAquilina/trello-rs.git"
 [lib]
 name = "trello"
 test = true
+path = "src/trello/mod.rs"
 
 [[bin]]
 name = "tro"
