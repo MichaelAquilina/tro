@@ -57,6 +57,32 @@ impl Label {
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
+
+    pub fn remove(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
+        let url =
+            client.get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
+
+        reqwest::Client::new()
+            .delete(url)
+            .send()?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
+    pub fn apply(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
+        let url = client.get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
+
+        let params = [("value", label_id)];
+
+        reqwest::Client::new()
+            .post(url)
+            .form(&params)
+            .send()?
+            .error_for_status()?;
+
+        Ok(())
+    }
 }
 
 fn map_color(color: &str) -> &str {

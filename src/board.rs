@@ -72,7 +72,7 @@ impl Board {
     /// will be mutated to include all its associated lists. The lists will also in turn
     /// contain the associated card resources.
     pub fn retrieve_nested(&mut self, client: &Client) -> Result<()> {
-        self.lists = Some(Board::get_all_lists(client, &self.id, true)?);
+        self.lists = Some(List::get_all(client, &self.id, true)?);
 
         Ok(())
     }
@@ -133,19 +133,6 @@ impl Board {
             &format!("/1/boards/{}", board_id),
             &[("fields", &Board::get_fields().join(","))],
         )?;
-
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
-    }
-
-    pub fn get_all_lists(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {
-        let fields = List::get_fields().join(",");
-        let mut params = vec![("fields", fields.as_str())];
-
-        if cards {
-            params.push(("cards", "open"));
-        }
-
-        let url = client.get_trello_url(&format!("/1/boards/{}/lists", board_id), &params)?;
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }

@@ -439,7 +439,7 @@ fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
                 &card.name.green(),
             );
         } else {
-            Card::remove_label(client, &card.id, &label.id)?;
+            Label::remove(client, &card.id, &label.id)?;
 
             eprintln!(
                 "Removed [{}] label from '{}'",
@@ -455,7 +455,7 @@ fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
                 &card.name.green()
             );
         } else {
-            Card::apply_label(client, &card.id, &label.id)?;
+            Label::apply(client, &card.id, &label.id)?;
 
             eprintln!(
                 "Applied [{}] label to '{}'",

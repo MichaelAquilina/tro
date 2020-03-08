@@ -162,29 +162,11 @@ impl Card {
             .json()?)
     }
 
-    pub fn remove_label(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
-        let url =
-            client.get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
-
-        reqwest::Client::new()
-            .delete(url)
-            .send()?
-            .error_for_status()?;
-
-        Ok(())
-    }
-
-    pub fn apply_label(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
-        let url = client.get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
-
-        let params = [("value", label_id)];
-
-        reqwest::Client::new()
-            .post(url)
-            .form(&params)
-            .send()?
-            .error_for_status()?;
-
-        Ok(())
+    pub fn get_all(client: &Client, list_id: &str) -> Result<Vec<Card>> {
+        let url = client.get_trello_url(
+            &format!("/1/lists/{}/cards/", list_id),
+            &[("fields", &Card::get_fields().join(","))],
+        )?;
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 }

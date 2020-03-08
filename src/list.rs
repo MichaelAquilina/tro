@@ -171,11 +171,16 @@ impl List {
             .json()?)
     }
 
-    pub fn get_all_cards(client: &Client, list_id: &str) -> Result<Vec<Card>> {
-        let url = client.get_trello_url(
-            &format!("/1/lists/{}/cards/", list_id),
-            &[("fields", &Card::get_fields().join(","))],
-        )?;
+    pub fn get_all(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {
+        let fields = List::get_fields().join(",");
+        let mut params = vec![("fields", fields.as_str())];
+
+        if cards {
+            params.push(("cards", "open"));
+        }
+
+        let url = client.get_trello_url(&format!("/1/boards/{}/lists", board_id), &params)?;
+
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 }
