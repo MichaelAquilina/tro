@@ -24,6 +24,19 @@ impl Attachment {
 
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
+
+    pub fn apply(client: &Client, card_id: &str, file: &str) -> Result<Attachment> {
+        let url = client.get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
+
+        let form = reqwest::multipart::Form::new().file("file", file)?;
+
+        Ok(reqwest::Client::new()
+            .post(url)
+            .multipart(form)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
 }
 
 impl TrelloObject for Attachment {

@@ -387,7 +387,7 @@ fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
 
     let card = result.card.ok_or("Unable to find card")?;
 
-    let attachment = Card::apply_attachment(client, &card.id, path)?;
+    let attachment = Attachment::apply(client, &card.id, path)?;
 
     println!("{}", attachment.render());
 
