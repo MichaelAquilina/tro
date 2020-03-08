@@ -5,6 +5,8 @@ use serde_json::json;
 use std::io::Write;
 use tempfile::NamedTempFile;
 
+type Result<T> = std::result::Result<T, TrelloError>;
+
 mod header_tests {
     use super::*;
 
@@ -58,6 +60,72 @@ mod attachment_tests {
 
         assert_eq!(result, expected);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_apply() -> Result<()> {
+        let _m = mockito::mock("POST", "/1/cards/CARD-23/attachments?key=KEY&token=TOKEN")
+            .with_status(200)
+            .with_body(
+                json!({
+                    "id": "my-attachment",
+                    "name": "My Attachment",
+                    "url": "https://some-example.com/attachment.txt",
+                })
+                .to_string(),
+            )
+            .create();
+
+        let mut file1 = NamedTempFile::new()?;
+        file1.write_all("some data".as_bytes())?;
+
+        let path = file1.path().to_str().unwrap();
+
+        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
+
+        let result = Attachment::apply(&client, "CARD-23", path)?;
+
+        assert_eq!(
+            result,
+            Attachment {
+                id: String::from("my-attachment"),
+                name: String::from("My Attachment"),
+                url: String::from("https://some-example.com/attachment.txt"),
+            }
+        );
+
+        Ok(())
+    }
+}
+
+mod label_tests {
+    use super::*;
+
+    #[test]
+    fn test_get_all() -> Result<()> {
+        let _m = mockito::mock(
+            "GET",
+            "/1/boards/123-456/labels?key=some-key&token=some-token&fields=id%2Cname%2Ccolor",
+        )
+        .with_status(200)
+        .with_body(
+            json!([
+                {"name": "Tech", "color": "purple", "id": "1"},
+                {"name": "Bills", "color": "orange", "id": "2"},
+            ])
+            .to_string(),
+        )
+        .create();
+
+        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+        let result = Label::get_all(&client, "123-456")?;
+        let expected = vec![
+            Label::new("1", "Tech", "purple"),
+            Label::new("2", "Bills", "orange"),
+        ];
+
+        assert_eq!(result, expected);
         Ok(())
     }
 }
@@ -152,41 +220,6 @@ mod card_tests {
 
         let result = Card::update(&client, &card)?;
         assert_eq!(result, card);
-        Ok(())
-    }
-
-    #[test]
-    fn test_apply_attachment() -> Result<()> {
-        let _m = mockito::mock("POST", "/1/cards/CARD-23/attachments?key=KEY&token=TOKEN")
-            .with_status(200)
-            .with_body(
-                json!({
-                    "id": "my-attachment",
-                    "name": "My Attachment",
-                    "url": "https://some-example.com/attachment.txt",
-                })
-                .to_string(),
-            )
-            .create();
-
-        let mut file1 = NamedTempFile::new()?;
-        file1.write_all("some data".as_bytes())?;
-
-        let path = file1.path().to_str().unwrap();
-
-        let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
-
-        let result = Card::apply_attachment(&client, "CARD-23", path)?;
-
-        assert_eq!(
-            result,
-            Attachment {
-                id: String::from("my-attachment"),
-                name: String::from("My Attachment"),
-                url: String::from("https://some-example.com/attachment.txt"),
-            }
-        );
-
         Ok(())
     }
 
@@ -567,33 +600,6 @@ mod board_tests {
         );
         assert_eq!(result, expected);
 
-        Ok(())
-    }
-
-    #[test]
-    fn test_get_all_labels() -> Result<()> {
-        let _m = mockito::mock(
-            "GET",
-            "/1/boards/123-456/labels?key=some-key&token=some-token&fields=id%2Cname%2Ccolor",
-        )
-        .with_status(200)
-        .with_body(
-            json!([
-                {"name": "Tech", "color": "purple", "id": "1"},
-                {"name": "Bills", "color": "orange", "id": "2"},
-            ])
-            .to_string(),
-        )
-        .create();
-
-        let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-        let result = Board::get_all_labels(&client, "123-456")?;
-        let expected = vec![
-            Label::new("1", "Tech", "purple"),
-            Label::new("2", "Bills", "orange"),
-        ];
-
-        assert_eq!(result, expected);
         Ok(())
     }
 

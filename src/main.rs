@@ -21,7 +21,7 @@ use std::process;
 use std::{env, fs};
 use std::{thread, time};
 use tempfile::Builder;
-use trello::{Attachment, Board, Card, Client, List, TrelloError, TrelloObject};
+use trello::{Attachment, Board, Card, Client, Label, List, TrelloError, TrelloObject};
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
@@ -417,8 +417,7 @@ fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
     let params = get_trello_params(matches);
     let result = get_trello_object(client, &params)?;
 
-    let labels =
-        Board::get_all_labels(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
+    let labels = Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
     let card = result.card.ok_or("Unable to find card")?;
 
     let label_name = matches.value_of("label_name").unwrap();

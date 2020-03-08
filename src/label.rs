@@ -1,7 +1,11 @@
+use super::client::Client;
+use super::trello_error::TrelloError;
 use super::trello_object::TrelloObject;
 
 use colored::*;
 use serde::Deserialize;
+
+type Result<T> = std::result::Result<T, TrelloError>;
 
 // https://developers.trello.com/reference/#label-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
@@ -41,6 +45,17 @@ impl Label {
 
     pub fn colored_name(&self) -> ColoredString {
         self.name.color(map_color(&self.color))
+    }
+
+    pub fn get_all(client: &Client, board_id: &str) -> Result<Vec<Label>> {
+        let fields = Label::get_fields().join(",");
+
+        let url = client.get_trello_url(
+            &format!("/1/boards/{}/labels", board_id),
+            &[("fields", &fields)],
+        )?;
+
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 }
 
