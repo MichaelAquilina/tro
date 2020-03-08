@@ -1,135 +1,28 @@
 #[macro_use]
 extern crate log;
 
+mod attachment;
 mod client;
+mod formatting;
+mod label;
 mod trello_error;
+mod trello_object;
 
 #[cfg(test)]
 mod test_lib;
 
+pub use attachment::Attachment;
 pub use client::Client;
+use formatting::{header, title};
+pub use label::Label;
 pub use trello_error::TrelloError;
+pub use trello_object::TrelloObject;
 
 use colored::*;
 use regex::RegexBuilder;
 use serde::Deserialize;
-use std::fmt::Debug;
 
 type Result<T> = std::result::Result<T, TrelloError>;
-
-fn title(text: &str) -> String {
-    let border = "═".repeat(text.chars().count());
-
-    [
-        format!("╔═{}═╗", border),
-        format!("║ {} ║", text),
-        format!("╚═{}═╝", border),
-    ]
-    .join("\n")
-}
-
-fn header(text: &str, header_char: &str) -> String {
-    [text, &header_char.repeat(text.chars().count())].join("\n")
-}
-
-pub trait TrelloObject: Debug {
-    fn get_type() -> String;
-
-    fn get_name(&self) -> &str;
-
-    fn get_fields() -> &'static [&'static str];
-
-    fn render(&self) -> String;
-}
-
-#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Attachment {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-impl TrelloObject for Attachment {
-    fn get_type() -> String {
-        String::from("Attachment")
-    }
-
-    fn get_name(&self) -> &str {
-        &self.name
-    }
-
-    fn get_fields() -> &'static [&'static str] {
-        &["id", "name", "url"]
-    }
-
-    fn render(&self) -> String {
-        [header(&self.name, "-").as_str(), &self.url].join("\n")
-    }
-}
-
-impl Attachment {
-    pub fn get_all(client: &Client, card_id: &str) -> Result<Vec<Attachment>> {
-        let url = client.get_trello_url(
-            &format!("/1/cards/{}/attachments", card_id),
-            &[("fields", &Attachment::get_fields().join(","))],
-        )?;
-
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
-    }
-}
-
-// https://developers.trello.com/reference/#label-object
-#[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Label {
-    pub id: String,
-    pub name: String,
-    pub color: String,
-}
-
-fn map_color(color: &str) -> &str {
-    match color {
-        "sky" => "cyan",
-        "lime" => "green",
-        "orange" => "yellow",
-        // black is not visible on a terminal
-        "black" => "bright black",
-        _ => color,
-    }
-}
-
-impl TrelloObject for Label {
-    fn get_type() -> String {
-        String::from("Label")
-    }
-
-    fn get_name(&self) -> &str {
-        &self.name
-    }
-
-    fn get_fields() -> &'static [&'static str] {
-        &["id", "name", "color"]
-    }
-
-    fn render(&self) -> String {
-        format!("[{}]", self.colored_name())
-    }
-}
-
-impl Label {
-    pub fn new(id: &str, name: &str, color: &str) -> Label {
-        Label {
-            id: String::from(id),
-            name: String::from(name),
-            color: String::from(color),
-        }
-    }
-
-    pub fn colored_name(&self) -> ColoredString {
-        self.name.color(map_color(&self.color))
-    }
-}
 
 // https://developers.trello.com/reference/#card-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
