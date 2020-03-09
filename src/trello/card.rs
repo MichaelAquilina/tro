@@ -84,7 +84,7 @@ impl Card {
         // first line should *always* be the name of the card
         let mut name = vec![contents.remove(0)];
 
-        // continue generating the name until we find a line entirely composed of '-'
+        // continue generating the name until we find a line entirely composed of '='
         // we cannot calculate header() here because we allow the user the benefit of not
         // having to add or remove characters in case the name grows or shrinks in size
         let mut found = false;
