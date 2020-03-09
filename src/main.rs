@@ -49,8 +49,10 @@ fn main() {
         eprintln!("An Error occurred:");
         if let Some(error) = error.source() {
             eprintln!("{}", error.description());
+            debug!("{:?}", error);
         } else {
             eprintln!("{}", error.description());
+            debug!("{:?}", error);
         }
         process::exit(2);
     }

@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.21.1
+------
+* Display error details if --log-level=DEBUG
+
 1.21.0
 ------
 * Add first implementation of the search subcommand
