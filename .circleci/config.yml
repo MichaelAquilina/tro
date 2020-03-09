@@ -12,6 +12,12 @@ jobs:
       - run:
           name: run rustfmt
           command: rustfmt **/*.rs --check
+      - run:
+          name: install clippy
+          command: rustup component add clippy
+      - run:
+          name: run clippy
+          command: cargo clippy
 
   test:
     docker:

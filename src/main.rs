@@ -1,3 +1,7 @@
+// I personally find the return syntax a lot more visually obvious
+// when scanning code
+#![allow(clippy::needless_return)]
+
 #[macro_use]
 extern crate clap;
 #[macro_use]
@@ -22,7 +26,7 @@ use std::process;
 use std::{env, fs};
 use std::{thread, time};
 use tempfile::Builder;
-use trello::{Attachment, Board, Card, Client, Label, List, TrelloError, TrelloObject};
+use trello::{search, Attachment, Board, Card, Client, Label, List, TrelloError, TrelloObject};
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
@@ -68,6 +72,11 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg card_name: !required "Card Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
+        )
+        (@subcommand search =>
+            (about: "Search Trello cards and boards")
+            (@arg query: +required "Trello Query String")
+            (@arg partial: -p --partial "Allow partial matches")
         )
         (@subcommand attach =>
             (about: "Attach a file to a card")
@@ -154,6 +163,8 @@ fn start() -> Result<(), Box<dyn Error>> {
         eprintln!(env!("CARGO_PKG_VERSION"));
     } else if let Some(matches) = matches.subcommand_matches("show") {
         show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("search") {
+        search_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attach") {
         attach_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attachments") {
@@ -376,6 +387,37 @@ fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> {
         )),
     );
     rl.readline(text)
+}
+
+fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+    debug!("Running search subcommand with {:?}", matches);
+
+    let query = matches.value_of("query").ok_or("Missing query value")?;
+    let partial = matches.is_present("partial");
+
+    let results = search(client, &query, partial)?;
+
+    if !&results.cards.is_empty() {
+        println!("Cards");
+        println!("-----");
+
+        for card in &results.cards {
+            println!("'{}' id: {}", card.name.green(), card.id);
+        }
+        println!();
+    }
+
+    if !&results.boards.is_empty() {
+        println!("Boards");
+        println!("------");
+
+        for board in &results.boards {
+            println!("'{}' id: {}", board.name.green(), board.id);
+        }
+        println!();
+    }
+
+    Ok(())
 }
 
 fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
