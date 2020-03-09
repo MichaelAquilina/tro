@@ -1,6 +1,14 @@
 Changelog for trello-rs
 =======================
 
+1.21.0
+------
+* Add first implementation of the search subcommand
+* Allow readline style movements when entering text for prompts
+* Add missing WARN level to --log-level flag
+* Display possible log levels in CLI help
+* Lot's of internal re-organisation of code
+
 1.20.0
 ------
 * Add --show flag to close subcommand
