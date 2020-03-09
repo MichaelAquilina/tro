@@ -51,7 +51,7 @@ impl Board {
             id: String::from(id),
             name: String::from(name),
             url: String::from(url),
-            lists: lists,
+            lists,
             closed: false,
         }
     }

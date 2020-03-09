@@ -51,7 +51,7 @@ impl Card {
             name: String::from(name),
             desc: String::from(desc),
             url: String::from(url),
-            labels: labels,
+            labels,
             closed: false,
         }
     }
@@ -78,7 +78,7 @@ impl Card {
     /// Invalid data will result in an appropriate error being returned.
     pub fn parse(buffer: &str) -> Result<CardContents> {
         // this is guaranteed to give at least one result
-        let mut contents = buffer.split("\n").collect::<Vec<&str>>();
+        let mut contents = buffer.split('\n').collect::<Vec<&str>>();
         trace!("{:?}", contents);
 
         // first line should *always* be the name of the card
@@ -88,10 +88,10 @@ impl Card {
         // we cannot calculate header() here because we allow the user the benefit of not
         // having to add or remove characters in case the name grows or shrinks in size
         let mut found = false;
-        while contents.len() > 0 {
+        while !contents.is_empty() {
             let line = contents.remove(0);
 
-            if &line.chars().take_while(|c| c == &'=').collect::<String>() != line {
+            if line.chars().take_while(|c| c == &'=').collect::<String>() != line {
                 name.push(line);
             } else {
                 found = true;
@@ -109,10 +109,7 @@ impl Card {
         // The rest of the contents is assumed to be the description
         let desc = contents.join("\n");
 
-        Ok(CardContents {
-            name: String::from(name),
-            desc: String::from(desc),
-        })
+        Ok(CardContents { name, desc })
     }
 
     pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card> {

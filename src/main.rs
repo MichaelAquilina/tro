@@ -283,7 +283,7 @@ fn get_trello_object(
 /// when the editor is not closed but content is saved.
 fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     let mut file = Builder::new().suffix(".md").tempfile()?;
-    let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
+    let editor_env = env::var("EDITOR").unwrap_or_else(|_| String::from("vi"));
 
     debug!("Using editor: {}", editor_env);
     debug!("Editing card: {:?}", card);
@@ -317,8 +317,8 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             // if card in memory is different to card in file
             if result.is_none()
                 || result.as_ref().unwrap().is_err()
-                || &new_card.name != &contents.name
-                || &new_card.desc != &contents.desc
+                || new_card.name != contents.name
+                || new_card.desc != contents.desc
             {
                 new_card.name = contents.name;
                 new_card.desc = contents.desc;
@@ -428,8 +428,7 @@ fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
         .labels
         .ok_or("Unable to retrieve Card labels")?
         .iter()
-        .find(|l| &l.id == &label.id)
-        .is_some();
+        .any(|l| l.id == label.id);
 
     if delete {
         if !card_has_label {
@@ -447,22 +446,20 @@ fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn
                 &card.name.green(),
             );
         }
+    } else if card_has_label {
+        eprintln!(
+            "Label [{}] already exists on '{}'",
+            &label.colored_name(),
+            &card.name.green()
+        );
     } else {
-        if card_has_label {
-            eprintln!(
-                "Label [{}] already exists on '{}'",
-                &label.colored_name(),
-                &card.name.green()
-            );
-        } else {
-            Label::apply(client, &card.id, &label.id)?;
+        Label::apply(client, &card.id, &label.id)?;
 
-            eprintln!(
-                "Applied [{}] label to '{}'",
-                &label.colored_name(),
-                &card.name.green()
-            );
-        }
+        eprintln!(
+            "Applied [{}] label to '{}'",
+            &label.colored_name(),
+            &card.name.green()
+        );
     }
 
     Ok(())
@@ -638,7 +635,7 @@ fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dy
 /// This is different from get_object_by_name which only
 /// retrieves a single object from a single collection
 fn get_card_from_lists<'a>(
-    lists: &'a Vec<List>,
+    lists: &'a [List],
     card_name: &str,
     ignore_case: bool,
 ) -> Result<&'a Card, SimpleError> {
@@ -685,7 +682,7 @@ fn get_card_from_lists<'a>(
 /// * If more than match is found, an Error is returned
 /// * If only one item is matched, then it is returned
 fn get_object_by_name<'a, T: TrelloObject>(
-    objects: &'a Vec<T>,
+    objects: &'a [T],
     name: &str,
     ignore_case: bool,
 ) -> Result<&'a T, SimpleError> {
@@ -695,7 +692,7 @@ fn get_object_by_name<'a, T: TrelloObject>(
         .expect("Invalid Regex");
 
     let mut objects = objects
-        .into_iter()
+        .iter()
         .filter(|o| re.is_match(&o.get_name()))
         .collect::<Vec<&T>>();
 

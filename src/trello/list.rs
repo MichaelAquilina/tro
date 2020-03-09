@@ -66,7 +66,7 @@ impl List {
         List {
             id: String::from(id),
             name: String::from(name),
-            cards: cards,
+            cards,
             closed: false,
         }
     }
