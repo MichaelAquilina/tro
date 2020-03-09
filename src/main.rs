@@ -15,6 +15,7 @@ use regex::RegexBuilder;
 use serde::Deserialize;
 use simple_error::SimpleError;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
+use std::cmp::Ordering;
 use std::error::Error;
 use std::io::{Read, Write};
 use std::process;
@@ -656,10 +657,9 @@ fn get_card_from_lists<'a>(
         result.extend(cards);
     }
 
-    if result.len() == 1 {
-        return Ok(result.pop().unwrap());
-    } else if result.len() > 1 {
-        bail!(
+    match result.len().cmp(&1) {
+        Ordering::Equal => Ok(result.pop().unwrap()),
+        Ordering::Greater => bail!(
             "Multiple cards found. Specify a more precise filter than '{}' (Found {})",
             card_name,
             result
@@ -667,12 +667,11 @@ fn get_card_from_lists<'a>(
                 .map(|c| format!("'{}'", c.get_name()))
                 .collect::<Vec<String>>()
                 .join(", ")
-        );
-    } else {
-        bail!(
+        ),
+        Ordering::Less => bail!(
             "Card not found. Specify a more precise filter than '{}'",
             card_name
-        );
+        ),
     }
 }
 
@@ -696,10 +695,9 @@ fn get_object_by_name<'a, T: TrelloObject>(
         .filter(|o| re.is_match(&o.get_name()))
         .collect::<Vec<&T>>();
 
-    if objects.len() == 1 {
-        Ok(objects.pop().unwrap())
-    } else if objects.len() > 1 {
-        bail!(
+    match objects.len().cmp(&1) {
+        Ordering::Equal => Ok(objects.pop().unwrap()),
+        Ordering::Greater => bail!(
             "More than one {} found. Specify a more precise filter than '{}' (Found {})",
             T::get_type(),
             name,
@@ -708,12 +706,11 @@ fn get_object_by_name<'a, T: TrelloObject>(
                 .map(|t| format!("'{}'", t.get_name()))
                 .collect::<Vec<String>>()
                 .join(", ")
-        );
-    } else {
-        bail!(
+        ),
+        Ordering::Less => bail!(
             "{} not found. Specify a more precise filter than '{}'",
             T::get_type(),
             name
-        );
+        ),
     }
 }
