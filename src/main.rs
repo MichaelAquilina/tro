@@ -1,3 +1,7 @@
+// I personally find the return syntax a lot visually obvious
+// when scanning code
+#![allow(clippy::needless_return)]
+
 #[macro_use]
 extern crate clap;
 #[macro_use]
