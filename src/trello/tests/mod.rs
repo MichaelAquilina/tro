@@ -4,6 +4,7 @@ mod test_card;
 mod test_formatting;
 mod test_label;
 mod test_list;
+mod test_search;
 
 use super::*;
 use mockito;

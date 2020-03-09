@@ -8,6 +8,7 @@ mod client;
 mod formatting;
 mod label;
 mod list;
+mod search;
 mod trello_error;
 mod trello_object;
 
@@ -21,5 +22,6 @@ pub use client::Client;
 pub use formatting::{header, title};
 pub use label::Label;
 pub use list::List;
+pub use search::{search, SearchResult};
 pub use trello_error::TrelloError;
 pub use trello_object::TrelloObject;
