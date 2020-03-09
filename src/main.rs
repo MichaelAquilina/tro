@@ -1,4 +1,4 @@
-// I personally find the return syntax a lot visually obvious
+// I personally find the return syntax a lot more visually obvious
 // when scanning code
 #![allow(clippy::needless_return)]
 
