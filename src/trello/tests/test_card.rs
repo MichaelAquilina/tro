@@ -23,6 +23,38 @@ fn test_render() {
 }
 
 #[test]
+fn test_get() -> Result<()> {
+    let _m = mockito::mock("GET", "/1/cards/CARD-FOO?key=some-key&token=some-token")
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "Card Foo",
+                "desc": "foozy card",
+                "id": "CARD-FOO",
+                "closed": false,
+                "url": "https://card.foo/123",
+            })
+            .to_string(),
+        )
+        .create();
+
+    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let result = Card::get(&client, "CARD-FOO")?;
+
+    let expected = Card::new(
+        "CARD-FOO",
+        "Card Foo",
+        "foozy card",
+        None,
+        "https://card.foo/123",
+    );
+
+    assert_eq!(result, expected);
+
+    Ok(())
+}
+
+#[test]
 fn test_create() -> Result<()> {
     let _m = mockito::mock("POST", "/1/cards/?key=some-key&token=some-token")
         .match_body("name=Laundry&desc=Desky&idList=FOOBAR")

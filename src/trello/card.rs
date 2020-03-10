@@ -114,6 +114,12 @@ impl Card {
         Ok(CardContents { name, desc })
     }
 
+    pub fn get(client: &Client, card_id: &str) -> Result<Card> {
+        let url = client.get_trello_url(&format!("/1/cards/{}", card_id), &[])?;
+
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+    }
+
     pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card> {
         let url = client.get_trello_url("/1/cards/", &[])?;
 
