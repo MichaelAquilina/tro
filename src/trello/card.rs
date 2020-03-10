@@ -2,7 +2,7 @@ use super::client::Client;
 use super::formatting::header;
 use super::label::Label;
 use super::trello_error::TrelloError;
-use super::trello_object::TrelloObject;
+use super::trello_object::{Renderable, TrelloObject};
 
 use serde::Deserialize;
 
@@ -32,7 +32,9 @@ impl TrelloObject for Card {
     fn get_fields() -> &'static [&'static str] {
         &["id", "name", "desc", "labels", "closed", "url"]
     }
+}
 
+impl Renderable for Card {
     fn render(&self) -> String {
         [header(&self.name, "=").as_str(), &self.desc].join("\n")
     }

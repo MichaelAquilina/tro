@@ -1,7 +1,7 @@
 use super::client::Client;
 use super::formatting::header;
 use super::trello_error::TrelloError;
-use super::trello_object::TrelloObject;
+use super::trello_object::{Renderable, TrelloObject};
 
 use serde::Deserialize;
 
@@ -51,7 +51,9 @@ impl TrelloObject for Attachment {
     fn get_fields() -> &'static [&'static str] {
         &["id", "name", "url"]
     }
+}
 
+impl Renderable for Attachment {
     fn render(&self) -> String {
         [header(&self.name, "-").as_str(), &self.url].join("\n")
     }

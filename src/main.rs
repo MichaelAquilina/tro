@@ -26,7 +26,9 @@ use std::process;
 use std::{env, fs};
 use std::{thread, time};
 use tempfile::Builder;
-use trello::{search, Attachment, Board, Card, Client, Label, List, TrelloError, TrelloObject};
+use trello::{
+    search, Attachment, Board, Card, Client, Label, List, Renderable, TrelloError, TrelloObject,
+};
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {

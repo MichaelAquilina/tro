@@ -1,6 +1,6 @@
 use super::client::Client;
 use super::trello_error::TrelloError;
-use super::trello_object::TrelloObject;
+use super::trello_object::{Renderable, TrelloObject};
 
 use colored::*;
 use serde::Deserialize;
@@ -28,7 +28,9 @@ impl TrelloObject for Label {
     fn get_fields() -> &'static [&'static str] {
         &["id", "name", "color"]
     }
+}
 
+impl Renderable for Label {
     fn render(&self) -> String {
         format!("[{}]", self.colored_name())
     }

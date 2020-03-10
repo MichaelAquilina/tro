@@ -2,7 +2,7 @@ use super::card::Card;
 use super::client::Client;
 use super::formatting::header;
 use super::trello_error::TrelloError;
-use super::trello_object::TrelloObject;
+use super::trello_object::{Renderable, TrelloObject};
 
 use colored::*;
 use regex::RegexBuilder;
@@ -32,7 +32,9 @@ impl TrelloObject for List {
     fn get_fields() -> &'static [&'static str] {
         &["id", "name", "closed"]
     }
+}
 
+impl Renderable for List {
     fn render(&self) -> String {
         let title = header(&self.name, "-").bold().to_string();
         let mut result: Vec<String> = vec![title];

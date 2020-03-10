@@ -2,7 +2,7 @@ use super::client::Client;
 use super::formatting::title;
 use super::list::List;
 use super::trello_error::TrelloError;
-use super::trello_object::TrelloObject;
+use super::trello_object::{Renderable, TrelloObject};
 
 use colored::*;
 use serde::Deserialize;
@@ -32,7 +32,9 @@ impl TrelloObject for Board {
     fn get_fields() -> &'static [&'static str] {
         &["id", "name", "closed", "url"]
     }
+}
 
+impl Renderable for Board {
     fn render(&self) -> String {
         let mut result = vec![title(&self.name).bold().to_string()];
         if let Some(lists) = &self.lists {

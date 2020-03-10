@@ -24,4 +24,4 @@ pub use label::Label;
 pub use list::List;
 pub use search::{search, SearchResult};
 pub use trello_error::TrelloError;
-pub use trello_object::TrelloObject;
+pub use trello_object::{Renderable, TrelloObject};
