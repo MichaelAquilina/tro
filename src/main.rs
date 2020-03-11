@@ -30,6 +30,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Use Copy on Write instead of clone
 // TODO: Label card on creation
 // TODO: Enable truecolor support for labels
 // TODO: Move usage documentation to this file so that it can be doctested
