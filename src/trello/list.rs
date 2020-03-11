@@ -1,8 +1,8 @@
-use super::card::Card;
-use super::client::Client;
-use super::formatting::header;
-use super::trello_error::TrelloError;
-use super::trello_object::{Renderable, TrelloObject};
+use crate::card::Card;
+use crate::client::Client;
+use crate::formatting::header;
+use crate::trello_error::TrelloError;
+use crate::trello_object::{Renderable, TrelloObject};
 
 use colored::*;
 use regex::RegexBuilder;

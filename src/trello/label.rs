@@ -1,6 +1,6 @@
-use super::client::Client;
-use super::trello_error::TrelloError;
-use super::trello_object::{Renderable, TrelloObject};
+use crate::client::Client;
+use crate::trello_error::TrelloError;
+use crate::trello_object::{Renderable, TrelloObject};
 
 use colored::*;
 use serde::Deserialize;
