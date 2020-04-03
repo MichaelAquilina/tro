@@ -58,6 +58,7 @@ impl Card {
         }
     }
 
+    /// TODO: Implement this as TryFrom trait
     /// Takes a buffer of contents that represent a Card render and parses
     /// it into a CardContents structure. This is similar to a deserialization process
     /// except this is quite unstructured and is not very strict in order to allow
