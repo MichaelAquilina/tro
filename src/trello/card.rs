@@ -5,6 +5,7 @@ use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
 use serde::Deserialize;
+use std::str::FromStr;
 
 type Result<T> = std::result::Result<T, TrelloError>;
 
@@ -46,19 +47,9 @@ pub struct CardContents {
     pub desc: String,
 }
 
-impl Card {
-    pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>, url: &str) -> Card {
-        Card {
-            id: String::from(id),
-            name: String::from(name),
-            desc: String::from(desc),
-            url: String::from(url),
-            labels,
-            closed: false,
-        }
-    }
+impl FromStr for CardContents {
+    type Err = TrelloError;
 
-    /// TODO: Implement this as TryFrom trait
     /// Takes a buffer of contents that represent a Card render and parses
     /// it into a CardContents structure. This is similar to a deserialization process
     /// except this is quite unstructured and is not very strict in order to allow
@@ -66,7 +57,7 @@ impl Card {
     /// ```
     /// # fn main() -> Result<(), trello::TrelloError> {
     /// let buffer = "Hello World\n===\nThis is my card";
-    /// let card_contents = trello::Card::parse(buffer)?;
+    /// let card_contents: trello::CardContents = buffer.parse()?;
     ///
     /// assert_eq!(
     ///     card_contents,
@@ -79,9 +70,9 @@ impl Card {
     /// # }
     /// ```
     /// Invalid data will result in an appropriate error being returned.
-    pub fn parse(buffer: &str) -> Result<CardContents> {
+    fn from_str(value: &str) -> Result<CardContents> {
         // this is guaranteed to give at least one result
-        let mut contents = buffer.split('\n').collect::<Vec<&str>>();
+        let mut contents = value.split('\n').collect::<Vec<&str>>();
         trace!("{:?}", contents);
 
         // first line should *always* be the name of the card
@@ -113,6 +104,19 @@ impl Card {
         let desc = contents.join("\n");
 
         Ok(CardContents { name, desc })
+    }
+}
+
+impl Card {
+    pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>, url: &str) -> Card {
+        Card {
+            id: String::from(id),
+            name: String::from(name),
+            desc: String::from(desc),
+            url: String::from(url),
+            labels,
+            closed: false,
+        }
     }
 
     pub fn get(client: &Client, card_id: &str) -> Result<Card> {

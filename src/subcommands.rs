@@ -7,7 +7,9 @@ use std::io::{Read, Write};
 use std::process;
 use std::{thread, time};
 use tempfile::Builder;
-use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable, TrelloError};
+use trello::{
+    search, Attachment, Board, Card, CardContents, Client, Label, List, Renderable, TrelloError,
+};
 
 fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> {
     let mut rl = rustyline::Editor::<()>::new();
@@ -61,7 +63,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
 
             // Trim end because a lot of editors will use auto add new lines at the end of the file
             // FIXME: An error here would break the retry loop completely
-            let contents = Card::parse(buf.trim_end())?;
+            let contents: CardContents = buf.trim_end().parse()?;
 
             // if no upload attempts
             // if previous loop had a failure
