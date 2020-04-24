@@ -62,8 +62,13 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             file.reopen()?.read_to_string(&mut buf)?;
 
             // Trim end because a lot of editors will use auto add new lines at the end of the file
-            // FIXME: An error here would break the retry loop completely
-            let contents: CardContents = buf.trim_end().parse()?;
+            let contents: CardContents = match buf.trim_end().parse() {
+                Ok(c) => c,
+                Err(e) => {
+                    debug!("Unable to parse Card Contents: {}", e);
+                    continue;
+                }
+            };
 
             // if no upload attempts
             // if previous loop had a failure
