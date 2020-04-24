@@ -101,7 +101,7 @@ fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             }
             Some(Err(e)) => {
                 eprintln!("An error occurred while trying to update the card.");
-                eprintln!("{}", e.description());
+                eprintln!("{}", e);
                 eprintln!();
                 get_input("Press entry to re-enter editor")?;
             }

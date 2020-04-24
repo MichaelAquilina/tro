@@ -21,15 +21,6 @@ impl fmt::Display for TrelloError {
 }
 
 impl error::Error for TrelloError {
-    fn description(&self) -> &str {
-        match self {
-            TrelloError::Reqwest(err) => err.description(),
-            TrelloError::UrlParse(err) => err.description(),
-            TrelloError::Io(err) => err.description(),
-            TrelloError::CardParse(msg) => msg,
-        }
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
         match self {
             TrelloError::Reqwest(ref err) => Some(err),
