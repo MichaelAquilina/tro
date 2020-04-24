@@ -1,6 +1,12 @@
 Changelog for trello-rs
 =======================
 
+1.22.0
+------
+* Don't crash when writing cards if content is not parseable
+* Update dependencies (patch version only)
+* Update mockito to 0.25 for testing
+
 1.21.1
 ------
 * Display error details if --log-level=DEBUG
