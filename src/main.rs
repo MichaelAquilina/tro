@@ -42,10 +42,10 @@ fn main() {
     if let Err(error) = start() {
         eprintln!("An Error occurred:");
         if let Some(error) = error.source() {
-            eprintln!("{}", error.description());
+            eprintln!("{}", error.to_string());
             debug!("{:?}", error);
         } else {
-            eprintln!("{}", error.description());
+            eprintln!("{}", error.to_string());
             debug!("{:?}", error);
         }
         process::exit(2);
