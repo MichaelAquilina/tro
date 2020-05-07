@@ -329,7 +329,11 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Bo
         println!("-----");
 
         for card in &results.cards {
-            println!("'{}' id: {}", card.name.green(), card.id);
+            let card_state = match card.closed {
+                true => "[Closed]".red().to_string(),
+                false => "".to_string(),
+            };
+            println!("'{}' id: {} {}", card.name.green(), card.id, card_state);
         }
         println!();
     }
