@@ -1,6 +1,10 @@
 Changelog for trello-rs
 =======================
 
+1.23.0
+------
+* Display if a card is closed in search subcommand results
+
 1.22.0
 ------
 * Don't crash when writing cards if content is not parseable
