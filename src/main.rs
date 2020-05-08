@@ -13,6 +13,7 @@ extern crate simplelog;
 #[cfg(test)]
 mod test_find;
 
+mod cli;
 mod find;
 mod subcommands;
 
