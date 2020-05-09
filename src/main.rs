@@ -31,14 +31,11 @@ struct TrelloConfig {
     key: String,
 }
 
-// TODO: Use Copy on Write instead of clone
 // TODO: Label card on creation
 // TODO: Enable truecolor support for labels
-// TODO: Move usage documentation to this file so that it can be doctested
+// TODO: Move usage documentation to subcommands file so that it can be doctested
 // TODO: move command (move a card within the same list, to another list etc...)
 // TODO: Tests for all the subcommands
-// TODO: Unified/Streamlined CLI interface
-// TODO: Better Trello API interface
 fn main() {
     if let Err(error) = start() {
         eprintln!("An Error occurred:");
