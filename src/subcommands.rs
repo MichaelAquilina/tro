@@ -4,7 +4,9 @@ use colored::*;
 use std::error::Error;
 use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable};
 
-pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
@@ -45,7 +47,7 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<
     Ok(())
 }
 
-pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running open subcommand with {:?}", matches);
 
     let id = matches.value_of("id").ok_or("Id not provided")?;
@@ -76,7 +78,7 @@ pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<
     Ok(())
 }
 
-pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running close subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -120,7 +122,7 @@ pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box
     Ok(())
 }
 
-pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running create subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -150,7 +152,7 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Bo
 
     Ok(())
 }
-pub fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running attachments subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -167,7 +169,7 @@ pub fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<(
     Ok(())
 }
 
-pub fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running attach subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -184,7 +186,7 @@ pub fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Bo
     Ok(())
 }
 
-pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running url subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -202,7 +204,7 @@ pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<d
     Ok(())
 }
 
-pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running search subcommand with {:?}", matches);
 
     let query = matches.value_of("query").ok_or("Missing query value")?;
@@ -237,7 +239,7 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Bo
     Ok(())
 }
 
-pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running label subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
