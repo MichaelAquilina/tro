@@ -2,9 +2,28 @@ use crate::{cli, find};
 use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
-use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable};
+use trello::{search, Action, Attachment, Board, Card, Client, Label, List, Renderable};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+pub fn activity_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+    debug!("Running activity subcommand with {:?}", matches);
+
+    let board_name = matches
+        .value_of("board_name")
+        .ok_or("Unable to retrieve board name")?;
+
+    let boards = Board::get_all(client)?;
+    let board = find::get_object_by_name(&boards, &board_name, true)?;
+
+    let actions = Action::get_all(client, &board.id)?;
+
+    for action in actions {
+        println!("{}", action.render());
+    }
+
+    Ok(())
+}
 
 pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);

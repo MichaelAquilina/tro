@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate log;
 
+mod action;
 mod attachment;
 mod board;
 mod card;
@@ -15,6 +16,7 @@ mod trello_object;
 #[cfg(test)]
 mod tests;
 
+pub use action::Action;
 pub use attachment::Attachment;
 pub use board::Board;
 pub use card::{Card, CardContents};
