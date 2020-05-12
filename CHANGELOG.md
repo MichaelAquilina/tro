@@ -27,7 +27,7 @@ Changelog for trello-rs
 * Allow readline style movements when entering text for prompts
 * Add missing WARN level to --log-level flag
 * Display possible log levels in CLI help
-* Lot's of internal re-organisation of code
+* Lots of internal re-organisation of code
 
 1.20.0
 ------
