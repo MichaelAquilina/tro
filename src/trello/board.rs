@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 type Result<T> = std::result::Result<T, TrelloError>;
 
-// https://developers.trello.com/reference/#board-object
+// https://developer.atlassian.com/cloud/trello/guides/rest-api/object-definitions/#board-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Board {

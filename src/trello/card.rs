@@ -9,7 +9,7 @@ use std::str::FromStr;
 
 type Result<T> = std::result::Result<T, TrelloError>;
 
-// https://developers.trello.com/reference/#card-object
+// https://developer.atlassian.com/cloud/trello/guides/rest-api/object-definitions/#card-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Card {
