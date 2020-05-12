@@ -36,6 +36,7 @@ struct TrelloConfig {
 // TODO: Enable truecolor support for labels
 // TODO: Move usage documentation to subcommands file so that it can be doctested
 // TODO: move command (move a card within the same list, to another list etc...)
+//       e.g. tro move todo triage "buy flowers" -- todo priority
 // TODO: Tests for all the subcommands
 fn main() {
     if let Err(error) = start() {
