@@ -57,7 +57,7 @@ pub fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
             let mut buf = String::new();
             file.reopen()?.read_to_string(&mut buf)?;
 
-            // Trim end because a lot of editors will use auto add new lines at the end of the file
+            // Trim end because a lot of editors will auto add new lines at the end of the file
             let contents: CardContents = match buf.trim_end().parse() {
                 Ok(c) => c,
                 Err(e) => {
