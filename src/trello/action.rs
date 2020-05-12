@@ -6,12 +6,12 @@ use serde::Deserialize;
 
 type Result<T> = std::result::Result<T, TrelloError>;
 
-// https://developers.trello.com/reference/#action-object
+// https://developer.atlassian.com/cloud/trello/guides/rest-api/object-definitions/#action-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Action {
     pub id: String,
-    #[serde(rename = "type" )]
+    #[serde(rename = "type")]
     pub action_type: String, // TODO: Could this be an enum?
     pub date: String,
 }
