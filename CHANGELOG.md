@@ -1,6 +1,12 @@
 Changelog for trello-rs
 =======================
 
+1.24.0
+------
+* Rename crate to "tro"
+* Update dependencies (including a minor bump to rustyline 6.1)
+* Add --name flag to create subcommand to skip input prompt
+
 1.23.0
 ------
 * Display if a card is closed in search subcommand results
