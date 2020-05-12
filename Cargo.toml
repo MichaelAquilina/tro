@@ -8,8 +8,8 @@ keywords = ["trello"]
 categories = ["command-line-utilities"]
 readme = "README.rst"
 license = "GPL-3.0-only"
-homepage = "https://www.github.com/MichaelAquilina/trello-rs"
-repository = "https://www.github.com/MichaelAquilina/trello-rs.git"
+homepage = "https://www.github.com/MichaelAquilina/tro"
+repository = "https://www.github.com/MichaelAquilina/tro.git"
 
 [lib]
 name = "trello"

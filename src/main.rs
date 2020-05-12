@@ -52,13 +52,13 @@ fn main() {
 }
 
 fn start() -> Result<(), Box<dyn Error>> {
-    let matches = clap_app!(TrelloCLI =>
+    let matches = clap_app!(tro =>
         (version: env!("CARGO_PKG_VERSION"))
         (author: env!("CARGO_PKG_AUTHORS"))
         (about: env!("CARGO_PKG_DESCRIPTION"))
         (@arg log_level: -l --("log-level") +takes_value possible_values(&["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]) default_value[ERROR] "Specify the log level")
         (@subcommand version =>
-            (about: "Print TrelloCLI version")
+            (about: "Print tro version")
         )
         (@subcommand show =>
             (about: "Show object contents")
