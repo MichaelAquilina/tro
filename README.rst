@@ -1,9 +1,9 @@
-Trello-RS
-=========
+TRO
+===
 
 |CircleCI| |CratesIO|
 
-Trello API client for the command line written in rust.
+``tro`` is a Trello API client for the command line written in rust.
 
 To begin, create a configuration file at the path ``~/.config/tro/config.toml``.
 Set the values for ``host``, ``key`` and ``token``:
@@ -29,7 +29,7 @@ Most of the subcommands in this tool work by specifying one or more patterns in 
 
 Patterns are simple regex pattern matches. You can specify simple patterns such as substrings too.
 
-Trello-rs then attempts to find the object(s) you requested using this process:
+``tro`` then attempts to find the object(s) you requested using this process:
 
 * If the tool does not manage to find a match for one or more if the items specified, then it will display an appropriate error.
 
@@ -102,8 +102,8 @@ OR
     $ tro url TODO
     https://trello.com/b/9ftbid5U/todo
 
-.. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/trello-rs.svg?style=svg
-   :target: https://circleci.com/gh/MichaelAquilina/trello-rs
+.. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/tro.svg?style=svg
+   :target: https://circleci.com/gh/MichaelAquilina/tro
 
-.. |CratesIO| image:: https://img.shields.io/crates/v/trello-rs.svg
-   :target: https://crates.io/crates/trello-rs
+.. |CratesIO| image:: https://img.shields.io/crates/v/tro.svg
+   :target: https://crates.io/crates/tro
