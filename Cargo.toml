@@ -1,5 +1,5 @@
 [package]
-name = "trello-rs"
+name = "tro"
 version = "1.23.0"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
 edition = "2018"
