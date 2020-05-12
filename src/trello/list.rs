@@ -134,7 +134,7 @@ impl List {
         result
     }
 
-    pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List> {
+    pub async fn create(client: &Client, board_id: &str, name: &str) -> Result<List> {
         let url = client.get_trello_url("/1/lists/", &[])?;
 
         let params = [("name", name), ("idBoard", board_id)];
@@ -142,12 +142,14 @@ impl List {
         Ok(reqwest::Client::new()
             .post(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn open(client: &Client, list_id: &str) -> Result<List> {
+    pub async fn open(client: &Client, list_id: &str) -> Result<List> {
         let url = client.get_trello_url(&format!("/1/lists/{}", &list_id), &[])?;
 
         let params = [("closed", "false")];
@@ -155,12 +157,14 @@ impl List {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn update(client: &Client, list: &List) -> Result<List> {
+    pub async fn update(client: &Client, list: &List) -> Result<List> {
         let url = client.get_trello_url(&format!("/1/lists/{}/", &list.id), &[])?;
 
         let params = [("name", &list.name), ("closed", &list.closed.to_string())];
@@ -168,12 +172,14 @@ impl List {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn get_all(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {
+    pub async fn get_all(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {
         let fields = List::get_fields().join(",");
         let mut params = vec![("fields", fields.as_str())];
 
@@ -183,6 +189,6 @@ impl List {
 
         let url = client.get_trello_url(&format!("/1/boards/{}/lists", board_id), &params)?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 }

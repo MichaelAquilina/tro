@@ -73,13 +73,13 @@ impl Board {
     /// means one or more network requests in order to retrieve the data. The Board
     /// will be mutated to include all its associated lists. The lists will also in turn
     /// contain the associated card resources.
-    pub fn retrieve_nested(&mut self, client: &Client) -> Result<()> {
-        self.lists = Some(List::get_all(client, &self.id, true)?);
+    pub async fn retrieve_nested(&mut self, client: &Client) -> Result<()> {
+        self.lists = Some(List::get_all(client, &self.id, true).await?);
 
         Ok(())
     }
 
-    pub fn create(client: &Client, name: &str) -> Result<Board> {
+    pub async fn create(client: &Client, name: &str) -> Result<Board> {
         let url = client.get_trello_url("/1/boards/", &[])?;
 
         let params = [("name", name)];
@@ -87,12 +87,14 @@ impl Board {
         Ok(reqwest::Client::new()
             .post(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn open(client: &Client, board_id: &str) -> Result<Board> {
+    pub async fn open(client: &Client, board_id: &str) -> Result<Board> {
         let url = client.get_trello_url(&format!("/1/boards/{}", &board_id), &[])?;
 
         let params = [("closed", "false")];
@@ -100,12 +102,14 @@ impl Board {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn update(client: &Client, board: &Board) -> Result<Board> {
+    pub async fn update(client: &Client, board: &Board) -> Result<Board> {
         let url = client.get_trello_url(&format!("/1/boards/{}/", &board.id), &[])?;
 
         let params = [("name", &board.name), ("closed", &board.closed.to_string())];
@@ -113,12 +117,14 @@ impl Board {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn get_all(client: &Client) -> Result<Vec<Board>> {
+    pub async fn get_all(client: &Client) -> Result<Vec<Board>> {
         let url = client.get_trello_url(
             "/1/members/me/boards/",
             &[
@@ -127,15 +133,15 @@ impl Board {
             ],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 
-    pub fn get(client: &Client, board_id: &str) -> Result<Board> {
+    pub async fn get(client: &Client, board_id: &str) -> Result<Board> {
         let url = client.get_trello_url(
             &format!("/1/boards/{}", board_id),
             &[("fields", &Board::get_fields().join(","))],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 }

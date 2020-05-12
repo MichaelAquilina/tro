@@ -49,7 +49,7 @@ impl Label {
         self.name.color(map_color(&self.color))
     }
 
-    pub fn get_all(client: &Client, board_id: &str) -> Result<Vec<Label>> {
+    pub async fn get_all(client: &Client, board_id: &str) -> Result<Vec<Label>> {
         let fields = Label::get_fields().join(",");
 
         let url = client.get_trello_url(
@@ -57,22 +57,23 @@ impl Label {
             &[("fields", &fields)],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 
-    pub fn remove(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
+    pub async fn remove(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
         let url =
             client.get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
 
         reqwest::Client::new()
             .delete(url)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?;
 
         Ok(())
     }
 
-    pub fn apply(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
+    pub async fn apply(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
         let url = client.get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
 
         let params = [("value", label_id)];
@@ -80,7 +81,8 @@ impl Label {
         reqwest::Client::new()
             .post(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?;
 
         Ok(())

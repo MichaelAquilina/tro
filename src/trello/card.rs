@@ -119,13 +119,13 @@ impl Card {
         }
     }
 
-    pub fn get(client: &Client, card_id: &str) -> Result<Card> {
+    pub async fn get(client: &Client, card_id: &str) -> Result<Card> {
         let url = client.get_trello_url(&format!("/1/cards/{}", card_id), &[])?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 
-    pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card> {
+    pub async fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card> {
         let url = client.get_trello_url("/1/cards/", &[])?;
 
         let params: [(&str, &str); 3] = [
@@ -137,12 +137,14 @@ impl Card {
         Ok(reqwest::Client::new()
             .post(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn open(client: &Client, card_id: &str) -> Result<Card> {
+    pub async fn open(client: &Client, card_id: &str) -> Result<Card> {
         let url = client.get_trello_url(&format!("/1/cards/{}", &card_id), &[])?;
 
         let params = [("closed", "false")];
@@ -150,12 +152,14 @@ impl Card {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn update(client: &Client, card: &Card) -> Result<Card> {
+    pub async fn update(client: &Client, card: &Card) -> Result<Card> {
         let url = client.get_trello_url(&format!("/1/cards/{}/", &card.id), &[])?;
 
         let params = [
@@ -167,16 +171,18 @@ impl Card {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json()?)
+            .json()
+            .await?)
     }
 
-    pub fn get_all(client: &Client, list_id: &str) -> Result<Vec<Card>> {
+    pub async fn get_all(client: &Client, list_id: &str) -> Result<Vec<Card>> {
         let url = client.get_trello_url(
             &format!("/1/lists/{}/cards/", list_id),
             &[("fields", &Card::get_fields().join(","))],
         )?;
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 }

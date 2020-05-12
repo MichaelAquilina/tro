@@ -1,4 +1,4 @@
-use reqwest::{Url, UrlError};
+use url::{ParseError, Url};
 
 pub struct Client {
     pub host: String,
@@ -39,7 +39,7 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get_trello_url(&self, path: &str, params: &[(&str, &str)]) -> Result<Url, UrlError> {
+    pub fn get_trello_url(&self, path: &str, params: &[(&str, &str)]) -> Result<Url, ParseError> {
         let auth_params: &[(&str, &str)] = &[("key", &self.key), ("token", &self.token)];
 
         Ok(Url::parse_with_params(

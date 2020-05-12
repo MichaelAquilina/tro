@@ -1,12 +1,13 @@
 use crate::{cli, find};
 use clap::ArgMatches;
 use colored::*;
+use futures::executor::block_on;
 use std::error::Error;
 use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub async fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
@@ -26,7 +27,7 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         };
         println!("{}", list.render());
     } else if let Some(mut board) = result.board {
-        board.retrieve_nested(client)?;
+        block_on(board.retrieve_nested(client))?;
         let board = match label_filter {
             Some(label_filter) => board.filter(label_filter),
             None => board,
@@ -38,7 +39,7 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         println!("===========");
         println!();
 
-        let boards = Board::get_all(client)?;
+        let boards = block_on(Board::get_all(client))?;
         for b in boards {
             println!("* {}", b.name);
         }

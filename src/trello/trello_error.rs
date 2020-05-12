@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum TrelloError {
     Reqwest(reqwest::Error),
-    UrlParse(reqwest::UrlError),
+    UrlParse(url::ParseError),
     Io(std::io::Error),
     CardParse(String),
 }
@@ -37,8 +37,8 @@ impl From<std::io::Error> for TrelloError {
     }
 }
 
-impl From<reqwest::UrlError> for TrelloError {
-    fn from(err: reqwest::UrlError) -> TrelloError {
+impl From<url::ParseError> for TrelloError {
+    fn from(err: url::ParseError) -> TrelloError {
         TrelloError::UrlParse(err)
     }
 }

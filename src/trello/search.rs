@@ -17,7 +17,7 @@ pub struct SearchResult {
 
 /// Implements the Trello Search API
 /// https://developers.trello.com/reference/#search
-pub fn search(client: &Client, search_term: &str, partial: bool) -> Result<SearchResult> {
+pub async fn search(client: &Client, search_term: &str, partial: bool) -> Result<SearchResult> {
     let url = client.get_trello_url(
         "/1/search/",
         &[
@@ -27,5 +27,5 @@ pub fn search(client: &Client, search_term: &str, partial: bool) -> Result<Searc
             ("board_fields", &Board::get_fields().join(",")),
         ],
     )?;
-    Ok(reqwest::get(url)?.error_for_status()?.json()?)
+    Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
 }

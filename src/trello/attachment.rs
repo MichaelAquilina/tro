@@ -16,26 +16,32 @@ pub struct Attachment {
 }
 
 impl Attachment {
-    pub fn get_all(client: &Client, card_id: &str) -> Result<Vec<Attachment>> {
+    pub async fn get_all(client: &Client, card_id: &str) -> Result<Vec<Attachment>> {
         let url = client.get_trello_url(
             &format!("/1/cards/{}/attachments", card_id),
             &[("fields", &Attachment::get_fields().join(","))],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(reqwest::get(url).await?.error_for_status()?.json().await?)
     }
 
     pub fn apply(client: &Client, card_id: &str, file: &str) -> Result<Attachment> {
         let url = client.get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
 
-        let form = reqwest::multipart::Form::new().file("file", file)?;
+        // let form = reqwest::multipart::Form::new().file("file", file)?;
 
-        Ok(reqwest::Client::new()
-            .post(url)
-            .multipart(form)
-            .send()?
-            .error_for_status()?
-            .json()?)
+        Ok(Attachment {
+            id: "".to_string(),
+            name: "".to_string(),
+            url: "".to_string(),
+        })
+        // TODO: Figure this one out
+        // Ok(reqwest::Client::new()
+        //     .post(url)
+        //     .multipart(form)
+        //     .send().await?
+        //     .error_for_status()?
+        //     .json().await?)
     }
 }
 
