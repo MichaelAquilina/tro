@@ -11,7 +11,7 @@ jobs:
           command: rustup component add rustfmt
       - run:
           name: run rustfmt
-          command: rustfmt **/*.rs --check
+          command: cargo fmt -- --check
 
   clippy:
     docker:
