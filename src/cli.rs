@@ -3,7 +3,6 @@ use std::error::Error;
 use std::io::{Read, Write};
 use std::process;
 use std::{thread, time};
-use tempfile::Builder;
 use trello::Renderable;
 use trello::{Card, CardContents, Client, TrelloError};
 
@@ -31,8 +30,8 @@ pub fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> 
 /// This function will upload any changes written by the editor to Trello. This includes
 /// when the editor is not closed but content is saved.
 pub fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
-    let mut file = Builder::new().suffix(".md").tempfile()?;
-    let editor_env = env::var("EDITOR").unwrap_or_else(|_| String::from("vi"));
+    let mut file = tempfile::Builder::new().suffix(".md").tempfile()?;
+    let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
 
     debug!("Using editor: {}", editor_env);
     debug!("Editing card: {:?}", card);
