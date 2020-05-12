@@ -122,6 +122,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg list_name: !required "List Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg show: --show -s "Show the item once created")
+            (@arg name: +takes_value --name -n "Specify the name of the object being created without a prompt")
         )
     )
     .get_matches();

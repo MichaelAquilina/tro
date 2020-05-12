@@ -133,7 +133,10 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     trace!("result: {:?}", result);
 
     if let Some(list) = result.list {
-        let name = cli::get_input("Card name: ")?;
+        let name = match matches.value_of("name") {
+            Some(n) => String::from(n),
+            None => cli::get_input("Card name: ")?,
+        };
 
         let card = Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
 
@@ -141,11 +144,17 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
             cli::edit_card(client, &card)?;
         }
     } else if let Some(board) = result.board {
-        let name = cli::get_input("List name: ")?;
+        let name = match matches.value_of("name") {
+            Some(n) => String::from(n),
+            None => cli::get_input("List name: ")?,
+        };
 
         List::create(client, &board.id, &name)?;
     } else {
-        let name = cli::get_input("Board name: ")?;
+        let name = match matches.value_of("name") {
+            Some(n) => String::from(n),
+            None => cli::get_input("Board name: ")?,
+        };
 
         Board::create(client, &name)?;
     }
