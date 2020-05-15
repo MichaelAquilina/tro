@@ -31,6 +31,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Hide sensitive information from stderr
 // TODO: Consider replacing mockito with Wiremock
 // TODO: Label card on creation
 // TODO: Enable truecolor support for labels
