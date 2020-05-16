@@ -61,7 +61,14 @@ pub fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
                 Ok(c) => c,
                 Err(e) => {
                     debug!("Unable to parse Card Contents: {}", e);
-                    continue;
+                    if let Some(ecode) = editor.try_wait()? {
+                        debug!("Editor closed (code {}), exiting watch loop", ecode);
+                        result = Some(Err(e));
+                        break;
+                    } else {
+                        // no need to break watch loop, error might be corrected on next save
+                        continue;
+                    }
                 }
             };
 
