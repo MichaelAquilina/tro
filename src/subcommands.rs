@@ -2,21 +2,28 @@ use crate::{cli, find};
 use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
-use trello::{search, Action, Attachment, Board, Card, Client, Label, List, Renderable};
+use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 pub fn activity_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running activity subcommand with {:?}", matches);
 
-    let board_name = matches
-        .value_of("board_name")
-        .ok_or("Unable to retrieve board name")?;
+    let params = find::get_trello_params(matches);
+    debug!("Trello Params: {:?}", params);
 
-    let boards = Board::get_all(client)?;
-    let board = find::get_object_by_name(&boards, &board_name, true)?;
+    let result = find::get_trello_object(client, &params)?;
+    debug!("result: {:?}", result);
 
-    let actions = Action::get_all(client, &board.id)?;
+    let actions = if let Some(card) = result.card {
+        Card::get_actions(client, &card.id)?
+    } else if let Some(list) = result.list {
+        List::get_actions(client, &list.id)?
+    } else if let Some(board) = result.board {
+        Board::get_actions(client, &board.id)?
+    } else {
+        bail!("You must specify a pattern");
+    };
 
     for action in actions {
         println!("{}", action.render());

@@ -1,3 +1,4 @@
+use crate::action::Action;
 use crate::card::Card;
 use crate::client::Client;
 use crate::formatting::header;
@@ -171,6 +172,15 @@ impl List {
             .send()?
             .error_for_status()?
             .json()?)
+    }
+
+    pub fn get_actions(client: &Client, list_id: &str) -> Result<Vec<Action>> {
+        let url = client.get_trello_url(
+            &format!("/1/lists/{}/actions", list_id),
+            &[("fields", &Action::get_fields().join(","))],
+        )?;
+
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
     pub fn get_all(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {

@@ -1,3 +1,4 @@
+use crate::action::Action;
 use crate::client::Client;
 use crate::formatting::header;
 use crate::label::Label;
@@ -150,6 +151,16 @@ impl Card {
         Ok(reqwest::Client::new()
             .put(url)
             .form(&params)
+            .send()?
+            .error_for_status()?
+            .json()?)
+    }
+
+    pub fn get_actions(client: &Client, card_id: &str) -> Result<Vec<Action>> {
+        let url = client.get_trello_url(&format!("/1/cards/{}/actions", &card_id), &[])?;
+
+        Ok(reqwest::Client::new()
+            .get(url)
             .send()?
             .error_for_status()?
             .json()?)

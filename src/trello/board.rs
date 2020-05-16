@@ -1,3 +1,4 @@
+use crate::action::Action;
 use crate::client::Client;
 use crate::formatting::title;
 use crate::list::List;
@@ -116,6 +117,15 @@ impl Board {
             .send()?
             .error_for_status()?
             .json()?)
+    }
+
+    pub fn get_actions(client: &Client, board_id: &str) -> Result<Vec<Action>> {
+        let url = client.get_trello_url(
+            &format!("/1/boards/{}/actions", board_id),
+            &[("fields", &Action::get_fields().join(","))],
+        )?;
+
+        Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
     pub fn get_all(client: &Client) -> Result<Vec<Board>> {

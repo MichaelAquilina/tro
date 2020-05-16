@@ -122,6 +122,9 @@ fn start() -> Result<(), Box<dyn Error>> {
         (@subcommand activity =>
             (about: "View activity for the given board")
             (@arg board_name: +required "Board Name to retrieve")
+            (@arg list_name: !required "List Name to retrieve")
+            (@arg card_name: !required "Card Name to retrieve")
+            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
         (@subcommand create =>
             (about: "Create objects")
