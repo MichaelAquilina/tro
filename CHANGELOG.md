@@ -1,6 +1,11 @@
 Changelog for trello-rs
 =======================
 
+1.24.1
+------
+* Small improvements to error messages when editing cards
+* Correctly retry card edits if parse error is detected and editor is closed
+
 1.24.0
 ------
 * Rename crate to "tro"
