@@ -140,6 +140,29 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
         let card = Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
 
+        if let Some(label_names) = matches.values_of("label") {
+            let labels = Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
+            for name in label_names {
+                let label = match find::get_object_by_name(&labels, name, true) {
+                    Ok(l) => l,
+                    Err(e) => {
+                        eprintln!("{}", e);
+                        continue;
+                    },
+                };
+                match Label::apply(client, &card.id, &label.id) {
+                    Ok(_) => eprintln!(
+                        "Applied [{}] label",
+                        &label.colored_name(),
+                    ),
+                    Err(e) => eprintln!(
+                        "Unable to apply [{}] label: {}",
+                        &label.colored_name(), e
+                    ),
+                };
+            }
+        }
+
         if show {
             cli::edit_card(client, &card)?;
         }
