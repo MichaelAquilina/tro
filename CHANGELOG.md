@@ -1,6 +1,11 @@
 Changelog for trello-rs
 =======================
 
+1.25.0
+------
+* Add ability to assign labels during create subcommand
+* Display if a board is closed in search subcommand results
+
 1.24.1
 ------
 * Small improvements to error messages when editing cards
