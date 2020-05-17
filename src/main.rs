@@ -31,6 +31,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Some kind of offline support (caching behaviour might be hard though)
 // TODO: Hide sensitive information from stderr
 // TODO: Consider replacing mockito with Wiremock
 // TODO: Label card on creation
