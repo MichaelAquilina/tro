@@ -1,5 +1,5 @@
-Changelog for trello-rs
-=======================
+Changelog for tro
+=================
 
 1.25.0
 ------
