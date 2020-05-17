@@ -1,9 +1,41 @@
 use clap::ArgMatches;
 use regex::RegexBuilder;
-use simple_error::SimpleError;
 use std::cmp::Ordering;
 use std::error::Error;
 use trello::{Board, Card, Client, List, TrelloObject};
+
+#[derive(Debug, PartialEq)]
+pub enum FindError {
+    Regex(regex::Error),
+    Multiple(String),
+    NotFound(String),
+}
+
+impl std::fmt::Display for FindError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            FindError::Regex(err) => write!(f, "Regex Error: {}", err),
+            FindError::Multiple(msg) => write!(f, "Multiple found: {}", msg),
+            FindError::NotFound(msg) => write!(f, "Not found: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for FindError {
+    fn cause(&self) -> Option<&dyn std::error::Error> {
+        match self {
+            FindError::Regex(ref err) => Some(err),
+            FindError::Multiple(_) => None,
+            FindError::NotFound(_) => None,
+        }
+    }
+}
+
+impl From<regex::Error> for FindError {
+    fn from(err: regex::Error) -> FindError {
+        FindError::Regex(err)
+    }
+}
 
 /// TODO: Find a way to make this generic
 /// Retrieves a card by name from a collection of lists.
@@ -13,11 +45,10 @@ fn get_card_from_lists<'a>(
     lists: &'a [List],
     card_name: &str,
     ignore_case: bool,
-) -> Result<&'a Card, SimpleError> {
+) -> Result<&'a Card, FindError> {
     let re = RegexBuilder::new(card_name)
         .case_insensitive(ignore_case)
-        .build()
-        .expect("Invalid Regex");
+        .build()?;
 
     let mut result = vec![];
     for list in lists {
@@ -33,19 +64,23 @@ fn get_card_from_lists<'a>(
 
     match result.len().cmp(&1) {
         Ordering::Equal => Ok(result.pop().unwrap()),
-        Ordering::Greater => bail!(
-            "Multiple cards found. Specify a more precise filter than '{}' (Found {})",
-            card_name,
-            result
-                .iter()
-                .map(|c| format!("'{}'", c.get_name()))
-                .collect::<Vec<String>>()
-                .join(", ")
-        ),
-        Ordering::Less => bail!(
-            "Card not found. Specify a more precise filter than '{}'",
-            card_name
-        ),
+        Ordering::Greater => {
+            return Err(FindError::Multiple(format!(
+                "Multiple cards found. Specify a more precise filter than '{}' (Found {})",
+                card_name,
+                result
+                    .iter()
+                    .map(|c| format!("'{}'", c.get_name()))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )))
+        }
+        Ordering::Less => {
+            return Err(FindError::NotFound(format!(
+                "Card not found. Specify a more precise filter than '{}'",
+                card_name
+            )))
+        }
     }
 }
 
@@ -58,11 +93,10 @@ pub fn get_object_by_name<'a, T: TrelloObject>(
     objects: &'a [T],
     name: &str,
     ignore_case: bool,
-) -> Result<&'a T, SimpleError> {
+) -> Result<&'a T, FindError> {
     let re = RegexBuilder::new(name)
         .case_insensitive(ignore_case)
-        .build()
-        .expect("Invalid Regex");
+        .build()?;
 
     let mut objects = objects
         .iter()
@@ -71,21 +105,25 @@ pub fn get_object_by_name<'a, T: TrelloObject>(
 
     match objects.len().cmp(&1) {
         Ordering::Equal => Ok(objects.pop().unwrap()),
-        Ordering::Greater => bail!(
-            "More than one {} found. Specify a more precise filter than '{}' (Found {})",
-            T::get_type(),
-            name,
-            objects
-                .iter()
-                .map(|t| format!("'{}'", t.get_name()))
-                .collect::<Vec<String>>()
-                .join(", ")
-        ),
-        Ordering::Less => bail!(
-            "{} not found. Specify a more precise filter than '{}'",
-            T::get_type(),
-            name
-        ),
+        Ordering::Greater => {
+            return Err(FindError::Multiple(format!(
+                "More than one {} found. Specify a more precise filter than '{}' (Found {})",
+                T::get_type(),
+                name,
+                objects
+                    .iter()
+                    .map(|t| format!("'{}'", t.get_name()))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )))
+        }
+        Ordering::Less => {
+            return Err(FindError::NotFound(format!(
+                "{} not found. Specify a more precise filter than '{}'",
+                T::get_type(),
+                name
+            )))
+        }
     }
 }
 
