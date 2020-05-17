@@ -226,9 +226,10 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         println!("-----");
 
         for card in &results.cards {
-            let card_state = match card.closed {
-                true => "[Closed]".red().to_string(),
-                false => "".to_string(),
+            let card_state = if card.closed {
+                "[Closed]".red().to_string()
+            } else {
+                "".to_string()
             };
             println!("'{}' id: {} {}", card.name.green(), card.id, card_state);
         }
@@ -240,9 +241,10 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         println!("------");
 
         for board in &results.boards {
-            let board_state = match board.closed {
-                true => "[Closed]".red().to_string(),
-                false => "".to_string(),
+            let board_state = if board.closed {
+                "[Closed]".red().to_string()
+            } else {
+                "".to_string()
             };
             println!("'{}' id: {} {}", board.name.green(), board.id, board_state);
         }
