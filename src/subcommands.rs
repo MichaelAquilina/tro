@@ -240,7 +240,11 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         println!("------");
 
         for board in &results.boards {
-            println!("'{}' id: {}", board.name.green(), board.id);
+            let board_state = match board.closed {
+                true => "[Closed]".red().to_string(),
+                false => "".to_string(),
+            };
+            println!("'{}' id: {} {}", board.name.green(), board.id, board_state);
         }
         println!();
     }
