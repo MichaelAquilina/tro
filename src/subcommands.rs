@@ -6,10 +6,20 @@ use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable, T
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+fn select_trello_object<T: TrelloObject>(objects: &[T]) -> Result<Option<usize>> {
+    let result = dialoguer::Select::new()
+        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
+        .with_prompt(format!("Select {}", T::get_type()))
+        .interact_opt()?;
+
+    Ok(result)
+}
+
 pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
+    let interactive = matches.is_present("interactive");
 
     let params = find::get_trello_params(matches);
     debug!("Trello Params: {:?}", params);
@@ -17,30 +27,55 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     let result = find::get_trello_object(client, &params)?;
     trace!("result: {:?}", result);
 
-    if let Some(card) = result.card {
-        cli::edit_card(client, &card)?;
-    } else if let Some(list) = result.list {
-        let list = match label_filter {
-            Some(label_filter) => list.filter(label_filter),
-            None => list,
-        };
-        println!("{}", list.render());
-    } else if let Some(mut board) = result.board {
-        board.retrieve_nested(client)?;
-        let board = match label_filter {
-            Some(label_filter) => board.filter(label_filter),
-            None => board,
-        };
+    if interactive {
+        if result.card.is_some() {
+            eprintln!("Cannot use interactive code if a card pattern is specified");
+        } else if let Some(list) = result.list {
+            let cards = Card::get_all(client, &list.id)?;
 
-        println!("{}", board.render());
+            if let Some(index) = select_trello_object(&cards)? {
+                cli::edit_card(client, &cards[index])?;
+            }
+        } else if let Some(board) = result.board {
+            let lists = List::get_all(client, &board.id, true)?;
+
+            if let Some(index) = select_trello_object(&lists)? {
+                // TODO: Allow label filtering
+                println!("{}", &lists[index].render());
+            }
+        } else {
+            let mut boards = Board::get_all(client)?;
+
+            if let Some(index) = select_trello_object(&boards)? {
+                &boards[index].retrieve_nested(client)?;
+                println!("{}", &boards[index].render());
+            }
+        }
     } else {
-        println!("Open Boards");
-        println!("===========");
-        println!();
+        if let Some(card) = result.card {
+            cli::edit_card(client, &card)?;
+        } else if let Some(list) = result.list {
+            let list = match label_filter {
+                Some(label_filter) => list.filter(label_filter),
+                None => list,
+            };
+            println!("{}", list.render());
+        } else if let Some(mut board) = result.board {
+            board.retrieve_nested(client)?;
+            let board = match label_filter {
+                Some(label_filter) => board.filter(label_filter),
+                None => board,
+            };
+            println!("{}", board.render());
+        } else {
+            println!("Open Boards");
+            println!("===========");
+            println!();
 
-        let boards = Board::get_all(client)?;
-        for b in boards {
-            println!("* {}", b.name);
+            let boards = Board::get_all(client)?;
+            for b in boards {
+                println!("* {}", b.name);
+            }
         }
     }
 
@@ -76,15 +111,6 @@ pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     }
 
     Ok(())
-}
-
-fn select_trello_object<T: TrelloObject>(objects: &[T]) -> Result<Option<usize>> {
-    let result = dialoguer::Select::new()
-        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
-        .with_prompt(format!("Select {}", T::get_type()))
-        .interact_opt()?;
-
-    Ok(result)
 }
 
 // TODO: The three functions below can be generalised using traits

@@ -71,6 +71,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg card_name: !required "Card Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
+            (@arg interactive: -i --interactive "Enables interactive mode")
         )
         (@subcommand search =>
             (about: "Search Trello cards and boards")
