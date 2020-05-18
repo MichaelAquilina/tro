@@ -2,18 +2,9 @@ use crate::{cli, find};
 use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
-use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable, TrelloObject};
+use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
-
-fn select_trello_object<T: TrelloObject>(objects: &[T]) -> Result<Option<usize>> {
-    let result = dialoguer::Select::new()
-        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
-        .with_prompt(format!("Select {}", T::get_type()))
-        .interact_opt()?;
-
-    Ok(result)
-}
 
 pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
@@ -33,20 +24,20 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         } else if let Some(list) = result.list {
             let cards = Card::get_all(client, &list.id)?;
 
-            if let Some(index) = select_trello_object(&cards)? {
+            if let Some(index) = cli::select_trello_object(&cards)? {
                 cli::edit_card(client, &cards[index])?;
             }
         } else if let Some(board) = result.board {
             let lists = List::get_all(client, &board.id, true)?;
 
-            if let Some(index) = select_trello_object(&lists)? {
+            if let Some(index) = cli::select_trello_object(&lists)? {
                 // TODO: Allow label filtering
                 println!("{}", &lists[index].render());
             }
         } else {
             let mut boards = Board::get_all(client)?;
 
-            if let Some(index) = select_trello_object(&boards)? {
+            if let Some(index) = cli::select_trello_object(&boards)? {
                 &boards[index].retrieve_nested(client)?;
                 println!("{}", &boards[index].render());
             }
@@ -160,13 +151,13 @@ pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         } else if let Some(list) = result.list {
             let mut cards = Card::get_all(client, &list.id)?;
 
-            if let Some(index) = select_trello_object(&cards)? {
+            if let Some(index) = cli::select_trello_object(&cards)? {
                 close_card(client, &mut cards[index])?;
             }
         } else if let Some(board) = result.board {
             let mut lists = List::get_all(client, &board.id, false)?;
 
-            if let Some(index) = select_trello_object(&lists)? {
+            if let Some(index) = cli::select_trello_object(&lists)? {
                 close_list(client, &mut lists[index])?;
             }
         }
