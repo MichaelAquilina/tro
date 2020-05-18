@@ -34,6 +34,7 @@ simplelog = "0.7.4"
 tempfile = "3.1.0"
 colored = "~1.9.1"
 rustyline = "~6.1.2"
+dialoguer = "0.6"
 
 [dev-dependencies]
 mockito = "~0.25.0"

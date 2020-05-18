@@ -119,7 +119,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
-            (@arg show: -s --show "Show the board associated with the closed object once done")
+            (@arg interactive: -i --interactive "Enables interactive mode")
         )
         (@subcommand create =>
             (about: "Create objects")
