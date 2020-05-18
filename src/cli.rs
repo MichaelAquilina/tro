@@ -4,7 +4,18 @@ use std::io::{Read, Write};
 use std::process;
 use std::{thread, time};
 use trello::Renderable;
-use trello::{Card, CardContents, Client, TrelloError};
+use trello::{Card, CardContents, Client, TrelloError, TrelloObject};
+
+pub fn select_trello_object<T: TrelloObject>(
+    objects: &[T],
+) -> Result<Option<usize>, std::io::Error> {
+    let result = dialoguer::Select::new()
+        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
+        .with_prompt(format!("Select {}", T::get_type()))
+        .interact_opt()?;
+
+    Ok(result)
+}
 
 pub fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> {
     let mut rl = rustyline::Editor::<()>::new();

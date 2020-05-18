@@ -2,13 +2,15 @@ use crate::find::*;
 use std::error::Error;
 use trello::{Board, Card, Client, List};
 
+type TestResult = Result<(), Box<dyn Error>>;
+
 mod test_get_trello_object {
     use super::*;
     use mockito;
     use serde_json::json;
 
     #[test]
-    fn test_empty() -> Result<(), Box<dyn Error>> {
+    fn test_empty() -> TestResult {
         let params = TrelloParams {
             board_name: None,
             list_name: None,
@@ -28,7 +30,7 @@ mod test_get_trello_object {
     }
 
     #[test]
-    fn test_correct_output() -> Result<(), Box<dyn Error>> {
+    fn test_correct_output() -> TestResult {
         let _m1 = mockito::mock(
             "GET",
             "/1/members/me/boards/?key=key&token=token&filter=open&fields=id%2Cname%2Cclosed%2Curl",
@@ -128,7 +130,7 @@ mod test_get_object_by_name {
     }
 
     #[test]
-    fn test_found() -> Result<(), Box<dyn Error>> {
+    fn test_found() -> TestResult {
         let boards = vec![
             Board::new("33", "green", None, ""),
             Board::new("R35", "red", None, ""),
@@ -141,7 +143,7 @@ mod test_get_object_by_name {
     }
 
     #[test]
-    fn test_case_insensitive() -> Result<(), Box<dyn Error>> {
+    fn test_case_insensitive() -> TestResult {
         let boards = vec![List::new("R35", "red", None)];
         let result = get_object_by_name(&boards, "RED", true)?;
 
@@ -151,7 +153,7 @@ mod test_get_object_by_name {
     }
 
     #[test]
-    fn test_regex() -> Result<(), Box<dyn Error>> {
+    fn test_regex() -> TestResult {
         let boards = vec![Board::new("R35", "Red Green Blue 🖌️", None, "")];
         let result = get_object_by_name(&boards, "Red .*", false)?;
 

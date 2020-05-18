@@ -10,6 +10,7 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
+    let interactive = matches.is_present("interactive");
 
     let params = find::get_trello_params(matches);
     debug!("Trello Params: {:?}", params);
@@ -17,30 +18,55 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     let result = find::get_trello_object(client, &params)?;
     trace!("result: {:?}", result);
 
-    if let Some(card) = result.card {
-        cli::edit_card(client, &card)?;
-    } else if let Some(list) = result.list {
-        let list = match label_filter {
-            Some(label_filter) => list.filter(label_filter),
-            None => list,
-        };
-        println!("{}", list.render());
-    } else if let Some(mut board) = result.board {
-        board.retrieve_nested(client)?;
-        let board = match label_filter {
-            Some(label_filter) => board.filter(label_filter),
-            None => board,
-        };
+    if interactive {
+        if result.card.is_some() {
+            eprintln!("Cannot use interactive code if a card pattern is specified");
+        } else if let Some(list) = result.list {
+            let cards = Card::get_all(client, &list.id)?;
 
-        println!("{}", board.render());
+            if let Some(index) = cli::select_trello_object(&cards)? {
+                cli::edit_card(client, &cards[index])?;
+            }
+        } else if let Some(board) = result.board {
+            let lists = List::get_all(client, &board.id, true)?;
+
+            if let Some(index) = cli::select_trello_object(&lists)? {
+                // TODO: Allow label filtering
+                println!("{}", &lists[index].render());
+            }
+        } else {
+            let mut boards = Board::get_all(client)?;
+
+            if let Some(index) = cli::select_trello_object(&boards)? {
+                &boards[index].retrieve_nested(client)?;
+                println!("{}", &boards[index].render());
+            }
+        }
     } else {
-        println!("Open Boards");
-        println!("===========");
-        println!();
+        if let Some(card) = result.card {
+            cli::edit_card(client, &card)?;
+        } else if let Some(list) = result.list {
+            let list = match label_filter {
+                Some(label_filter) => list.filter(label_filter),
+                None => list,
+            };
+            println!("{}", list.render());
+        } else if let Some(mut board) = result.board {
+            board.retrieve_nested(client)?;
+            let board = match label_filter {
+                Some(label_filter) => board.filter(label_filter),
+                None => board,
+            };
+            println!("{}", board.render());
+        } else {
+            println!("Open Boards");
+            println!("===========");
+            println!();
 
-        let boards = Board::get_all(client)?;
-        for b in boards {
-            println!("* {}", b.name);
+            let boards = Board::get_all(client)?;
+            for b in boards {
+                println!("* {}", b.name);
+            }
         }
     }
 
@@ -78,45 +104,71 @@ pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+// TODO: The three functions below can be generalised using traits
+fn close_board(client: &Client, board: &mut Board) -> Result<()> {
+    board.closed = true;
+    Board::update(client, board)?;
+
+    eprintln!("Closed board: '{}'", &board.name.green());
+    eprintln!("id: {}", &board.id);
+
+    Ok(())
+}
+
+fn close_list(client: &Client, list: &mut List) -> Result<()> {
+    list.closed = true;
+    List::update(client, list)?;
+
+    eprintln!("Closed list: '{}'", &list.name.green());
+    eprintln!("id: {}", &list.id);
+
+    Ok(())
+}
+
+fn close_card(client: &Client, card: &mut Card) -> Result<()> {
+    card.closed = true;
+    Card::update(client, card)?;
+
+    eprintln!("Closed card: '{}'", &card.name.green());
+    eprintln!("id: {}", &card.id);
+
+    Ok(())
+}
+
 pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running close subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let show = matches.is_present("show");
+    let interactive = matches.is_present("interactive");
 
     trace!("result: {:?}", result);
 
-    if let Some(mut card) = result.card {
-        card.closed = true;
-        Card::update(client, &card)?;
+    if interactive {
+        if result.card.is_some() {
+            eprintln!("Cannot run interactive mode if you specify a card pattern");
+        } else if let Some(list) = result.list {
+            let mut cards = Card::get_all(client, &list.id)?;
 
-        // FIXME: Bug shows the board with closed card
-        if show {
-            println!("{}", result.board.unwrap().render());
-            println!();
+            if let Some(index) = cli::select_trello_object(&cards)? {
+                close_card(client, &mut cards[index])?;
+            }
+        } else if let Some(board) = result.board {
+            let mut lists = List::get_all(client, &board.id, false)?;
+
+            if let Some(index) = cli::select_trello_object(&lists)? {
+                close_list(client, &mut lists[index])?;
+            }
         }
-
-        eprintln!("Closed card: '{}'", &card.name.green());
-        eprintln!("id: {}", &card.id);
-    } else if let Some(mut list) = result.list {
-        list.closed = true;
-        List::update(client, &list)?;
-
-        // FIXME: Bug shows the board with the closed list
-        if show {
-            println!("{}", result.board.unwrap().render());
-            println!();
+    } else {
+        if let Some(mut card) = result.card {
+            close_card(client, &mut card)?;
+        } else if let Some(mut list) = result.list {
+            close_list(client, &mut list)?;
+        } else if let Some(mut board) = result.board {
+            close_board(client, &mut board)?;
         }
-
-        eprintln!("Closed list: '{}'", &list.name.green());
-        eprintln!("id: {}", &list.id);
-    } else if let Some(mut board) = result.board {
-        board.closed = true;
-        Board::update(client, &board)?;
-        eprintln!("Closed board: '{}'", &board.name.green());
-        eprintln!("id: {}", &board.id);
     }
 
     Ok(())
