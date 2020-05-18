@@ -1,6 +1,11 @@
 Changelog for tro
 =================
 
+1.26.0
+------
+* Remove --show from close subcommand due to buggy behaviour
+* Add --interactive mode to close and show subcommands
+
 1.25.0
 ------
 * Add ability to assign labels during create subcommand
