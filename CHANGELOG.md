@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.27.0
+------
+* Allow multiple labels to be specified with the label subcommand
+
 1.26.0
 ------
 * Remove --show from close subcommand due to buggy behaviour
