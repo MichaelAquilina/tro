@@ -118,7 +118,7 @@ fn start() -> Result<(), Box<dyn Error>> {
         )
         (@subcommand close =>
             (about: "Close objects")
-            (@arg board_name: +required "Board Name to retrieve")
+            (@arg board_name: required_unless("interactive") "Board Name to retrieve")
             (@arg list_name: !required "List Name to retrieve")
             (@arg card_name: !required "Card Name to retrieve")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")

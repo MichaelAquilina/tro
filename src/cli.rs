@@ -11,7 +11,7 @@ pub fn multiselect_trello_object<T: TrelloObject>(
 ) -> Result<Vec<usize>, std::io::Error> {
     let result = dialoguer::MultiSelect::new()
         .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
-        .with_prompt(format!("Select multiple {}", T::get_type()))
+        .with_prompt(format!("Select {}s using space key", T::get_type()))
         .interact()?;
 
     Ok(result)
