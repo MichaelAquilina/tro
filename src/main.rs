@@ -5,8 +5,6 @@
 #[macro_use]
 extern crate clap;
 #[macro_use]
-extern crate simple_error;
-#[macro_use]
 extern crate log;
 extern crate simplelog;
 
@@ -145,7 +143,7 @@ fn start() -> Result<(), Box<dyn Error>> {
         "INFO" => LevelFilter::Info,
         "WARN" => LevelFilter::Warn,
         "ERROR" => LevelFilter::Error,
-        unknown => bail!("Unknown log level '{}'", unknown),
+        unknown => panic!("Unknown log level '{}'", unknown),
     };
 
     CombinedLogger::init(vec![TermLogger::new(

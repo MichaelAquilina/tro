@@ -9,6 +9,7 @@ pub enum FindError {
     Regex(regex::Error),
     Multiple(String),
     NotFound(String),
+    WildCard(String),
 }
 
 impl std::fmt::Display for FindError {
@@ -17,6 +18,7 @@ impl std::fmt::Display for FindError {
             FindError::Regex(err) => write!(f, "Regex Error: {}", err),
             FindError::Multiple(msg) => write!(f, "Multiple found: {}", msg),
             FindError::NotFound(msg) => write!(f, "Not found: {}", msg),
+            FindError::WildCard(msg) => write!(f, "Wildcard error: {}", msg),
         }
     }
 }
@@ -27,6 +29,7 @@ impl std::error::Error for FindError {
             FindError::Regex(ref err) => Some(err),
             FindError::Multiple(_) => None,
             FindError::NotFound(_) => None,
+            FindError::WildCard(_) => None,
         }
     }
 }
@@ -184,7 +187,9 @@ pub fn get_trello_object(
                 card: Some(card.clone()),
             });
         } else {
-            bail!("Card name must be specified with list '-' wildcard");
+            Err(Box::new(FindError::WildCard(
+                "Card name must be specified with list '-' wildcard".to_string(),
+            )))
         }
     } else if let Some(list_name) = params.list_name {
         let lists = &board.lists.as_ref().unwrap();

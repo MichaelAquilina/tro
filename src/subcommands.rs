@@ -98,7 +98,7 @@ pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         eprintln!("Opened card: {}", &card.name.green());
         eprintln!("id: {}", &card.id);
     } else {
-        bail!("Unknown object_type {}", object_type);
+        panic!("Unknown object_type {}", object_type);
     }
 
     Ok(())
