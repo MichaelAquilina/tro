@@ -31,6 +31,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Assign multiple labels with the label subcommand
 // TODO: Interactive mode (e.g. tro close work todo -i would give an interface with list of items)
 // TODO: Some kind of offline support (caching behaviour might be hard though)
 // TODO: Hide sensitive information from stderr
