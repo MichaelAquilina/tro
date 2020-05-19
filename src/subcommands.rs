@@ -406,7 +406,10 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
                 let label = match find::get_object_by_name(&labels, name, true) {
                     Ok(l) => l,
                     Err(e) => {
-                        eprintln!("Label with pattern '{}' not found or is already assigned", name);
+                        eprintln!(
+                            "Label with pattern '{}' not found or is already assigned",
+                            name
+                        );
                         debug!("{}", e);
                         continue;
                     }
