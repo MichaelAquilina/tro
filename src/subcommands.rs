@@ -333,46 +333,58 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     let labels = Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
     let card = result.card.ok_or("Unable to find card")?;
 
-    let label_name = matches.value_of("label_name").unwrap();
+    let label_names = matches
+        .values_of("label_name")
+        .ok_or("Label names must be specified")?;
     let delete = matches.is_present("delete");
 
-    let label = find::get_object_by_name(&labels, label_name, params.ignore_case)?;
-    let card_has_label = card
-        .labels
-        .ok_or("Unable to retrieve Card labels")?
-        .iter()
-        .any(|l| l.id == label.id);
+    for name in label_names {
+        let label = match find::get_object_by_name(&labels, name, true) {
+            Ok(l) => l,
+            Err(e) => {
+                eprintln!("{}", e);
+                continue;
+            }
+        };
 
-    if delete {
-        if !card_has_label {
+        let card_has_label = card
+            .labels
+            .as_ref()
+            .ok_or("Unable to retrieve Card labels")?
+            .iter()
+            .any(|l| l.id == label.id);
+
+        if delete {
+            if !card_has_label {
+                eprintln!(
+                    "Label [{}] does not exist on '{}'",
+                    &label.colored_name(),
+                    &card.name.green(),
+                );
+            } else {
+                Label::remove(client, &card.id, &label.id)?;
+
+                eprintln!(
+                    "Removed [{}] label from '{}'",
+                    &label.colored_name(),
+                    &card.name.green(),
+                );
+            }
+        } else if card_has_label {
             eprintln!(
-                "Label [{}] does not exist on '{}'",
+                "Label [{}] already exists on '{}'",
                 &label.colored_name(),
-                &card.name.green(),
+                &card.name.green()
             );
         } else {
-            Label::remove(client, &card.id, &label.id)?;
+            Label::apply(client, &card.id, &label.id)?;
 
             eprintln!(
-                "Removed [{}] label from '{}'",
+                "Applied [{}] label to '{}'",
                 &label.colored_name(),
-                &card.name.green(),
+                &card.name.green()
             );
         }
-    } else if card_has_label {
-        eprintln!(
-            "Label [{}] already exists on '{}'",
-            &label.colored_name(),
-            &card.name.green()
-        );
-    } else {
-        Label::apply(client, &card.id, &label.id)?;
-
-        eprintln!(
-            "Applied [{}] label to '{}'",
-            &label.colored_name(),
-            &card.name.green()
-        );
     }
 
     Ok(())
