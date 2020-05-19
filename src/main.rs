@@ -32,7 +32,6 @@ struct TrelloConfig {
 // TODO: -e --editor flat for overriding default $EDITOR
 // TODO: Some kind of offline support (caching behaviour might be hard though)
 // TODO: Hide sensitive information from stderr
-// TODO: Consider replacing mockito with Wiremock
 // TODO: Enable truecolor support for labels
 // TODO: Move usage documentation to subcommands file so that it can be doctested
 // TODO: move command (move a card within the same list, to another list etc...)
