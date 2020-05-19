@@ -32,7 +32,6 @@ struct TrelloConfig {
 }
 
 // TODO: -e --editor flat for overriding default $EDITOR
-// TODO: Assign multiple labels with the label subcommand
 // TODO: Interactive mode (e.g. tro close work todo -i would give an interface with list of items)
 // TODO: Some kind of offline support (caching behaviour might be hard though)
 // TODO: Hide sensitive information from stderr
@@ -100,7 +99,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg board_name: +required "Board name to retrieve")
             (@arg list_name: +required "List name to retrieve")
             (@arg card_name: +required "Card name to retrieve")
-            (@arg label_name: +required "Label name to apply")
+            (@arg label_name: +required +multiple "Label name to apply")
             (@arg delete: -d --delete "Delete specified label")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
         )
