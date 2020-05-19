@@ -1,6 +1,12 @@
 Changelog for tro
 =================
 
+1.28.0
+------
+* Allow multi select in show subcommand
+* Add interactive (multi-select) mode to labels subcommand
+* Allow closing of boards interactively
+
 1.27.0
 ------
 * Allow multiple labels to be specified with the label subcommand
