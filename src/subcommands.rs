@@ -151,13 +151,13 @@ pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         } else if let Some(list) = result.list {
             let mut cards = Card::get_all(client, &list.id)?;
 
-            if let Some(index) = cli::select_trello_object(&cards)? {
+            for index in cli::multiselect_trello_object(&cards)? {
                 close_card(client, &mut cards[index])?;
             }
         } else if let Some(board) = result.board {
             let mut lists = List::get_all(client, &board.id, false)?;
 
-            if let Some(index) = cli::select_trello_object(&lists)? {
+            for index in cli::multiselect_trello_object(&lists)? {
                 close_list(client, &mut lists[index])?;
             }
         }

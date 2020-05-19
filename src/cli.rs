@@ -6,6 +6,17 @@ use std::{thread, time};
 use trello::Renderable;
 use trello::{Card, CardContents, Client, TrelloError, TrelloObject};
 
+pub fn multiselect_trello_object<T: TrelloObject>(
+    objects: &[T],
+) -> Result<Vec<usize>, std::io::Error> {
+    let result = dialoguer::MultiSelect::new()
+        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
+        .with_prompt(format!("Select multiple {}", T::get_type()))
+        .interact()?;
+
+    Ok(result)
+}
+
 pub fn select_trello_object<T: TrelloObject>(
     objects: &[T],
 ) -> Result<Option<usize>, std::io::Error> {

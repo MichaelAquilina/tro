@@ -102,6 +102,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg label_name: +required +multiple "Label name to apply")
             (@arg delete: -d --delete "Delete specified label")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
+            (@arg interactive: -i --interactive "Enables interactive mode")
         )
         (@subcommand url =>
             (about: "Display object url")
