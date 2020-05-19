@@ -331,55 +331,25 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 }
 
 fn delete_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
-    let card_has_label = card
-        .labels
-        .as_ref()
-        .ok_or("Unable to retrieve Card labels")?
-        .iter()
-        .any(|l| l.id == label.id);
+    Label::remove(client, &card.id, &label.id)?;
 
-    if !card_has_label {
-        eprintln!(
-            "Label [{}] does not exist on '{}'",
-            &label.colored_name(),
-            &card.name.green(),
-        );
-    } else {
-        Label::remove(client, &card.id, &label.id)?;
-
-        eprintln!(
-            "Removed [{}] label from '{}'",
-            &label.colored_name(),
-            &card.name.green(),
-        );
-    }
+    eprintln!(
+        "Removed [{}] label from '{}'",
+        &label.colored_name(),
+        &card.name.green(),
+    );
 
     Ok(())
 }
 
 fn apply_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
-    let card_has_label = card
-        .labels
-        .as_ref()
-        .ok_or("Unable to retrieve Card labels")?
-        .iter()
-        .any(|l| l.id == label.id);
+    Label::apply(client, &card.id, &label.id)?;
 
-    if card_has_label {
-        eprintln!(
-            "Label [{}] already exists on '{}'",
-            &label.colored_name(),
-            &card.name.green()
-        );
-    } else {
-        Label::apply(client, &card.id, &label.id)?;
-
-        eprintln!(
-            "Applied [{}] label to '{}'",
-            &label.colored_name(),
-            &card.name.green()
-        );
-    }
+    eprintln!(
+        "Applied [{}] label to '{}'",
+        &label.colored_name(),
+        &card.name.green()
+    );
 
     Ok(())
 }
@@ -395,9 +365,10 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     let label_names = matches.values_of("label_name");
 
     let card = result.card.ok_or("Unable to find card")?;
+    let card_labels = card.labels.as_ref().ok_or("Unable to get card labels")?;
 
     if delete {
-        let labels = card.labels.as_ref().ok_or("Unable to get card labels")?;
+        let labels = card_labels;
         if interactive {
             for index in cli::multiselect_trello_object(&labels)? {
                 delete_label(client, &card, &labels[index])?;
@@ -419,7 +390,11 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         }
     } else {
         let board = result.board.ok_or("Unable to retrieve board")?;
-        let labels = &Label::get_all(&client, &board.id)?;
+        let labels = Label::get_all(&client, &board.id)?
+            .into_iter()
+            .filter(|l| !card_labels.contains(&l))
+            .collect::<Vec<Label>>();
+
         if interactive {
             for index in cli::multiselect_trello_object(&labels)? {
                 apply_label(client, &card, &labels[index])?;
@@ -431,7 +406,8 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
                 let label = match find::get_object_by_name(&labels, name, true) {
                     Ok(l) => l,
                     Err(e) => {
-                        eprintln!("{}", e);
+                        eprintln!("Label with pattern '{}' not found or is already assigned", name);
+                        debug!("{}", e);
                         continue;
                     }
                 };
