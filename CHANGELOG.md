@@ -1,6 +1,11 @@
 Changelog for tro
 =================
 
+1.28.1
+------
+* Fix bug in select prompts where escape key would not register
+* Remove dependency on simple-error
+
 1.28.0
 ------
 * Allow multi select in show subcommand
