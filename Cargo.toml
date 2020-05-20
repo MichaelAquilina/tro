@@ -33,6 +33,9 @@ simplelog = "0.7.4"
 tempfile = "3.1.0"
 colored = "~1.9.1"
 rustyline = "~6.1.2"
+# Pin to 0.11.3 due to bug in reading Escape key
+# see https://github.com/mitsuhiko/console/issues/66
+console = "=0.11.2"
 dialoguer = "0.6"
 
 [dev-dependencies]
