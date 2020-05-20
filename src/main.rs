@@ -29,6 +29,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: label interactive should pre-select labels already assigned to a card
 // TODO: -e --editor flat for overriding default $EDITOR
 // TODO: Some kind of offline support (caching behaviour might be hard though)
 // TODO: Hide sensitive information from stderr
