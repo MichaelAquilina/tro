@@ -6,12 +6,24 @@ jobs:
       - image: "circleci/rust:1.43"
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - cargo-{{ checksum "Cargo.lock" }}
+            - cargo
       - run:
           name: install rustfmt
           command: rustup component add rustfmt
       - run:
           name: run rustfmt
           command: cargo fmt -- --check
+
+      - save_cache:
+          key: cargo-{{ checksum "Cargo.lock" }}
+          paths:
+            - /usr/local/cargo/registry
+            - target/debug/.fingerprint
+            - target/debug/build
+            - target/debug/deps
 
   clippy:
     docker:
