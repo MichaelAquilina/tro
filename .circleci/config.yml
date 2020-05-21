@@ -30,12 +30,24 @@ jobs:
       - image: "circleci/rust:1.43"
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - cargo-{{ checksum "Cargo.lock" }}
+            - cargo
       - run:
           name: build project
           command: cargo build
       - run:
           name: run tests
           command: cargo test
+
+      - save_cache:
+          key: cargo-{{ checksum "Cargo.lock" }}
+          paths:
+            - /usr/local/cargo/registry
+            - target/debug/.fingerprint
+            - target/debug/build
+            - target/debug/deps
 
 workflows:
   version: 2
