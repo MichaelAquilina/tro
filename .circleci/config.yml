@@ -29,13 +29,6 @@ jobs:
       - run:
           name: run clippy
           command: cargo clippy
-      - save_cache:
-          key: cargo-{{ checksum "Cargo.lock" }}
-          paths:
-            - /usr/local/cargo/registry
-            - target/debug/.fingerprint
-            - target/debug/build
-            - target/debug/deps
 
 
   test:
