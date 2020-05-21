@@ -6,10 +6,6 @@ jobs:
       - image: "circleci/rust:1.43"
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - cargo-{{ checksum "Cargo.lock" }}
-            - cargo
       - run:
           name: install rustfmt
           command: rustup component add rustfmt
@@ -17,6 +13,22 @@ jobs:
           name: run rustfmt
           command: cargo fmt -- --check
 
+
+  clippy:
+    docker:
+      - image: "circleci/rust:1.43"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cargo-{{ checksum "Cargo.lock" }}
+            - cargo
+      - run:
+          name: install clippy
+          command: rustup component add clippy
+      - run:
+          name: run clippy
+          command: cargo clippy
       - save_cache:
           key: cargo-{{ checksum "Cargo.lock" }}
           paths:
@@ -25,17 +37,6 @@ jobs:
             - target/debug/build
             - target/debug/deps
 
-  clippy:
-    docker:
-      - image: "circleci/rust:1.43"
-    steps:
-      - checkout
-      - run:
-          name: install clippy
-          command: rustup component add clippy
-      - run:
-          name: run clippy
-          command: cargo clippy
 
   test:
     docker:
