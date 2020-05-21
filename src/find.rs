@@ -40,53 +40,6 @@ impl From<regex::Error> for FindError {
     }
 }
 
-/// TODO: Find a way to make this generic
-/// Retrieves a card by name from a collection of lists.
-/// This is different from get_object_by_name which only
-/// retrieves a single object from a single collection
-fn get_card_from_lists<'a>(
-    lists: &'a [List],
-    card_name: &str,
-    ignore_case: bool,
-) -> Result<&'a Card, FindError> {
-    let re = RegexBuilder::new(card_name)
-        .case_insensitive(ignore_case)
-        .build()?;
-
-    let mut result = vec![];
-    for list in lists {
-        let cards = list
-            .cards
-            .as_ref()
-            .unwrap()
-            .iter()
-            .filter(|c| re.is_match(&c.name))
-            .collect::<Vec<&Card>>();
-        result.extend(cards);
-    }
-
-    match result.len().cmp(&1) {
-        Ordering::Equal => Ok(result.pop().unwrap()),
-        Ordering::Greater => {
-            return Err(FindError::Multiple(format!(
-                "Multiple cards found. Specify a more precise filter than '{}' (Found {})",
-                card_name,
-                result
-                    .iter()
-                    .map(|c| format!("'{}'", c.get_name()))
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )))
-        }
-        Ordering::Less => {
-            return Err(FindError::NotFound(format!(
-                "Card not found. Specify a more precise filter than '{}'",
-                card_name
-            )))
-        }
-    }
-}
-
 /// Searches through a collection of Trello objects and tries
 /// to match one and only one object to the name pattern provided.
 /// * If no matches are found, an Error is returned
@@ -178,11 +131,18 @@ pub fn get_trello_object(
 
     if let Some("-") = params.list_name {
         if let Some(card_name) = params.card_name {
-            let lists = board.lists.as_ref().unwrap();
+            let board_out = board.clone();
+            let lists = board.lists.unwrap();
 
-            let card = get_card_from_lists(&lists, &card_name, params.ignore_case)?;
+            let cards = lists
+                .into_iter()
+                .map(|l| l.cards.unwrap())
+                .flatten()
+                .collect::<Vec<Card>>();
+            let card = get_object_by_name(&cards, &card_name, params.ignore_case)?;
+
             return Ok(TrelloResult {
-                board: Some(board.clone()),
+                board: Some(board_out),
                 list: None,
                 card: Some(card.clone()),
             });
