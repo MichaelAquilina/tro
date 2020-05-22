@@ -42,31 +42,29 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
                 println!("{}", &boards[index].render());
             }
         }
+    } else if let Some(card) = result.card {
+        cli::edit_card(client, &card)?;
+    } else if let Some(list) = result.list {
+        let list = match label_filter {
+            Some(label_filter) => list.filter(label_filter),
+            None => list,
+        };
+        println!("{}", list.render());
+    } else if let Some(mut board) = result.board {
+        board.retrieve_nested(client)?;
+        let board = match label_filter {
+            Some(label_filter) => board.filter(label_filter),
+            None => board,
+        };
+        println!("{}", board.render());
     } else {
-        if let Some(card) = result.card {
-            cli::edit_card(client, &card)?;
-        } else if let Some(list) = result.list {
-            let list = match label_filter {
-                Some(label_filter) => list.filter(label_filter),
-                None => list,
-            };
-            println!("{}", list.render());
-        } else if let Some(mut board) = result.board {
-            board.retrieve_nested(client)?;
-            let board = match label_filter {
-                Some(label_filter) => board.filter(label_filter),
-                None => board,
-            };
-            println!("{}", board.render());
-        } else {
-            println!("Open Boards");
-            println!("===========");
-            println!();
+        println!("Open Boards");
+        println!("===========");
+        println!();
 
-            let boards = Board::get_all(client)?;
-            for b in boards {
-                println!("* {}", b.name);
-            }
+        let boards = Board::get_all(client)?;
+        for b in boards {
+            println!("* {}", b.name);
         }
     }
 
@@ -167,14 +165,12 @@ pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
                 close_board(client, &mut boards[index])?;
             }
         }
-    } else {
-        if let Some(mut card) = result.card {
-            close_card(client, &mut card)?;
-        } else if let Some(mut list) = result.list {
-            close_list(client, &mut list)?;
-        } else if let Some(mut board) = result.board {
-            close_board(client, &mut board)?;
-        }
+    } else if let Some(mut card) = result.card {
+        close_card(client, &mut card)?;
+    } else if let Some(mut list) = result.list {
+        close_list(client, &mut list)?;
+    } else if let Some(mut board) = result.board {
+        close_board(client, &mut board)?;
     }
 
     Ok(())
