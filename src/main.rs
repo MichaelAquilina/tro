@@ -29,6 +29,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: Specify location of new object when running create (e.g. top of the list)
 // TODO: run --interactive mode with a regex filter e.g. tro show todo triage foo -i
 // TODO: label interactive should pre-select labels already assigned to a card
 // TODO: -e --editor flat for overriding default $EDITOR
