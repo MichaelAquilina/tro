@@ -38,7 +38,7 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
             let mut boards = Board::get_all(client)?;
 
             if let Some(index) = cli::select_trello_object(&boards)? {
-                &boards[index].retrieve_nested(client)?;
+                boards[index].retrieve_nested(client)?;
                 println!("{}", &boards[index].render());
             }
         }
