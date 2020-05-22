@@ -28,7 +28,7 @@ jobs:
           command: rustup component add clippy
       - run:
           name: run clippy
-          command: cargo clippy
+          command: cargo clippy -- -Dwarnings
 
 
   test:
