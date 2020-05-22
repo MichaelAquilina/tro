@@ -29,6 +29,7 @@ struct TrelloConfig {
     key: String,
 }
 
+// TODO: run --interactive mode with a regex filter e.g. tro show todo triage foo -i
 // TODO: label interactive should pre-select labels already assigned to a card
 // TODO: -e --editor flat for overriding default $EDITOR
 // TODO: Some kind of offline support (caching behaviour might be hard though)
