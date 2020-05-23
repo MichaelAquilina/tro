@@ -1533,7 +1533,7 @@ dependencies = [
 
 [[package]]
 name = "tro"
-version = "1.28.1"
+version = "1.29.0"
 dependencies = [
  "clap 2.33.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored 1.9.3 (registry+https://github.com/rust-lang/crates.io-index)",

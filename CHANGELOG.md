@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.29.0
+------
+* Render Cards and Labels with full colors in interactive mode
+
 1.28.1
 ------
 * Fix bug in select prompts where escape key would not register
