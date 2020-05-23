@@ -29,17 +29,6 @@ struct TrelloConfig {
     key: String,
 }
 
-// TODO: Specify location of new object when running create (e.g. top of the list)
-// TODO: run --interactive mode with a regex filter e.g. tro show todo triage foo -i
-// TODO: label interactive should pre-select labels already assigned to a card
-// TODO: -e --editor flat for overriding default $EDITOR
-// TODO: Some kind of offline support (caching behaviour might be hard though)
-// TODO: Hide sensitive information from stderr
-// TODO: Enable truecolor support for labels
-// TODO: Move usage documentation to subcommands file so that it can be doctested
-// TODO: move command (move a card within the same list, to another list etc...)
-//       e.g. tro move todo triage "buy flowers" -- todo priority
-// TODO: Tests for all the subcommands
 fn main() {
     if let Err(error) = start() {
         eprintln!("An Error occurred:");
