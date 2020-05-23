@@ -45,6 +45,10 @@ impl Renderable for Board {
         }
         result.join("\n")
     }
+
+    fn simple_render(&self) -> String {
+        self.name.clone()
+    }
 }
 
 impl Board {

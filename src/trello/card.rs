@@ -39,6 +39,10 @@ impl Renderable for Card {
     fn render(&self) -> String {
         [header(&self.name, "=").as_str(), &self.desc].join("\n")
     }
+
+    fn simple_render(&self) -> String {
+        self.name.clone()
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

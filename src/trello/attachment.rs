@@ -57,4 +57,8 @@ impl Renderable for Attachment {
     fn render(&self) -> String {
         [header(&self.name, "-").as_str(), &self.url].join("\n")
     }
+
+    fn simple_render(&self) -> String {
+        self.name.clone()
+    }
 }

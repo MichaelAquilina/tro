@@ -12,4 +12,6 @@ pub trait TrelloObject: Debug {
 /// to the command line
 pub trait Renderable {
     fn render(&self) -> String;
+
+    fn simple_render(&self) -> String;
 }

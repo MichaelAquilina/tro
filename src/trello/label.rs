@@ -32,6 +32,10 @@ impl TrelloObject for Label {
 
 impl Renderable for Label {
     fn render(&self) -> String {
+        self.simple_render()
+    }
+
+    fn simple_render(&self) -> String {
         format!("[{}]", self.colored_name())
     }
 }

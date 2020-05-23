@@ -61,6 +61,10 @@ impl Renderable for List {
         }
         result.join("\n")
     }
+
+    fn simple_render(&self) -> String {
+        self.name.clone()
+    }
 }
 
 impl List {

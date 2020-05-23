@@ -6,22 +6,32 @@ use std::{thread, time};
 use trello::Renderable;
 use trello::{Card, CardContents, Client, TrelloError, TrelloObject};
 
-pub fn multiselect_trello_object<T: TrelloObject>(
+pub fn multiselect_trello_object<T: TrelloObject + Renderable>(
     objects: &[T],
 ) -> Result<Vec<usize>, std::io::Error> {
     let result = dialoguer::MultiSelect::new()
-        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
+        .items(
+            &objects
+                .iter()
+                .map(|o| o.simple_render())
+                .collect::<Vec<String>>(),
+        )
         .with_prompt(format!("Select {}s using space key", T::get_type()))
         .interact()?;
 
     Ok(result)
 }
 
-pub fn select_trello_object<T: TrelloObject>(
+pub fn select_trello_object<T: TrelloObject + Renderable>(
     objects: &[T],
 ) -> Result<Option<usize>, std::io::Error> {
     let result = dialoguer::Select::new()
-        .items(&objects.iter().map(|o| o.get_name()).collect::<Vec<&str>>())
+        .items(
+            &objects
+                .iter()
+                .map(|o| o.simple_render())
+                .collect::<Vec<String>>(),
+        )
         .with_prompt(format!("Select {}", T::get_type()))
         .interact_opt()?;
 
