@@ -4,6 +4,7 @@ use crate::label::Label;
 use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use colored::Colorize;
 use serde::Deserialize;
 use std::str::FromStr;
 
@@ -41,7 +42,22 @@ impl Renderable for Card {
     }
 
     fn simple_render(&self) -> String {
-        self.name.clone()
+        let mut lformat: Vec<String> = vec![];
+
+        if self.desc != "" {
+            lformat.push("[...]".dimmed().to_string());
+        }
+
+        if let Some(labels) = &self.labels {
+            for l in labels {
+                lformat.push(l.render());
+            }
+        }
+
+        let s = format!("{} {}", &self.name, lformat.join(" "));
+
+        // trim end in case there is no data presented by lformat
+        s.trim_end().to_string()
     }
 }
 

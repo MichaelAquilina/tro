@@ -40,23 +40,7 @@ impl Renderable for List {
         let mut result: Vec<String> = vec![title];
         if let Some(cards) = &self.cards {
             for c in cards {
-                trace!("{:?}", c);
-                let mut lformat: Vec<String> = vec![];
-
-                if c.desc != "" {
-                    lformat.push("[...]".dimmed().to_string());
-                }
-
-                if let Some(labels) = &c.labels {
-                    for l in labels {
-                        lformat.push(l.render());
-                    }
-                }
-
-                let s = format!("* {} {}", &c.name, lformat.join(" "));
-
-                // trim end in case there is no data presented by lformat
-                result.push(s.trim_end().to_string());
+                result.push(format!("* {}", c.simple_render()));
             }
         }
         result.join("\n")
