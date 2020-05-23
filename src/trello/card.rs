@@ -50,7 +50,7 @@ impl Renderable for Card {
 
         if let Some(labels) = &self.labels {
             for l in labels {
-                lformat.push(l.render());
+                lformat.push(l.simple_render());
             }
         }
 
