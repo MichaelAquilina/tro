@@ -63,7 +63,7 @@ pub fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> 
 /// when the editor is not closed but content is saved.
 pub fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
     let mut file = tempfile::Builder::new().suffix(".md").tempfile()?;
-    let editor_env = env::var("EDITOR").unwrap_or(String::from("vi"));
+    let editor_env = env::var("EDITOR").unwrap_or_else(|_| String::from("vi"));
 
     debug!("Using editor: {}", editor_env);
     debug!("Editing card: {:?}", card);
