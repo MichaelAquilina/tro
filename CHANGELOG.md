@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.30.0
+------
+* Add --cards-limit and --boards-limit flags to search subcommand
+
 1.29.0
 ------
 * Render Cards and Labels with full colors in interactive mode
