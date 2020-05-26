@@ -8,6 +8,12 @@ use serde::Deserialize;
 
 type Result<T> = std::result::Result<T, TrelloError>;
 
+pub struct SearchOptions {
+    pub partial: bool,
+    pub cards_limit: Option<i32>,
+    pub boards_limit: Option<i32>,
+}
+
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
@@ -17,15 +23,32 @@ pub struct SearchResult {
 
 /// Implements the Trello Search API
 /// https://developers.trello.com/reference/#search
-pub fn search(client: &Client, search_term: &str, partial: bool) -> Result<SearchResult> {
-    let url = client.get_trello_url(
-        "/1/search/",
-        &[
-            ("query", search_term),
-            ("partial", &partial.to_string()),
-            ("card_fields", &Card::get_fields().join(",")),
-            ("board_fields", &Board::get_fields().join(",")),
-        ],
-    )?;
+pub fn search(client: &Client, search_term: &str, options: &SearchOptions) -> Result<SearchResult> {
+    let partial = options.partial.to_string();
+    let card_fields = Card::get_fields().join(",");
+    let board_fields = Board::get_fields().join(",");
+
+    let mut params = vec![
+        ("query", search_term),
+        ("partial", &partial),
+        ("card_fields", &card_fields),
+        ("board_fields", &board_fields),
+    ];
+
+    // declared in the outer scope so that references live long enough
+    let cards_limit;
+    let boards_limit;
+
+    if let Some(value) = options.cards_limit {
+        cards_limit = value.to_string();
+        params.push(("cards_limit", &cards_limit));
+    }
+    if let Some(value) = options.boards_limit {
+        boards_limit = value.to_string();
+        params.push(("boards_limit", &boards_limit));
+    }
+
+    let url = client.get_trello_url("/1/search/", &params)?;
+
     Ok(reqwest::get(url)?.error_for_status()?.json()?)
 }

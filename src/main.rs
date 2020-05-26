@@ -65,6 +65,8 @@ fn start() -> Result<(), Box<dyn Error>> {
             (about: "Search Trello cards and boards")
             (@arg query: +required "Trello Query String")
             (@arg partial: -p --partial "Allow partial matches")
+            (@arg cards_limit: --("cards-limit") +takes_value "Specify the max number of cards to return")
+            (@arg boards_limit: --("boards-limit") +takes_value "Specify the max number of boards to return")
         )
         (@subcommand attach =>
             (about: "Attach a file to a card")

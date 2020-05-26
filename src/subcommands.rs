@@ -2,7 +2,7 @@ use crate::{cli, find};
 use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
-use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable};
+use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable, SearchOptions};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -291,7 +291,25 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     let query = matches.value_of("query").ok_or("Missing query value")?;
     let partial = matches.is_present("partial");
 
-    let results = search(client, &query, partial)?;
+    let cards_limit = if let Some(v) = matches.value_of("cards_limit") {
+        Some(v.parse()?)
+    } else {
+        None
+    };
+
+    let boards_limit = if let Some(v) = matches.value_of("boards_limit") {
+        Some(v.parse()?)
+    } else {
+        None
+    };
+
+    let params = SearchOptions {
+        cards_limit,
+        boards_limit,
+        partial,
+    };
+
+    let results = search(client, &query, &params)?;
 
     if !&results.cards.is_empty() {
         println!("Cards");

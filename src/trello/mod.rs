@@ -22,6 +22,6 @@ pub use client::Client;
 pub use formatting::{header, title};
 pub use label::Label;
 pub use list::List;
-pub use search::{search, SearchResult};
+pub use search::{search, SearchOptions, SearchResult};
 pub use trello_error::TrelloError;
 pub use trello_object::{Renderable, TrelloObject};

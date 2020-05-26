@@ -10,6 +10,7 @@ fn test_empty() -> Result<()> {
             Matcher::UrlEncoded("partial".into(), "false".into()),
             Matcher::UrlEncoded("key".into(), "some-key".into()),
             Matcher::UrlEncoded("token".into(), "some-token".into()),
+            Matcher::UrlEncoded("cards_limit".into(), "20".into()),
         ]))
         .with_status(200)
         .with_body(
@@ -21,8 +22,14 @@ fn test_empty() -> Result<()> {
         )
         .create();
 
+    let options = SearchOptions {
+        boards_limit: None,
+        cards_limit: Some(20),
+        partial: false,
+    };
+
     let client = Client::new(&mockito::server_url(), "some-token", "some-key");
-    let result = search(&client, "foo", false)?;
+    let result = search(&client, "foo", &options)?;
 
     let expected = SearchResult {
         boards: vec![],
