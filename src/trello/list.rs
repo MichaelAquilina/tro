@@ -71,8 +71,8 @@ impl List {
     ///     "123",
     ///     "TODO",
     ///     Some(vec![
-    ///         Card::new("1", "Orange", "", Some(vec![Label::new("", "fruit", "")]), ""),
-    ///         Card::new("2", "Green", "", None, ""),
+    ///         Card::new("1", "Orange", "", Some(vec![Label::new("", "fruit", "")]), "", None),
+    ///         Card::new("2", "Green", "", None, "", None),
     ///     ])
     /// );
     ///
@@ -91,7 +91,7 @@ impl List {
     ///         "123",
     ///         "TODO",
     ///         Some(vec![
-    ///             Card::new("1", "Orange", "", Some(vec![Label::new("", "fruit", "")]), "")
+    ///             Card::new("1", "Orange", "", Some(vec![Label::new("", "fruit", "")]), "", None)
     ///         ])
     ///     )
     /// );

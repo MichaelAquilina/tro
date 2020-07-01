@@ -102,7 +102,7 @@ mod test_get_object_by_name {
 
     #[test]
     fn test_not_found() {
-        let boards = vec![Card::new("red", "", "1", None, "")];
+        let boards = vec![Card::new("red", "", "1", None, "", None)];
         let result = get_object_by_name(&boards, "foobar", false);
 
         assert_eq!(

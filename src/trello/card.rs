@@ -130,15 +130,22 @@ impl FromStr for CardContents {
 }
 
 impl Card {
-    pub fn new(id: &str, name: &str, desc: &str, labels: Option<Vec<Label>>, url: &str) -> Card {
+    pub fn new(
+        id: &str,
+        name: &str,
+        desc: &str,
+        labels: Option<Vec<Label>>,
+        url: &str,
+        due: Option<DateTime<Utc>>,
+    ) -> Card {
         Card {
             id: String::from(id),
             name: String::from(name),
             desc: String::from(desc),
             url: String::from(url),
             labels,
+            due,
             closed: false,
-            due: None,
         }
     }
 

@@ -37,8 +37,8 @@ fn test_render_with_cards() {
         "aaaaa",
         "King Knight",
         Some(vec![
-            Card::new("", "hello", "", None, ""),
-            Card::new("", "world", "", None, ""),
+            Card::new("", "hello", "", None, "", None),
+            Card::new("", "world", "", None, "", None),
         ]),
     );
 
@@ -153,7 +153,7 @@ fn test_get_all_with_cards() -> Result<()> {
         List::new(
             "222-222",
             "Green",
-            Some(vec![Card::new("card1", "apple", "", None, "")]),
+            Some(vec![Card::new("card1", "apple", "", None, "", None)]),
         ),
     ];
     assert_eq!(result, expected);

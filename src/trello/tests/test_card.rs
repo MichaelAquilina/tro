@@ -1,13 +1,15 @@
 use super::*;
+use chrono::{TimeZone, Utc};
 
 #[test]
 fn test_new() {
-    let card = Card::new("A", "B", "C", None, "https://trello.com/my/card");
+    let card = Card::new("A", "B", "C", None, "https://trello.com/my/card", None);
     let expected = Card {
         id: String::from("A"),
         name: String::from("B"),
         desc: String::from("C"),
         labels: None,
+        due: None,
         closed: false,
         url: String::from("https://trello.com/my/card"),
     };
@@ -16,7 +18,14 @@ fn test_new() {
 
 #[test]
 fn test_render() {
-    let card = Card::new("aaaaa", "My Fav Card", "this is a nice card", None, "");
+    let card = Card::new(
+        "aaaaa",
+        "My Fav Card",
+        "this is a nice card",
+        None,
+        "",
+        None,
+    );
 
     let expected = "My Fav Card\n===========\nthis is a nice card";
     assert_eq!(card.render(), expected);
@@ -47,6 +56,7 @@ fn test_get() -> Result<()> {
         "foozy card",
         None,
         "https://card.foo/123",
+        None,
     );
 
     assert_eq!(result, expected);
@@ -75,7 +85,7 @@ fn test_create() -> Result<()> {
     let result = Card::create(
         &client,
         "FOOBAR",
-        &Card::new("", "Laundry", "Desky", None, ""),
+        &Card::new("", "Laundry", "Desky", None, "", None),
     )?;
     let expected = Card::new(
         "88888",
@@ -83,6 +93,7 @@ fn test_create() -> Result<()> {
         "Desky",
         None,
         "https://example.com/1/12/",
+        None,
     );
 
     assert_eq!(result, expected);
@@ -114,6 +125,7 @@ fn test_update() -> Result<()> {
         "hello",
         None,
         "https://trello.com/abcdef",
+        None,
     );
     card.closed = true;
 
@@ -126,13 +138,27 @@ fn test_update() -> Result<()> {
 fn test_get_all() -> Result<()> {
     let _m = mockito::mock(
         "GET",
-        "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Clabels%2Cclosed%2Curl",
+        "/1/lists/DEADBEEF/cards/?key=some-key&token=some-secret-token&fields=id%2Cname%2Cdesc%2Clabels%2Cclosed%2Cdue%2Curl",
     )
     .with_status(200)
     .with_body(
         json!([
-            {"name": "Water the plants", "id": "abc-def", "desc": "", "closed": false, "url": ""},
-            {"name": "Feed the dog", "id": "123-456", "desc": "for a good boy", "closed": false, "url": ""},
+            {
+                "name": "Water the plants",
+                "id": "abc-def",
+                "desc": "",
+                "closed": false,
+                "url": "",
+                "due": "2020-06-28T06:06:27-00:00",
+            },
+            {
+                "name": "Feed the dog",
+                "id": "123-456",
+                "desc": "for a good boy",
+                "closed": false,
+                "url": "",
+                "due": "2020-06-28T06:06:27-00:00",
+            },
         ])
         .to_string(),
     )
@@ -141,8 +167,22 @@ fn test_get_all() -> Result<()> {
     let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
     let result = Card::get_all(&client, "DEADBEEF")?;
     let expected = vec![
-        Card::new("abc-def", "Water the plants", "", None, ""),
-        Card::new("123-456", "Feed the dog", "for a good boy", None, ""),
+        Card::new(
+            "abc-def",
+            "Water the plants",
+            "",
+            None,
+            "",
+            Some(Utc.ymd(2020, 6, 28).and_hms(6, 6, 27)),
+        ),
+        Card::new(
+            "123-456",
+            "Feed the dog",
+            "for a good boy",
+            None,
+            "",
+            Some(Utc.ymd(2020, 6, 28).and_hms(6, 6, 27)),
+        ),
     ];
 
     assert_eq!(result, expected);

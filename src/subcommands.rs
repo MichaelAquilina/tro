@@ -192,7 +192,7 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
             None => cli::get_input("Card name: ")?,
         };
 
-        let card = Card::create(client, &list.id, &Card::new("", &name, "", None, ""))?;
+        let card = Card::create(client, &list.id, &Card::new("", &name, "", None, "", None))?;
 
         if let Some(label_names) = matches.values_of("label") {
             let labels =

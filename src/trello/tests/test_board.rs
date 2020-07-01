@@ -68,12 +68,12 @@ fn test_render_lists_and_cards() {
             List::new(
                 "",
                 "King",
-                Some(vec![Card::new("", "Gyro Boots", "", None, "")]),
+                Some(vec![Card::new("", "Gyro Boots", "", None, "", None)]),
             ),
             List::new(
                 "",
                 "Shovel",
-                Some(vec![Card::new("", "Flare Wand", "Relic", None, "")]),
+                Some(vec![Card::new("", "Flare Wand", "Relic", None, "", None)]),
             ),
         ]),
         "",
