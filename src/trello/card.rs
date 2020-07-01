@@ -4,6 +4,7 @@ use crate::label::Label;
 use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use chrono::{DateTime, Utc};
 use colored::Colorize;
 use serde::Deserialize;
 use std::str::FromStr;
@@ -20,6 +21,7 @@ pub struct Card {
     pub closed: bool,
     pub url: String,
     pub labels: Option<Vec<Label>>,
+    pub due: Option<DateTime<Utc>>,
 }
 
 impl TrelloObject for Card {
@@ -32,7 +34,7 @@ impl TrelloObject for Card {
     }
 
     fn get_fields() -> &'static [&'static str] {
-        &["id", "name", "desc", "labels", "closed", "url"]
+        &["id", "name", "desc", "labels", "closed", "due", "url"]
     }
 }
 
@@ -136,6 +138,7 @@ impl Card {
             url: String::from(url),
             labels,
             closed: false,
+            due: None,
         }
     }
 
