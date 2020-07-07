@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.31.0
+------
+* Retrieve card due date
+
 1.30.0
 ------
 * Add --cards-limit and --boards-limit flags to search subcommand
