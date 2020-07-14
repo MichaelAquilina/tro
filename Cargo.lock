@@ -1544,7 +1544,7 @@ dependencies = [
 
 [[package]]
 name = "tro"
-version = "1.32.0"
+version = "1.33.0"
 dependencies = [
  "chrono 0.4.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.1 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.33.0
+------
+* Use the exact same label colors as trello web
+
 1.32.0
 ------
 * Upgrade colored dependency to 2.0.0
