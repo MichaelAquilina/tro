@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.34.0
+------
+* Use colored backgrounds with white text for labels (Similar to trello Web)
+
 1.33.0
 ------
 * Use the exact same label colors as trello web
