@@ -91,13 +91,22 @@ impl Label {
     }
 }
 
-fn map_color(color: &str) -> &str {
+fn map_color(color: &str) -> Color {
     match color {
-        "sky" => "cyan",
-        "lime" => "green",
-        "orange" => "yellow",
+        "sky" => Color::TrueColor { r: 0x00, g: 0xc2, b: 0x0e },
+        "lime" => Color::TrueColor { r: 0x51, g: 0xe8, b: 0x98 },
+        "green" => Color::TrueColor { r: 0x61, g: 0xbd, b: 0x4f },
+        "purple" => Color::TrueColor {r: 0xc3, g: 0x77, b: 0xe0 },
+        "orange" => Color::TrueColor { r: 0xff, g: 0x9f, b: 0x1a },
+        "yellow" => Color::TrueColor { r: 0xf2, g: 0xd6, b: 0x00 },
+        "red" => Color::TrueColor { r: 0xeb, g: 0x5a, b: 0x46 },
+        "blue" => Color::TrueColor { r: 0x00, g: 0x79, b: 0xbf },
+        "pink" => Color::TrueColor { r: 0xff, g: 0x78, b: 0xcb },
         // black is not visible on a terminal
-        "black" => "bright black",
-        _ => color,
+        "black" => Color::BrightBlack,
+        value => {
+            println!("Unknown color: {}", value);
+            Color::from(color)
+        }
     }
 }
