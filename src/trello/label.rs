@@ -36,7 +36,11 @@ impl Renderable for Label {
     }
 
     fn simple_render(&self) -> String {
-        format!("[{}]", self.colored_name())
+        format!(" {} ", self.name)
+            .bold()
+            .color(Color::White)
+            .on_color(map_color(&self.color))
+            .to_string()
     }
 }
 
@@ -47,10 +51,6 @@ impl Label {
             name: String::from(name),
             color: String::from(color),
         }
-    }
-
-    pub fn colored_name(&self) -> ColoredString {
-        self.name.color(map_color(&self.color))
     }
 
     pub fn get_all(client: &Client, board_id: &str) -> Result<Vec<Label>> {
@@ -93,17 +93,58 @@ impl Label {
 
 fn map_color(color: &str) -> Color {
     match color {
-        "sky" => Color::TrueColor { r: 0x00, g: 0xc2, b: 0x0e },
-        "lime" => Color::TrueColor { r: 0x51, g: 0xe8, b: 0x98 },
-        "green" => Color::TrueColor { r: 0x61, g: 0xbd, b: 0x4f },
-        "purple" => Color::TrueColor {r: 0xc3, g: 0x77, b: 0xe0 },
-        "orange" => Color::TrueColor { r: 0xff, g: 0x9f, b: 0x1a },
-        "yellow" => Color::TrueColor { r: 0xf2, g: 0xd6, b: 0x00 },
-        "red" => Color::TrueColor { r: 0xeb, g: 0x5a, b: 0x46 },
-        "blue" => Color::TrueColor { r: 0x00, g: 0x79, b: 0xbf },
-        "pink" => Color::TrueColor { r: 0xff, g: 0x78, b: 0xcb },
-        // black is not visible on a terminal
-        "black" => Color::BrightBlack,
+        // values retrieved by inspecting elements in a browser on trello.com
+        // date obtained: 2020-07-14
+        "sky" => Color::TrueColor {
+            r: 0x00,
+            g: 0xc2,
+            b: 0x0e,
+        },
+        "lime" => Color::TrueColor {
+            r: 0x51,
+            g: 0xe8,
+            b: 0x98,
+        },
+        "green" => Color::TrueColor {
+            r: 0x61,
+            g: 0xbd,
+            b: 0x4f,
+        },
+        "purple" => Color::TrueColor {
+            r: 0xc3,
+            g: 0x77,
+            b: 0xe0,
+        },
+        "orange" => Color::TrueColor {
+            r: 0xff,
+            g: 0x9f,
+            b: 0x1a,
+        },
+        "yellow" => Color::TrueColor {
+            r: 0xf2,
+            g: 0xd6,
+            b: 0x00,
+        },
+        "red" => Color::TrueColor {
+            r: 0xeb,
+            g: 0x5a,
+            b: 0x46,
+        },
+        "blue" => Color::TrueColor {
+            r: 0x00,
+            g: 0x79,
+            b: 0xbf,
+        },
+        "pink" => Color::TrueColor {
+            r: 0xff,
+            g: 0x78,
+            b: 0xcb,
+        },
+        "black" => Color::TrueColor {
+            r: 0x34,
+            g: 0x45,
+            b: 0x63,
+        },
         value => {
             println!("Unknown color: {}", value);
             Color::from(color)

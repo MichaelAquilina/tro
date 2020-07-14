@@ -206,8 +206,8 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
                     }
                 };
                 match Label::apply(client, &card.id, &label.id) {
-                    Ok(_) => eprintln!("Applied [{}] label", &label.colored_name(),),
-                    Err(e) => eprintln!("Unable to apply [{}] label: {}", &label.colored_name(), e),
+                    Ok(_) => eprintln!("Applied {} label", &label.simple_render(),),
+                    Err(e) => eprintln!("Unable to apply {} label: {}", &label.simple_render(), e),
                 };
             }
         }
@@ -349,7 +349,7 @@ fn delete_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
 
     eprintln!(
         "Removed [{}] label from '{}'",
-        &label.colored_name(),
+        &label.simple_render(),
         &card.name.green(),
     );
 
@@ -361,7 +361,7 @@ fn apply_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
 
     eprintln!(
         "Applied [{}] label to '{}'",
-        &label.colored_name(),
+        &label.simple_render(),
         &card.name.green()
     );
 
