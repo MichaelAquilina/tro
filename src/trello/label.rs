@@ -37,7 +37,6 @@ impl Renderable for Label {
 
     fn simple_render(&self) -> String {
         format!(" {} ", self.name)
-            .bold()
             .color(Color::White)
             .on_color(map_color(&self.color))
             .to_string()
