@@ -31,7 +31,7 @@ regex = "1.3.1"
 log = "0.4.8"
 simplelog = "0.7.4"
 tempfile = "3.1.0"
-colored = "~1.9.1"
+colored = "2.0.0"
 rustyline = "~6.1.2"
 # Pin to 0.11.2 due to bug in 0.11.3 when reading Escape key
 # see https://github.com/mitsuhiko/console/issues/66
