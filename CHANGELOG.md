@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+1.32.0
+------
+* Upgrade colored dependency to 2.0.0
+
 1.31.0
 ------
 * Retrieve card due date
