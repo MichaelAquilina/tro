@@ -32,6 +32,70 @@ fn test_render() {
 }
 
 #[test]
+fn test_simple_render() {
+    let card = Card {
+        id: String::from("1234"),
+        name: String::from("Fire Monkey"),
+        desc: String::from(""),
+        closed: false,
+        url: String::from(""),
+        labels: None,
+        due: None,
+    };
+
+    let expected = "Fire Monkey";
+    assert_eq!(card.simple_render(), expected);
+}
+
+#[test]
+fn test_simple_render_with_description() {
+    let card = Card {
+        id: String::from("1234"),
+        name: String::from("Ice Snail"),
+        desc: String::from("Some details which should not be shown"),
+        closed: false,
+        url: String::from(""),
+        labels: None,
+        due: None,
+    };
+
+    let expected = "Ice Snail \u{1b}[2m[...]\u{1b}[0m";
+    assert_eq!(card.simple_render(), expected);
+}
+
+#[test]
+fn test_simple_render_with_labels() {
+    let card = Card {
+        id: String::from("1234"),
+        name: String::from("Lightning Goat"),
+        desc: String::from(""),
+        closed: false,
+        url: String::from(""),
+        labels: Some(vec![Label::new("", "Animals", "green")]),
+        due: None,
+    };
+
+    let expected = "Lightning Goat \u{1b}[48;2;97;189;79;37m Animals \u{1b}[0m";
+    assert_eq!(card.simple_render(), expected);
+}
+
+#[test]
+fn test_simple_render_closed() {
+    let card = Card {
+        id: String::from("1234"),
+        name: String::from("Earth Seagull"),
+        desc: String::from(""),
+        closed: true,
+        url: String::from(""),
+        labels: None,
+        due: None,
+    };
+
+    let expected = "Earth Seagull \u{1b}[31m[Closed]\u{1b}[0m";
+    assert_eq!(card.simple_render(), expected);
+}
+
+#[test]
 fn test_get() -> Result<()> {
     let _m = mockito::mock("GET", "/1/cards/CARD-FOO?key=some-key&token=some-token")
         .with_status(200)
