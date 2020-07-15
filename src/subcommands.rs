@@ -348,7 +348,7 @@ fn delete_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
     Label::remove(client, &card.id, &label.id)?;
 
     eprintln!(
-        "Removed [{}] label from '{}'",
+        "Removed {} label from '{}'",
         &label.simple_render(),
         &card.name.green(),
     );
@@ -360,7 +360,7 @@ fn apply_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
     Label::apply(client, &card.id, &label.id)?;
 
     eprintln!(
-        "Applied [{}] label to '{}'",
+        "Applied {} label to '{}'",
         &label.simple_render(),
         &card.name.green()
     );
