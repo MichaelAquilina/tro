@@ -1,6 +1,12 @@
 Changelog for tro
 =================
 
+2.0.0
+-----
+* search subcommand now only searches for cards
+* Add interactive mode to search subcommand
+* Fix minor bug with label rendering when applying and deleting labels
+
 1.34.0
 ------
 * Use colored backgrounds with white text for labels (Similar to trello Web)
