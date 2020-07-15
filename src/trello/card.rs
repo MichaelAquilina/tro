@@ -50,6 +50,10 @@ impl Renderable for Card {
             lformat.push("[...]".dimmed().to_string());
         }
 
+        if self.closed {
+            lformat.push("[Closed]".red().to_string());
+        }
+
         if let Some(labels) = &self.labels {
             for l in labels {
                 lformat.push(l.simple_render());

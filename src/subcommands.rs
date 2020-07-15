@@ -290,14 +290,9 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
     let query = matches.value_of("query").ok_or("Missing query value")?;
     let partial = matches.is_present("partial");
+    let interactive = matches.is_present("interactive");
 
-    let cards_limit = if let Some(v) = matches.value_of("cards_limit") {
-        Some(v.parse()?)
-    } else {
-        None
-    };
-
-    let boards_limit = if let Some(v) = matches.value_of("boards_limit") {
+    let cards_limit = if let Some(v) = matches.value_of("limit") {
         Some(v.parse()?)
     } else {
         None
@@ -305,40 +300,24 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
     let params = SearchOptions {
         cards_limit,
-        boards_limit,
+        // Seems that 0 cannot be passed
+        // so we just pass the lowest accepted value instead
+        boards_limit: Some(1),
         partial,
     };
 
     let results = search(client, &query, &params)?;
 
-    if !&results.cards.is_empty() {
-        println!("Cards");
-        println!("-----");
-
-        for card in &results.cards {
-            let card_state = if card.closed {
-                "[Closed]".red().to_string()
-            } else {
-                "".to_string()
-            };
-            println!("'{}' id: {} {}", card.name.green(), card.id, card_state);
+    if interactive {
+        if let Some(index) = cli::select_trello_object(&results.cards)? {
+            cli::edit_card(client, &results.cards[index])?;
         }
-        println!();
-    }
-
-    if !&results.boards.is_empty() {
-        println!("Boards");
-        println!("------");
-
-        for board in &results.boards {
-            let board_state = if board.closed {
-                "[Closed]".red().to_string()
-            } else {
-                "".to_string()
-            };
-            println!("'{}' id: {} {}", board.name.green(), board.id, board_state);
+    } else {
+        if !&results.cards.is_empty() {
+            for card in &results.cards {
+                println!("{} id: {}", card.simple_render().green(), card.id);
+            }
         }
-        println!();
     }
 
     Ok(())
