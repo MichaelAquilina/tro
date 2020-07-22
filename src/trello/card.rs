@@ -46,12 +46,14 @@ impl Renderable for Card {
     fn simple_render(&self) -> String {
         let mut lformat: Vec<String> = vec![];
 
-        if self.desc != "" {
-            lformat.push("[...]".dimmed().to_string());
-        }
-
         if self.closed {
             lformat.push("[Closed]".red().to_string());
+        }
+
+        lformat.push(String::from(&self.name));
+
+        if self.desc != "" {
+            lformat.push("[...]".dimmed().to_string());
         }
 
         if let Some(labels) = &self.labels {
@@ -60,10 +62,8 @@ impl Renderable for Card {
             }
         }
 
-        let s = format!("{} {}", &self.name, lformat.join(" "));
-
         // trim end in case there is no data presented by lformat
-        s.trim_end().to_string()
+        lformat.join(" ").trim_end().to_string()
     }
 }
 
