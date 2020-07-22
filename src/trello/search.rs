@@ -22,7 +22,7 @@ pub struct SearchResult {
 }
 
 /// Implements the Trello Search API
-/// https://developers.trello.com/reference/#search
+/// https://developer.atlassian.com/cloud/trello/rest/api-group-search/#api-search-get
 pub fn search(client: &Client, search_term: &str, options: &SearchOptions) -> Result<SearchResult> {
     let partial = options.partial.to_string();
     let card_fields = Card::get_fields().join(",");
