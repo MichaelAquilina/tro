@@ -314,7 +314,11 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         }
     } else if !&results.cards.is_empty() {
         for card in &results.cards {
-            println!("{} id: {}", card.simple_render().green(), card.id);
+            println!(
+                "{} {}",
+                card.simple_render(),
+                format!("id: {}", card.id).green()
+            );
         }
     }
 
