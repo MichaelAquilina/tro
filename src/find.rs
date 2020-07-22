@@ -1,43 +1,19 @@
 use clap::ArgMatches;
 use regex::RegexBuilder;
 use std::cmp::Ordering;
-use std::error::Error;
+use thiserror::Error;
 use trello::{Board, Card, Client, List, TrelloObject};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Error)]
 pub enum FindError {
-    Regex(regex::Error),
+    #[error("Regex Error: {0}")]
+    Regex(#[from] regex::Error),
+    #[error("Multiple found: {0}")]
     Multiple(String),
+    #[error("Not found: {0}")]
     NotFound(String),
+    #[error("Wildcard error: {0}")]
     WildCard(String),
-}
-
-impl std::fmt::Display for FindError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            FindError::Regex(err) => write!(f, "Regex Error: {}", err),
-            FindError::Multiple(msg) => write!(f, "Multiple found: {}", msg),
-            FindError::NotFound(msg) => write!(f, "Not found: {}", msg),
-            FindError::WildCard(msg) => write!(f, "Wildcard error: {}", msg),
-        }
-    }
-}
-
-impl std::error::Error for FindError {
-    fn cause(&self) -> Option<&dyn std::error::Error> {
-        match self {
-            FindError::Regex(ref err) => Some(err),
-            FindError::Multiple(_) => None,
-            FindError::NotFound(_) => None,
-            FindError::WildCard(_) => None,
-        }
-    }
-}
-
-impl From<regex::Error> for FindError {
-    fn from(err: regex::Error) -> FindError {
-        FindError::Regex(err)
-    }
 }
 
 /// Searches through a collection of Trello objects and tries
@@ -110,7 +86,7 @@ pub fn get_trello_params<'a>(matches: &'a ArgMatches) -> TrelloParams<'a> {
 pub fn get_trello_object(
     client: &Client,
     params: &TrelloParams,
-) -> Result<TrelloResult, Box<dyn Error>> {
+) -> Result<TrelloResult, Box<dyn std::error::Error>> {
     let board_name = match params.board_name {
         Some(bn) => bn,
         None => {

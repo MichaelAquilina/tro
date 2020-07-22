@@ -1,50 +1,13 @@
-use std::error;
-use std::fmt;
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum TrelloError {
-    Reqwest(reqwest::Error),
-    UrlParse(reqwest::UrlError),
-    Io(std::io::Error),
+    #[error("Reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
+    #[error("UrlParse error: {0}")]
+    UrlParse(#[from] reqwest::UrlError),
+    #[error("IO Error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Card Parse Error: {0}")]
     CardParse(String),
-}
-
-impl fmt::Display for TrelloError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            TrelloError::Reqwest(err) => write!(f, "Reqwest Error: {}", err),
-            TrelloError::UrlParse(err) => write!(f, "UrlParse Error: {}", err),
-            TrelloError::Io(err) => write!(f, "IO Error: {}", err),
-            TrelloError::CardParse(msg) => write!(f, "Card Parse Error: {}", msg),
-        }
-    }
-}
-
-impl error::Error for TrelloError {
-    fn cause(&self) -> Option<&dyn error::Error> {
-        match self {
-            TrelloError::Reqwest(ref err) => Some(err),
-            TrelloError::UrlParse(ref err) => Some(err),
-            TrelloError::Io(ref err) => Some(err),
-            TrelloError::CardParse(_) => None,
-        }
-    }
-}
-
-impl From<std::io::Error> for TrelloError {
-    fn from(err: std::io::Error) -> TrelloError {
-        TrelloError::Io(err)
-    }
-}
-
-impl From<reqwest::UrlError> for TrelloError {
-    fn from(err: reqwest::UrlError) -> TrelloError {
-        TrelloError::UrlParse(err)
-    }
-}
-
-impl From<reqwest::Error> for TrelloError {
-    fn from(err: reqwest::Error) -> TrelloError {
-        TrelloError::Reqwest(err)
-    }
 }
