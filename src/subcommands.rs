@@ -71,6 +71,16 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+pub fn move_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+    debug!("Running move subcommand with {:?}", matches);
+
+    let params = find::get_trello_params(matches);
+    let result = find::get_trello_object(client, &params)?;
+    debug!("result: {:?}", result);
+
+    Ok(())
+}
+
 pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running open subcommand with {:?}", matches);
 

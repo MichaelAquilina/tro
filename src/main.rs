@@ -61,6 +61,13 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg label_filter: -f --filter +takes_value "Filter by label")
             (@arg interactive: -i --interactive "Enables interactive mode")
         )
+        (@subcommand move =>
+            (about: "Move a card to a different list within the same board")
+            (@arg board_name: +required "Board Name to retrieve")
+            (@arg list_name: +required "List Name to retrieve")
+            (@arg card_name: +required "Card Name to retrieve")
+            (@arg new_list_name: +required "New List Name to move the card to")
+        )
         (@subcommand search =>
             (about: "Search Trello cards")
             (@arg query: +required "Trello Query String")
@@ -156,6 +163,8 @@ fn start() -> Result<(), Box<dyn Error>> {
         eprintln!(env!("CARGO_PKG_VERSION"));
     } else if let Some(matches) = matches.subcommand_matches("show") {
         subcommands::show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("move") {
+        subcommands::move_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("search") {
         subcommands::search_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attach") {
