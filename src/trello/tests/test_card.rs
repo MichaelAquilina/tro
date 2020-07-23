@@ -91,7 +91,7 @@ fn test_simple_render_closed() {
         due: None,
     };
 
-    let expected = "Earth Seagull \u{1b}[31m[Closed]\u{1b}[0m";
+    let expected = "\u{1b}[31m[Closed]\u{1b}[0m Earth Seagull";
     assert_eq!(card.simple_render(), expected);
 }
 
