@@ -1,6 +1,13 @@
 Changelog for tro
 =================
 
+2.1.0
+-----
+* Correctly calculate header widths with unicode text
+* Update dependencies
+* Fix bug where cursor would not show after pressing ctrl-c in interactive mode
+* Improve search subcommand output
+
 2.0.0
 -----
 * search subcommand now only searches for cards
