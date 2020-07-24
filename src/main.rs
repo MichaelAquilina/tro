@@ -147,6 +147,10 @@ fn start() -> Result<(), Box<dyn Error>> {
     .unwrap()])
     .unwrap();
 
+    ctrlc::set_handler(|| {
+        println!("\x1b[?25h");
+    })?;
+
     let config = load_config()?;
     let client = Client::new(&config.host, &config.token, &config.key);
 

@@ -40,6 +40,7 @@ dialoguer = "0.6"
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1.0"
 unicode-width="0.1.8"
+ctrlc = "3.1.5"
 
 [dev-dependencies]
 mockito = "~0.25.0"
