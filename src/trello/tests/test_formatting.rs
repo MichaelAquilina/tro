@@ -17,5 +17,5 @@ fn test_correct() {
 #[test]
 fn test_emoticons() {
     let result = header("foo 🔴", "-");
-    assert_eq!(result, String::from("foo 🔴\n-----"));
+    assert_eq!(result, String::from("foo 🔴\n------"));
 }

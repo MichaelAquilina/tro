@@ -1,5 +1,7 @@
+use unicode_width::UnicodeWidthStr;
+
 pub fn title(text: &str) -> String {
-    let border = "═".repeat(text.chars().count());
+    let border = "═".repeat(UnicodeWidthStr::width(text));
 
     [
         format!("╔═{}═╗", border),
@@ -10,5 +12,5 @@ pub fn title(text: &str) -> String {
 }
 
 pub fn header(text: &str, header_char: &str) -> String {
-    [text, &header_char.repeat(text.chars().count())].join("\n")
+    [text, &header_char.repeat(UnicodeWidthStr::width(text))].join("\n")
 }
