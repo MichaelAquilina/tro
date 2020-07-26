@@ -63,7 +63,7 @@ fn start() -> Result<(), Box<dyn Error>> {
         )
         (@subcommand search =>
             (about: "Search Trello cards")
-            (@arg query: +required "Trello Query String")
+            (@arg query: +required +multiple "Trello Query String")
             (@arg partial: -p --partial "Allow partial matches")
             (@arg cards_limit: --limit +takes_value "Specify the max number of cards to return")
             (@arg interactive: -i --interactive "Enables interactive mode")

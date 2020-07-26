@@ -288,7 +288,11 @@ pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running search subcommand with {:?}", matches);
 
-    let query = matches.value_of("query").ok_or("Missing query value")?;
+    let query = matches
+        .values_of("query")
+        .ok_or("Missing query value")?
+        .collect::<Vec<&str>>()
+        .join(" ");
     let partial = matches.is_present("partial");
     let interactive = matches.is_present("interactive");
 
