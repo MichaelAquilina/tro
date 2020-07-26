@@ -14,6 +14,16 @@ pub struct SearchOptions {
     pub boards_limit: Option<i32>,
 }
 
+impl Default for SearchOptions {
+    fn default() -> Self {
+        SearchOptions {
+            partial: false,
+            cards_limit: None,
+            boards_limit: None,
+        }
+    }
+}
+
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
