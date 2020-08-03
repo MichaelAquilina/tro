@@ -24,6 +24,7 @@ use trello::Client;
 
 #[derive(Deserialize, Debug)]
 struct TrelloConfig {
+    #[serde(default = "default_host")]
     host: String,
     token: String,
     key: String,
@@ -41,6 +42,10 @@ fn main() {
         }
         process::exit(2);
     }
+}
+
+fn default_host() -> String {
+    String::from("https://api.trello.com")
 }
 
 fn start() -> Result<(), Box<dyn Error>> {

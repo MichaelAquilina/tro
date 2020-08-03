@@ -10,7 +10,6 @@ Set the values for ``host``, ``key`` and ``token``:
 
 ::
 
-    host = "https://api.trello.com"
     key = "<MYKEY>"
     token = "<MYTOKEN>"
 
