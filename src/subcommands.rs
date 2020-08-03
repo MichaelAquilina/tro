@@ -6,6 +6,33 @@ use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable, S
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
+    debug!("Running setup subcommand with {:?}", matches);
+
+    println!("{}", "Welcome to tro!".green().bold());
+    println!();
+    println!(
+        "Please generate a Developer {} and {} from https://trello.com/app-key/",
+        "key".green(),
+        "token".green()
+    );
+    println!("and enter them below");
+    println!();
+
+    let key = cli::get_input("Enter Developer API Key: ")?;
+    let token = cli::get_input("Enter Token: ")?;
+
+    let client = Client {
+        host: Client::default_host(),
+        key,
+        token,
+    };
+
+    client.save_config()?;
+
+    Ok(())
+}
+
 pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 

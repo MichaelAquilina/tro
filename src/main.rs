@@ -15,20 +15,11 @@ mod cli;
 mod find;
 mod subcommands;
 
-use serde::Deserialize;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
+use std::env;
 use std::error::Error;
 use std::process;
-use std::{env, fs};
 use trello::Client;
-
-#[derive(Deserialize, Debug)]
-struct TrelloConfig {
-    #[serde(default = "default_host")]
-    host: String,
-    token: String,
-    key: String,
-}
 
 fn main() {
     if let Err(error) = start() {
@@ -44,10 +35,6 @@ fn main() {
     }
 }
 
-fn default_host() -> String {
-    String::from("https://api.trello.com")
-}
-
 fn start() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(tro =>
         (version: env!("CARGO_PKG_VERSION"))
@@ -56,6 +43,9 @@ fn start() -> Result<(), Box<dyn Error>> {
         (@arg log_level: -l --("log-level") +takes_value possible_values(&["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]) default_value[ERROR] "Specify the log level")
         (@subcommand version =>
             (about: "Print tro version")
+        )
+        (@subcommand setup =>
+            (about: "Setup tro")
         )
         (@subcommand show =>
             (about: "Show object contents")
@@ -156,10 +146,14 @@ fn start() -> Result<(), Box<dyn Error>> {
         println!("\x1b[?25h");
     })?;
 
-    let config = load_config()?;
-    let client = Client::new(&config.host, &config.token, &config.key);
+    if let Some(matches) = matches.subcommand_matches("setup") {
+        subcommands::setup_subcommand(matches)?;
+        return Ok(());
+    }
 
-    debug!("Loaded configuration: {:?}", config);
+    let client = Client::load_config()?;
+
+    debug!("Loaded configuration: {:?}", client);
 
     if matches.subcommand_matches("version").is_some() {
         eprintln!(env!("CARGO_PKG_VERSION"));
@@ -185,18 +179,4 @@ fn start() -> Result<(), Box<dyn Error>> {
         println!("{}", matches.usage());
     }
     Ok(())
-}
-
-fn load_config() -> Result<TrelloConfig, Box<dyn Error>> {
-    let mut config_path = dirs::config_dir().ok_or("Unable to determine config directory")?;
-    config_path.push("tro/config.toml");
-
-    let path = config_path
-        .to_str()
-        .ok_or("Could not convert Path to string")?;
-
-    debug!("Loading configuration from {:?}", config_path);
-    let contents = fs::read_to_string(path)?;
-
-    Ok(toml::from_str(&contents)?)
 }
