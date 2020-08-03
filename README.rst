@@ -5,17 +5,24 @@ TRO
 
 ``tro`` is a Trello API client for the command line written in rust.
 
-To begin, create a configuration file at the path ``~/.config/tro/config.toml``.
-Set the values for ``host``, ``key`` and ``token``:
+.. image:: assets/tro_show.png
+   :width: 400
+
+Installation
+------------
+
+Currently, the only way to install is through cargo
 
 ::
 
-    key = "<MYKEY>"
-    token = "<MYTOKEN>"
+   cargo install tro
 
-You can retrieve the values for key and token from https://trello.com/app-key/
+Setup
+-----
 
-Once those are set, simply run with ``cargo run``.
+Run ``tro setup`` to setup tro for the first time.
+
+Take a look at ``tro --help`` for a list of all available subcommands after that.
 
 How it works
 ------------
