@@ -60,21 +60,27 @@ Patterns are simple regex pattern matches. You can specify simple patterns such 
 Usage Examples
 --------------
 
-Some examples of how patterns can be specified. Say we have a board named "todo list" with two lists named "today" and "done".
+Here are some examples of how patterns can be used in subcommands.
 
-We can show the entire board by just specifying a portion of the board name:
+Say we have a board named "TODO" with two lists named "today" and "done".
+
+We can show the entire board by just specifying the board name:
 
 .. image:: assets/tro_show_board.png
    :width: 400
 
-If we want to only see a specific list within the board, we can specify a list pattern:
+Notice how by default patterns are case insensitive. You can make pattern matches case sensitive with the ``-c`` flag.
+
+If we want to only see a specific list within the board, we can specify an additional list pattern:
 
 .. image:: assets/tro_show_list.png
    :width: 400
 
-If we want to edit a specific card, then we can also specify a card pattern. This will open our default editor (specified by the ``EDITOR`` environment variable) so that we can edit the contents of our card.
+If we want to show/edit a specific card, then we can also specify an additional card pattern.
 
-For example, running ``tro show todo today rust`` would open vim:
+Showing a card will open your default editor (specified by the ``EDITOR`` environment variable) so that you can edit the contents of the specified card.
+
+For example, running ``tro show todo today rust`` would open as follows:
 
 .. image:: assets/tro_show_card.png
    :width: 400
