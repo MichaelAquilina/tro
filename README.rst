@@ -5,7 +5,7 @@ TRO
 
 ``tro`` is a Trello API client for the command line written in rust.
 
-.. image:: assets/tro_show.png
+.. image:: assets/tro_show_board.png
    :width: 400
 
 Installation
