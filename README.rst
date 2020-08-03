@@ -24,6 +24,20 @@ Run ``tro setup`` to setup tro for the first time.
 
 Take a look at ``tro --help`` for a list of all available subcommands after that.
 
+Available Subcommands
+---------------------
+
+* setup: Setup tro for the first time
+* show: Show an object (Board, List or Card)
+* search: Search for Trello cards
+* create: Create an object
+* open: Open an object that has been closed
+* close: Close an object
+* label: Apply or remove a label on a card
+* url: Display the url of an object
+* attach: Attach a file to a Card
+* attachments: View attachments on a Card
+
 How it works
 ------------
 
@@ -31,82 +45,49 @@ Most of the subcommands in this tool work by specifying one or more patterns in 
 
 ::
 
-    <board> <list> <card>
+    <board pattern> <list pattern> <card pattern>
 
 Patterns are simple regex pattern matches. You can specify simple patterns such as substrings too.
 
 ``tro`` then attempts to find the object(s) you requested using this process:
 
-* If the tool does not manage to find a match for one or more if the items specified, then it will display an appropriate error.
+* If ``tro`` does not manage to find a match for one or more if the items specified, then it will display an appropriate error.
 
-* If the tool manages to find a unique match for each of the items specified, then it will successfully display the object(s) you requested.
+* If ``tro`` manages to find a unique match for each of the items specified, then it will successfully display the object(s) you requested.
 
-* If one or more of the patterns are matched with multiple possible items, then the tool will fail to retrieve the object(s) you requested and do its best to explain why.
+* If ``tro`` finds any of the patterns are matched with multiple possible items, then the tool will be unable to precisely determine which object you were referring to and do its best to explain why.
 
-Commands
---------
+Usage Examples
+--------------
 
-Some examples of commands you can run:
+Some examples of how patterns can be specified. Say we have a board named "todo list" with two lists named "today" and "done".
 
-**Show all board names**
+We can show the entire board by just specifying a portion of the board name:
 
-::
+.. image:: assets/tro_show_board.png
+   :width: 400
 
-    $ tro show
-    * TODO
-    * Groceries
-    * Recipes
+If we want to only see a specific list within the board, we can specify a list pattern:
 
+.. image:: assets/tro_show_list.png
+   :width: 400
 
-**Show a specific board**
+If we want to edit a specific card, then we can also specify a card pattern. This will open our default editor (specified by the ``EDITOR`` environment variable) so that we can edit the contents of our card (example below is vim):
 
-::
+.. image:: assets/tro_show_card.png
+   :width: 400
 
-    $ tro show todo
-    TODO
-    ====
+A card which has contents can be easily spotted by the ``[...]`` marker when viewing a board or list:
 
-    Today
-    -----
-    * Wash Dishes
-    * Walk Dog
-    * Learn some Rust
+.. image:: assets/tro_card_contents.png
+   :width: 400
 
+Interactive Mode
+----------------
 
-**Create a new card**
+Most subcommands have an interactive mode that can be enabled by passing the ``--interactive`` or ``-i`` flag.
 
-::
-
-    $ tro create TODO Today
-    Card name: my new card
-
-OR
-
-::
-
-    $ tro show TODO Today -n
-    <your $EDITOR will open>
-
-**Edit an existing card**
-
-::
-
-    $ tro show TODO Today "my new card"
-    <your $EDITOR will open>
-
-**Close a card**
-
-::
-
-    $ tro close TODO Today "my new card"
-    Closed card 'my new card'
-
-**Show a url**
-
-::
-
-    $ tro url TODO
-    https://trello.com/b/9ftbid5U/todo
+Interactive mode provides a simple keyboard interface to choose relative items when possible.
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/tro.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/tro
