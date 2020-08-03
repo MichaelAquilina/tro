@@ -1,6 +1,11 @@
 use reqwest::{Url, UrlError};
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::fs;
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Client {
+    #[serde(default = "Client::default_host")]
     pub host: String,
     pub token: String,
     pub key: String,
@@ -13,6 +18,37 @@ impl Client {
             token: String::from(token),
             key: String::from(key),
         }
+    }
+
+    fn config_path() -> Result<String, Box<dyn Error>> {
+        let mut config_path = dirs::config_dir().ok_or("Unable to determine config directory")?;
+        config_path.push("tro/config.toml");
+
+        Ok(String::from(
+            config_path
+                .to_str()
+                .ok_or("Could not convert Path to string")?,
+        ))
+    }
+
+    pub fn save_config(&self) -> Result<(), Box<dyn Error>> {
+        let config_path = Client::config_path()?;
+        debug!("Saving configuration to {:?}", config_path);
+        fs::write(config_path, toml::to_string(self)?)?;
+
+        Ok(())
+    }
+
+    pub fn load_config() -> Result<Client, Box<dyn Error>> {
+        let config_path = Client::config_path()?;
+        debug!("Loading configuration from {:?}", config_path);
+        let contents = fs::read_to_string(config_path)?;
+
+        Ok(toml::from_str(&contents)?)
+    }
+
+    pub fn default_host() -> String {
+        String::from("https://api.trello.com")
     }
 
     /// Gets the resultant URL of the Trello Client given some path and additional
