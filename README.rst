@@ -72,7 +72,9 @@ If we want to only see a specific list within the board, we can specify a list p
 .. image:: assets/tro_show_list.png
    :width: 400
 
-If we want to edit a specific card, then we can also specify a card pattern. This will open our default editor (specified by the ``EDITOR`` environment variable) so that we can edit the contents of our card (example below is vim):
+If we want to edit a specific card, then we can also specify a card pattern. This will open our default editor (specified by the ``EDITOR`` environment variable) so that we can edit the contents of our card.
+
+For example, running ``tro show todo today rust`` would open vim:
 
 .. image:: assets/tro_show_card.png
    :width: 400
