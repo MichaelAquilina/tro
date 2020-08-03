@@ -149,19 +149,19 @@ pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         } else if let Some(list) = result.list {
             let mut cards = Card::get_all(client, &list.id)?;
 
-            for index in cli::multiselect_trello_object(&cards)? {
+            for index in cli::multiselect_trello_object(&cards, &[])? {
                 close_card(client, &mut cards[index])?;
             }
         } else if let Some(board) = result.board {
             let mut lists = List::get_all(client, &board.id, false)?;
 
-            for index in cli::multiselect_trello_object(&lists)? {
+            for index in cli::multiselect_trello_object(&lists, &[])? {
                 close_list(client, &mut lists[index])?;
             }
         } else {
             let mut boards = Board::get_all(client)?;
 
-            for index in cli::multiselect_trello_object(&boards)? {
+            for index in cli::multiselect_trello_object(&boards, &[])? {
                 close_board(client, &mut boards[index])?;
             }
         }
@@ -368,35 +368,39 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
     if delete {
         let labels = card_labels;
-        if interactive {
-            for index in cli::multiselect_trello_object(&labels)? {
-                delete_label(client, &card, &labels[index])?;
-            }
-        } else {
-            let label_names = label_names.ok_or("Label names must be specified")?;
+        let label_names = label_names.ok_or("Label names must be specified")?;
 
-            for name in label_names {
-                let label = match find::get_object_by_name(&labels, name, true) {
-                    Ok(l) => l,
-                    Err(e) => {
-                        eprintln!("{}", e);
-                        continue;
-                    }
-                };
+        for name in label_names {
+            let label = match find::get_object_by_name(&labels, name, true) {
+                Ok(l) => l,
+                Err(e) => {
+                    eprintln!("{}", e);
+                    continue;
+                }
+            };
 
-                delete_label(client, &card, &label)?;
-            }
+            delete_label(client, &card, &label)?;
         }
     } else {
         let board = result.board.ok_or("Unable to retrieve board")?;
-        let labels = Label::get_all(&client, &board.id)?
-            .into_iter()
-            .filter(|l| !card_labels.contains(&l))
-            .collect::<Vec<Label>>();
+        let labels = Label::get_all(&client, &board.id)?;
 
         if interactive {
-            for index in cli::multiselect_trello_object(&labels)? {
-                apply_label(client, &card, &labels[index])?;
+            let selected_labels = cli::multiselect_trello_object(&labels, card_labels)?
+                .into_iter()
+                .map(|i| &labels[i])
+                .collect::<Vec<&Label>>();
+
+            for label in &selected_labels {
+                if !card_labels.contains(label) {
+                    apply_label(client, &card, label)?;
+                }
+            }
+
+            for label in card_labels {
+                if !selected_labels.contains(&label) {
+                    delete_label(client, &card, label)?;
+                }
             }
         } else {
             let label_names = label_names.ok_or("Label names must be specified")?;

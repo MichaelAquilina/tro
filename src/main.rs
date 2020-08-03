@@ -89,7 +89,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg list_name: +required "List name to retrieve")
             (@arg card_name: +required "Card name to retrieve")
             (@arg label_name: required_unless("interactive") +multiple "Label name to apply")
-            (@arg delete: -d --delete "Delete specified label")
+            (@arg delete: -d --delete conflicts_with("interactive") "Delete specified label")
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg interactive: -i --interactive "Enables interactive mode")
         )
