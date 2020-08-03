@@ -1,6 +1,12 @@
 Changelog for tro
 =================
 
+2.2.0
+-----
+* Add setup subcommand
+* Provide default for host field in configuration file
+* Update dependencies
+
 2.1.0
 -----
 * Correctly calculate header widths with unicode text
