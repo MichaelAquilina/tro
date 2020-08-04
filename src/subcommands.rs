@@ -2,7 +2,9 @@ use crate::{cli, find};
 use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
-use trello::{search, Attachment, Board, Card, Client, Label, List, Renderable, SearchOptions};
+use trello::{
+    search, Attachment, Board, Card, Client, Label, List, Member, Renderable, SearchOptions,
+};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -28,7 +30,23 @@ pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
         token,
     };
 
-    client.save_config()?;
+    println!();
+
+    match Member::me(&client) {
+        Ok(member) => {
+            client.save_config()?;
+            println!(
+                "Successfully logged in as {} with tro!",
+                member.full_name.green()
+            );
+        }
+        Err(_) => {
+            println!(
+                "{}",
+                "Unable to validate credentials. Please re-check and try again".red()
+            );
+        }
+    };
 
     Ok(())
 }
