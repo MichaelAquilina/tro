@@ -6,7 +6,6 @@
 extern crate clap;
 #[macro_use]
 extern crate log;
-extern crate simplelog;
 
 #[cfg(test)]
 mod test_find;
