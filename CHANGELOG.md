@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.3.1
+-----
+* Fix crash in setup subcommand when config dir does not exist
+
 2.3.0
 -----
 * Validate provided credentials during setup
