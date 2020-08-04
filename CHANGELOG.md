@@ -1,6 +1,11 @@
 Changelog for tro
 =================
 
+2.3.0
+-----
+* Validate provided credentials during setup
+* Improved README
+
 2.2.0
 -----
 * Add setup subcommand
