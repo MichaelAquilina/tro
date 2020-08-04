@@ -47,6 +47,10 @@ fn start() -> Result<(), Box<dyn Error>> {
         (@subcommand setup =>
             (about: "Setup tro")
         )
+        (@subcommand me =>
+            (about: "Show currently logged in user")
+            (@arg detailed: -d --detailed "Display detailed information")
+        )
         (@subcommand show =>
             (about: "Show object contents")
             (@arg board_name: !required "Board Name to retrieve")
@@ -161,6 +165,8 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
 
     if matches.subcommand_matches("version").is_some() {
         eprintln!(env!("CARGO_PKG_VERSION"));
+    } else if let Some(matches) = matches.subcommand_matches("me") {
+        subcommands::me_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("show") {
         subcommands::show_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("search") {
