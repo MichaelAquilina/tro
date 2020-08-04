@@ -8,24 +8,6 @@ use trello::{
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-pub fn me_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
-    debug!("Running me subcommand with {:?}", matches);
-
-    let detailed = matches.is_present("detailed");
-
-    let member = Member::me(client)?;
-
-    if detailed {
-        println!("username: {}", member.username);
-        println!("full name: {}", member.full_name);
-        println!("id: {}", member.id);
-    } else {
-        println!("{}", member.username);
-    }
-
-    Ok(())
-}
-
 pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
     debug!("Running setup subcommand with {:?}", matches);
 
@@ -65,6 +47,24 @@ pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
             );
         }
     };
+
+    Ok(())
+}
+
+pub fn me_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+    debug!("Running me subcommand with {:?}", matches);
+
+    let detailed = matches.is_present("detailed");
+
+    let member = Member::me(client)?;
+
+    if detailed {
+        println!("username: {}", member.username);
+        println!("full name: {}", member.full_name);
+        println!("id: {}", member.id);
+    } else {
+        println!("{}", member.username);
+    }
 
     Ok(())
 }
