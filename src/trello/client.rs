@@ -2,6 +2,7 @@ use reqwest::{Url, UrlError};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
+use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Client {
@@ -20,20 +21,26 @@ impl Client {
         }
     }
 
-    fn config_path() -> Result<String, Box<dyn Error>> {
+    fn config_dir() -> Result<PathBuf, Box<dyn Error>> {
         let mut config_path = dirs::config_dir().ok_or("Unable to determine config directory")?;
-        config_path.push("tro/config.toml");
+        config_path.push("tro");
 
-        Ok(String::from(
-            config_path
-                .to_str()
-                .ok_or("Could not convert Path to string")?,
-        ))
+        Ok(config_path)
+    }
+
+    fn config_path() -> Result<PathBuf, Box<dyn Error>> {
+        let mut config_path = Self::config_dir()?;
+        config_path.push("config.toml");
+
+        Ok(config_path)
     }
 
     pub fn save_config(&self) -> Result<(), Box<dyn Error>> {
+        fs::create_dir_all(Self::config_dir()?)?;
+
         let config_path = Client::config_path()?;
         debug!("Saving configuration to {:?}", config_path);
+
         fs::write(config_path, toml::to_string(self)?)?;
 
         Ok(())
