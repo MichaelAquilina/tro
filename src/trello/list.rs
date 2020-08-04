@@ -1,14 +1,12 @@
 use crate::card::Card;
 use crate::client::Client;
 use crate::formatting::header;
-use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use anyhow::Result;
 use colored::*;
 use regex::RegexBuilder;
 use serde::Deserialize;
-
-type Result<T> = std::result::Result<T, TrelloError>;
 
 // https://developers.trello.com/reference/#list-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]

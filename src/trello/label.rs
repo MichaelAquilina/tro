@@ -1,11 +1,9 @@
 use crate::client::Client;
-use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use anyhow::Result;
 use colored::*;
 use serde::Deserialize;
-
-type Result<T> = std::result::Result<T, TrelloError>;
 
 // https://developers.trello.com/reference/#label-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]

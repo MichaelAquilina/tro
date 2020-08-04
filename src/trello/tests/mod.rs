@@ -7,9 +7,8 @@ mod test_list;
 mod test_search;
 
 use super::*;
+use anyhow::Result;
 use mockito;
 use serde_json::json;
 use std::io::Write;
 use tempfile::NamedTempFile;
-
-type Result<T> = std::result::Result<T, TrelloError>;

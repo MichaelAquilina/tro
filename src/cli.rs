@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use std::process;
 use std::{thread, time};
 use trello::Renderable;
-use trello::{Card, CardContents, Client, TrelloError, TrelloObject};
+use trello::{Card, CardContents, Client, TrelloObject};
 
 pub fn multiselect_trello_object<T: TrelloObject + Renderable + PartialEq>(
     objects: &[T],
@@ -78,7 +78,7 @@ pub fn edit_card(client: &Client, card: &Card) -> Result<()> {
         let mut editor = process::Command::new(&editor_env)
             .arg(file.path())
             .spawn()?;
-        let mut result: Option<Result<Card, TrelloError>> = None;
+        let mut result: Option<Result<Card>> = None;
 
         // Inner watch loop - look out for card changes to upload
         loop {
@@ -96,7 +96,7 @@ pub fn edit_card(client: &Client, card: &Card) -> Result<()> {
                     debug!("Unable to parse Card Contents: {}", e);
                     if let Some(ecode) = editor.try_wait()? {
                         debug!("Editor closed (code {}), exiting watch loop", ecode);
-                        result = Some(Err(e));
+                        result = Some(Err(e.into()));
                         break;
                     } else {
                         // no need to break watch loop, error might be corrected on next save

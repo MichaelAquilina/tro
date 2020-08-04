@@ -4,12 +4,11 @@ use crate::label::Label;
 use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use colored::Colorize;
 use serde::Deserialize;
 use std::str::FromStr;
-
-type Result<T> = std::result::Result<T, TrelloError>;
 
 // https://developer.atlassian.com/cloud/trello/guides/rest-api/object-definitions/#card-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
@@ -96,7 +95,7 @@ impl FromStr for CardContents {
     /// # }
     /// ```
     /// Invalid data will result in an appropriate error being returned.
-    fn from_str(value: &str) -> Result<CardContents> {
+    fn from_str(value: &str) -> Result<CardContents, TrelloError> {
         // this is guaranteed to give at least one result
         let mut contents = value.split('\n').collect::<Vec<&str>>();
         trace!("{:?}", contents);

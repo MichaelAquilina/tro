@@ -1,13 +1,11 @@
 use crate::client::Client;
 use crate::formatting::title;
 use crate::list::List;
-use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use anyhow::Result;
 use colored::*;
 use serde::Deserialize;
-
-type Result<T> = std::result::Result<T, TrelloError>;
 
 // https://developer.atlassian.com/cloud/trello/guides/rest-api/object-definitions/#board-object
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]

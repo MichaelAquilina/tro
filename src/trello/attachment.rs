@@ -1,11 +1,9 @@
 use crate::client::Client;
 use crate::formatting::header;
-use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
+use anyhow::Result;
 use serde::Deserialize;
-
-type Result<T> = std::result::Result<T, TrelloError>;
 
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]

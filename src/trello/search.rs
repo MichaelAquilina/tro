@@ -1,12 +1,10 @@
 use super::board::Board;
 use super::card::Card;
 use super::client::Client;
-use super::trello_error::TrelloError;
 use super::trello_object::TrelloObject;
 
+use anyhow::Result;
 use serde::Deserialize;
-
-type Result<T> = std::result::Result<T, TrelloError>;
 
 pub struct SearchOptions {
     pub partial: bool,
