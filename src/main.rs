@@ -58,6 +58,10 @@ fn start() -> Result<(), Box<dyn Error>> {
         )
         (@subcommand search =>
             (about: "Search Trello cards")
+            (long_about: "
+Searches Trello cards.
+See the link below for details about how to write queries when searching with Trello.
+https://help.trello.com/article/808-searching-for-cards-all-boards")
             (@arg query: +required +multiple "Trello Query String")
             (@arg partial: -p --partial "Allow partial matches")
             (@arg cards_limit: --limit +takes_value "Specify the max number of cards to return")
