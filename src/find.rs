@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::ArgMatches;
 use regex::RegexBuilder;
 use std::cmp::Ordering;
@@ -83,10 +84,7 @@ pub fn get_trello_params<'a>(matches: &'a ArgMatches) -> TrelloParams<'a> {
     }
 }
 
-pub fn get_trello_object(
-    client: &Client,
-    params: &TrelloParams,
-) -> Result<TrelloResult, Box<dyn std::error::Error>> {
+pub fn get_trello_object(client: &Client, params: &TrelloParams) -> Result<TrelloResult> {
     let board_name = match params.board_name {
         Some(bn) => bn,
         None => {
@@ -125,7 +123,7 @@ pub fn get_trello_object(
         } else {
             Err(Box::new(FindError::WildCard(
                 "Card name must be specified with list '-' wildcard".to_string(),
-            )))
+            )))?
         }
     } else if let Some(list_name) = params.list_name {
         let lists = &board.lists.as_ref().unwrap();

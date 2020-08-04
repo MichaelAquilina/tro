@@ -1,5 +1,5 @@
+use anyhow::Result;
 use std::env;
-use std::error::Error;
 use std::io::{Read, Write};
 use std::process;
 use std::{thread, time};
@@ -9,7 +9,7 @@ use trello::{Card, CardContents, Client, TrelloError, TrelloObject};
 pub fn multiselect_trello_object<T: TrelloObject + Renderable + PartialEq>(
     objects: &[T],
     selected: &[T],
-) -> Result<Vec<usize>, std::io::Error> {
+) -> Result<Vec<usize>> {
     let result = dialoguer::MultiSelect::new()
         .items_checked(
             &objects
@@ -62,7 +62,7 @@ pub fn get_input(text: &str) -> Result<String, rustyline::error::ReadlineError> 
 ///
 /// This function will upload any changes written by the editor to Trello. This includes
 /// when the editor is not closed but content is saved.
-pub fn edit_card(client: &Client, card: &Card) -> Result<(), Box<dyn Error>> {
+pub fn edit_card(client: &Client, card: &Card) -> Result<()> {
     let mut file = tempfile::Builder::new().suffix(".md").tempfile()?;
     let editor_env = env::var("EDITOR").unwrap_or_else(|_| String::from("vi"));
 

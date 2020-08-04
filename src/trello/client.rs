@@ -1,6 +1,6 @@
+use anyhow::Result;
 use reqwest::{Url, UrlError};
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 
@@ -21,21 +21,22 @@ impl Client {
         }
     }
 
-    fn config_dir() -> Result<PathBuf, Box<dyn Error>> {
-        let mut config_path = dirs::config_dir().ok_or("Unable to determine config directory")?;
+    fn config_dir() -> Result<PathBuf> {
+        let mut config_path =
+            dirs::config_dir().ok_or(anyhow!("Unable to determine config directory"))?;
         config_path.push("tro");
 
         Ok(config_path)
     }
 
-    fn config_path() -> Result<PathBuf, Box<dyn Error>> {
+    fn config_path() -> Result<PathBuf> {
         let mut config_path = Self::config_dir()?;
         config_path.push("config.toml");
 
         Ok(config_path)
     }
 
-    pub fn save_config(&self) -> Result<(), Box<dyn Error>> {
+    pub fn save_config(&self) -> Result<()> {
         fs::create_dir_all(Self::config_dir()?)?;
 
         let config_path = Client::config_path()?;
@@ -46,7 +47,7 @@ impl Client {
         Ok(())
     }
 
-    pub fn load_config() -> Result<Client, Box<dyn Error>> {
+    pub fn load_config() -> Result<Client> {
         let config_path = Client::config_path()?;
         debug!("Loading configuration from {:?}", config_path);
         let contents = fs::read_to_string(config_path)?;

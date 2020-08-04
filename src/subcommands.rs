@@ -1,12 +1,10 @@
 use crate::{cli, find};
+use anyhow::Result;
 use clap::ArgMatches;
 use colored::*;
-use std::error::Error;
 use trello::{
     search, Attachment, Board, Card, Client, Label, List, Member, Renderable, SearchOptions,
 };
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
     debug!("Running setup subcommand with {:?}", matches);
@@ -119,8 +117,10 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running open subcommand with {:?}", matches);
 
-    let id = matches.value_of("id").ok_or("Id not provided")?;
-    let object_type = matches.value_of("type").ok_or("type not provided")?;
+    let id = matches.value_of("id").ok_or(anyhow!("Id not provided"))?;
+    let object_type = matches
+        .value_of("type")
+        .ok_or(anyhow!("type not provided"))?;
 
     if object_type == "board" {
         debug!("Re-opening board with id {}", &id);
@@ -240,8 +240,10 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
         let card = Card::create(client, &list.id, &Card::new("", &name, "", None, "", None))?;
 
         if let Some(label_names) = matches.values_of("label") {
-            let labels =
-                Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
+            let labels = Label::get_all(
+                &client,
+                &result.board.ok_or(anyhow!("Unable to retrieve board"))?.id,
+            )?;
             for name in label_names {
                 let label = match find::get_object_by_name(&labels, name, true) {
                     Ok(l) => l,
@@ -284,7 +286,7 @@ pub fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<(
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let card = result.card.ok_or("Unable to find card")?;
+    let card = result.card.ok_or(anyhow!("Unable to find card"))?;
 
     let attachments = Attachment::get_all(client, &card.id)?;
 
@@ -303,7 +305,7 @@ pub fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
     let path = matches.value_of("path").unwrap();
 
-    let card = result.card.ok_or("Unable to find card")?;
+    let card = result.card.ok_or(anyhow!("Unable to find card"))?;
 
     let attachment = Attachment::apply(client, &card.id, path)?;
 
@@ -335,7 +337,7 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
     let query = matches
         .values_of("query")
-        .ok_or("Missing query value")?
+        .ok_or(anyhow!("Missing query value"))?
         .collect::<Vec<&str>>()
         .join(" ");
     let partial = matches.is_present("partial");
@@ -408,12 +410,15 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     let delete = matches.is_present("delete");
     let label_names = matches.values_of("label_name");
 
-    let card = result.card.ok_or("Unable to find card")?;
-    let card_labels = card.labels.as_ref().ok_or("Unable to get card labels")?;
+    let card = result.card.ok_or(anyhow!("Unable to find card"))?;
+    let card_labels = card
+        .labels
+        .as_ref()
+        .ok_or(anyhow!("Unable to get card labels"))?;
 
     if delete {
         let labels = card_labels;
-        let label_names = label_names.ok_or("Label names must be specified")?;
+        let label_names = label_names.ok_or(anyhow!("Label names must be specified"))?;
 
         for name in label_names {
             let label = match find::get_object_by_name(&labels, name, true) {
@@ -427,7 +432,7 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
             delete_label(client, &card, &label)?;
         }
     } else {
-        let board = result.board.ok_or("Unable to retrieve board")?;
+        let board = result.board.ok_or(anyhow!("Unable to retrieve board"))?;
         let labels = Label::get_all(&client, &board.id)?;
 
         if interactive {
@@ -448,7 +453,7 @@ pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
                 }
             }
         } else {
-            let label_names = label_names.ok_or("Label names must be specified")?;
+            let label_names = label_names.ok_or(anyhow!("Label names must be specified"))?;
 
             for name in label_names {
                 let label = match find::get_object_by_name(&labels, name, true) {
