@@ -1,6 +1,12 @@
 Changelog for tro
 =================
 
+2.4.0
+-----
+* Add me subcommand to show currently logged in user
+* Display helpful error message tro configuration can not be loaded
+* Add more detail to search subcommand help
+
 2.3.1
 -----
 * Fix crash in setup subcommand when config dir does not exist
