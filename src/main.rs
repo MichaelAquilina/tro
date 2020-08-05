@@ -14,6 +14,7 @@ mod cli;
 mod find;
 mod subcommands;
 
+use colored::*;
 use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::env;
 use std::error::Error;
@@ -158,7 +159,14 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         return Ok(());
     }
 
-    let client = Client::load_config()?;
+    let client = match Client::load_config() {
+        Ok(client) => client,
+        Err(_) => {
+            println!("Unable to load client configuration");
+            println!("Please run {}", "tro setup".green());
+            return Ok(());
+        }
+    };
 
     debug!("Loaded configuration: {:?}", client);
 
