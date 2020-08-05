@@ -27,7 +27,9 @@ impl Default for SearchOptions {
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
+    #[serde(default = "Vec::new")]
     pub cards: Vec<Card>,
+    #[serde(default = "Vec::new")]
     pub boards: Vec<Board>,
 }
 
