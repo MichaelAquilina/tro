@@ -348,13 +348,26 @@ pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+// Because clap interprets parameters that start with "-" as flags
+// we need to provide an alternative way for users to specify the
+// "negative" search operator. In this case, we allow for "~" to
+// be specified as the negative search operator
+fn replace_negative_prefix(query: &str) -> String {
+    if query.starts_with("~") {
+        query.replacen("~", "-", 1)
+    } else {
+        query.to_string()
+    }
+}
+
 pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     debug!("Running search subcommand with {:?}", matches);
 
     let query = matches
         .values_of("query")
         .ok_or("Missing query value")?
-        .collect::<Vec<&str>>()
+        .map(|s| replace_negative_prefix(s))
+        .collect::<Vec<String>>()
         .join(" ");
     let partial = matches.is_present("partial");
     let interactive = matches.is_present("interactive");
