@@ -150,6 +150,9 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
     .unwrap()])
     .unwrap();
 
+    // Escape code to re-show the cursor in case
+    // ctrl-c was pressed during an interactive prompt
+    // where the cursor is temporarily hidden
     ctrlc::set_handler(|| {
         println!("\x1b[?25h");
     })?;
