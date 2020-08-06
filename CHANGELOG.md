@@ -1,6 +1,12 @@
 Changelog for tro
 =================
 
+2.5.0
+-----
+* Improve performance for all subcommands by re-using reqwest Client
+* Fix bug where empty search results would crash tro
+* Allow use of negative operators in search using "~"
+
 2.4.0
 -----
 * Add me subcommand to show currently logged in user
