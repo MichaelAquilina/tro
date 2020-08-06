@@ -350,11 +350,11 @@ pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
 // Because clap interprets parameters that start with "-" as flags
 // we need to provide an alternative way for users to specify the
-// "negative" search operator. In this case, we allow for "~" to
+// "negative" search operator. In this case, we allow for '~' to
 // be specified as the negative search operator
 fn replace_negative_prefix(query: &str) -> String {
-    if query.starts_with("~") {
-        query.replacen("~", "-", 1)
+    if query.starts_with('~') {
+        query.replacen('~', "-", 1)
     } else {
         query.to_string()
     }
