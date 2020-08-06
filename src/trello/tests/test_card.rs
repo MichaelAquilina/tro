@@ -111,7 +111,9 @@ fn test_get() -> Result<()> {
         )
         .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = Card::get(&client, "CARD-FOO")?;
 
     let expected = Card::new(
@@ -145,7 +147,9 @@ fn test_create() -> Result<()> {
         )
         .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = Card::create(
         &client,
         "FOOBAR",
@@ -181,7 +185,8 @@ fn test_update() -> Result<()> {
         )
         .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
 
     let mut card = Card::new(
         "MY-CARD-ID",
@@ -228,7 +233,9 @@ fn test_get_all() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-secret-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = Card::get_all(&client, "DEADBEEF")?;
     let expected = vec![
         Card::new(

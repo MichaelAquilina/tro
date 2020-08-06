@@ -1,4 +1,4 @@
-use crate::client::Client;
+use crate::client::TrelloClient;
 use crate::formatting::title;
 use crate::list::List;
 use crate::trello_error::TrelloError;
@@ -77,18 +77,19 @@ impl Board {
     /// means one or more network requests in order to retrieve the data. The Board
     /// will be mutated to include all its associated lists. The lists will also in turn
     /// contain the associated card resources.
-    pub fn retrieve_nested(&mut self, client: &Client) -> Result<()> {
+    pub fn retrieve_nested(&mut self, client: &TrelloClient) -> Result<()> {
         self.lists = Some(List::get_all(client, &self.id, true)?);
 
         Ok(())
     }
 
-    pub fn create(client: &Client, name: &str) -> Result<Board> {
-        let url = client.get_trello_url("/1/boards/", &[])?;
+    pub fn create(client: &TrelloClient, name: &str) -> Result<Board> {
+        let url = client.config.get_trello_url("/1/boards/", &[])?;
 
         let params = [("name", name)];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .post(url)
             .form(&params)
             .send()?
@@ -96,12 +97,15 @@ impl Board {
             .json()?)
     }
 
-    pub fn open(client: &Client, board_id: &str) -> Result<Board> {
-        let url = client.get_trello_url(&format!("/1/boards/{}", &board_id), &[])?;
+    pub fn open(client: &TrelloClient, board_id: &str) -> Result<Board> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/boards/{}", &board_id), &[])?;
 
         let params = [("closed", "false")];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .put(url)
             .form(&params)
             .send()?
@@ -109,12 +113,15 @@ impl Board {
             .json()?)
     }
 
-    pub fn update(client: &Client, board: &Board) -> Result<Board> {
-        let url = client.get_trello_url(&format!("/1/boards/{}/", &board.id), &[])?;
+    pub fn update(client: &TrelloClient, board: &Board) -> Result<Board> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/boards/{}/", &board.id), &[])?;
 
         let params = [("name", &board.name), ("closed", &board.closed.to_string())];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .put(url)
             .form(&params)
             .send()?
@@ -122,8 +129,8 @@ impl Board {
             .json()?)
     }
 
-    pub fn get_all(client: &Client) -> Result<Vec<Board>> {
-        let url = client.get_trello_url(
+    pub fn get_all(client: &TrelloClient) -> Result<Vec<Board>> {
+        let url = client.config.get_trello_url(
             "/1/members/me/boards/",
             &[
                 ("filter", "open"),
@@ -131,15 +138,15 @@ impl Board {
             ],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 
-    pub fn get(client: &Client, board_id: &str) -> Result<Board> {
-        let url = client.get_trello_url(
+    pub fn get(client: &TrelloClient, board_id: &str) -> Result<Board> {
+        let url = client.config.get_trello_url(
             &format!("/1/boards/{}", board_id),
             &[("fields", &Board::get_fields().join(","))],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 }

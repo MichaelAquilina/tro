@@ -17,7 +17,9 @@ fn test_get_all() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "my-token", "sekret");
+    let config = ClientConfig::new(&mockito::server_url(), "my-token", "sekret");
+    let client = TrelloClient::new(config);
+
     let result = Attachment::get_all(&client, "FOO-CARD")?;
 
     let expected = [Attachment {
@@ -50,7 +52,8 @@ fn test_apply() -> Result<()> {
 
     let path = file1.path().to_str().unwrap();
 
-    let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
+    let config = ClientConfig::new(&mockito::server_url(), "TOKEN", "KEY");
+    let client = TrelloClient::new(config);
 
     let result = Attachment::apply(&client, "CARD-23", path)?;
 

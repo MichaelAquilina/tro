@@ -5,16 +5,31 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Client {
-    #[serde(default = "Client::default_host")]
+pub struct ClientConfig {
+    #[serde(default = "ClientConfig::default_host")]
     pub host: String,
     pub token: String,
     pub key: String,
 }
 
-impl Client {
-    pub fn new(host: &str, token: &str, key: &str) -> Client {
-        Client {
+#[derive(Debug)]
+pub struct TrelloClient {
+    pub config: ClientConfig,
+    pub client: reqwest::Client,
+}
+
+impl TrelloClient {
+    pub fn new(config: ClientConfig) -> Self {
+        TrelloClient {
+            config,
+            client: reqwest::Client::new(),
+        }
+    }
+}
+
+impl ClientConfig {
+    pub fn new(host: &str, token: &str, key: &str) -> Self {
+        ClientConfig {
             host: String::from(host),
             token: String::from(token),
             key: String::from(key),
@@ -38,7 +53,7 @@ impl Client {
     pub fn save_config(&self) -> Result<(), Box<dyn Error>> {
         fs::create_dir_all(Self::config_dir()?)?;
 
-        let config_path = Client::config_path()?;
+        let config_path = Self::config_path()?;
         debug!("Saving configuration to {:?}", config_path);
 
         fs::write(config_path, toml::to_string(self)?)?;
@@ -46,8 +61,8 @@ impl Client {
         Ok(())
     }
 
-    pub fn load_config() -> Result<Client, Box<dyn Error>> {
-        let config_path = Client::config_path()?;
+    pub fn load_config() -> Result<Self, Box<dyn Error>> {
+        let config_path = Self::config_path()?;
         debug!("Loading configuration from {:?}", config_path);
         let contents = fs::read_to_string(config_path)?;
 
@@ -58,23 +73,23 @@ impl Client {
         String::from("https://api.trello.com")
     }
 
-    /// Gets the resultant URL of the Trello Client given some path and additional
+    /// Gets the resultant URL of the Trello Config given some path and additional
     /// parameters. The authentication credentials provided will be included as part
     /// of the generated URL
     /// ```
     /// # use reqwest::UrlError;
     /// # fn main() -> Result<(), UrlError> {
-    /// let client = trello::Client {
+    /// let config = trello::ClientConfig {
     ///     host: String::from("https://api.trello.com"),
     ///     token: String::from("some-token"),
     ///     key: String::from("some-key"),
     /// };
-    /// let url = client.get_trello_url("/1/me/boards/", &[])?;
+    /// let url = config.get_trello_url("/1/me/boards/", &[])?;
     /// assert_eq!(
     ///     url.to_string(),
     ///     "https://api.trello.com/1/me/boards/?key=some-key&token=some-token"
     /// );
-    /// let url = client.get_trello_url("/1/boards/some-id/", &[("lists", "open")])?;
+    /// let url = config.get_trello_url("/1/boards/some-id/", &[("lists", "open")])?;
     /// assert_eq!(
     ///     url.to_string(),
     ///     "https://api.trello.com/1/boards/some-id/?key=some-key&token=some-token&lists=open",

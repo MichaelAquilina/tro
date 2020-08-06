@@ -65,7 +65,9 @@ fn test_create() -> Result<()> {
         )
         .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = List::create(&client, "LEONSK", "Today")?;
     let expected = List::new("MTLDA", "Today", None);
     assert_eq!(result, expected);
@@ -87,7 +89,8 @@ fn test_update() -> Result<()> {
         )
         .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
 
     let mut list = List::new("MY-LIST-ID", "Today", None);
     list.closed = true;
@@ -113,7 +116,9 @@ fn test_get_all() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = List::get_all(&client, "some-board-id", false)?;
     let expected = vec![
         List::new("823-123", "Red", None),
@@ -146,7 +151,9 @@ fn test_get_all_with_cards() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = List::get_all(&client, "some-board-id", true)?;
     let expected = vec![
         List::new("823-123", "Red", Some(vec![])),

@@ -19,7 +19,7 @@ mod tests;
 pub use attachment::Attachment;
 pub use board::Board;
 pub use card::{Card, CardContents};
-pub use client::Client;
+pub use client::{ClientConfig, TrelloClient};
 pub use formatting::{header, title};
 pub use label::Label;
 pub use list::List;

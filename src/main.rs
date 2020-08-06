@@ -19,7 +19,7 @@ use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
 use std::env;
 use std::error::Error;
 use std::process;
-use trello::Client;
+use trello::{ClientConfig, TrelloClient};
 
 fn main() {
     if let Err(error) = start() {
@@ -162,7 +162,7 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         return Ok(());
     }
 
-    let client = match Client::load_config() {
+    let config = match ClientConfig::load_config() {
         Ok(client) => client,
         Err(_) => {
             println!("Unable to load client configuration");
@@ -170,6 +170,7 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
             return Ok(());
         }
     };
+    let client = TrelloClient::new(config);
 
     debug!("Loaded configuration: {:?}", client);
 

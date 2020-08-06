@@ -2,7 +2,7 @@ use clap::ArgMatches;
 use regex::RegexBuilder;
 use std::cmp::Ordering;
 use thiserror::Error;
-use trello::{Board, Card, Client, List, TrelloObject};
+use trello::{Board, Card, List, TrelloClient, TrelloObject};
 
 #[derive(Debug, PartialEq, Error)]
 pub enum FindError {
@@ -84,7 +84,7 @@ pub fn get_trello_params<'a>(matches: &'a ArgMatches) -> TrelloParams<'a> {
 }
 
 pub fn get_trello_object(
-    client: &Client,
+    client: &TrelloClient,
     params: &TrelloParams,
 ) -> Result<TrelloResult, Box<dyn std::error::Error>> {
     let board_name = match params.board_name {

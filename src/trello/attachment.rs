@@ -1,4 +1,4 @@
-use crate::client::Client;
+use crate::client::TrelloClient;
 use crate::formatting::header;
 use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
@@ -16,21 +16,24 @@ pub struct Attachment {
 }
 
 impl Attachment {
-    pub fn get_all(client: &Client, card_id: &str) -> Result<Vec<Attachment>> {
-        let url = client.get_trello_url(
+    pub fn get_all(client: &TrelloClient, card_id: &str) -> Result<Vec<Attachment>> {
+        let url = client.config.get_trello_url(
             &format!("/1/cards/{}/attachments", card_id),
             &[("fields", &Attachment::get_fields().join(","))],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 
-    pub fn apply(client: &Client, card_id: &str, file: &str) -> Result<Attachment> {
-        let url = client.get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
+    pub fn apply(client: &TrelloClient, card_id: &str, file: &str) -> Result<Attachment> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
 
         let form = reqwest::multipart::Form::new().file("file", file)?;
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .post(url)
             .multipart(form)
             .send()?

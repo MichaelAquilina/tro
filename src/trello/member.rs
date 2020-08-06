@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::client::Client;
+use crate::client::TrelloClient;
 use crate::trello_error::TrelloError;
 
 type Result<T> = std::result::Result<T, TrelloError>;
@@ -14,9 +14,9 @@ pub struct Member {
 }
 
 impl Member {
-    pub fn me(client: &Client) -> Result<Member> {
-        let url = client.get_trello_url("/1/members/me/", &[])?;
+    pub fn me(client: &TrelloClient) -> Result<Member> {
+        let url = client.config.get_trello_url("/1/members/me/", &[])?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 }

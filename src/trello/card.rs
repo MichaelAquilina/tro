@@ -1,4 +1,4 @@
-use crate::client::Client;
+use crate::client::TrelloClient;
 use crate::formatting::header;
 use crate::label::Label;
 use crate::trello_error::TrelloError;
@@ -153,14 +153,16 @@ impl Card {
         }
     }
 
-    pub fn get(client: &Client, card_id: &str) -> Result<Card> {
-        let url = client.get_trello_url(&format!("/1/cards/{}", card_id), &[])?;
+    pub fn get(client: &TrelloClient, card_id: &str) -> Result<Card> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}", card_id), &[])?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 
-    pub fn create(client: &Client, list_id: &str, card: &Card) -> Result<Card> {
-        let url = client.get_trello_url("/1/cards/", &[])?;
+    pub fn create(client: &TrelloClient, list_id: &str, card: &Card) -> Result<Card> {
+        let url = client.config.get_trello_url("/1/cards/", &[])?;
 
         let params: [(&str, &str); 3] = [
             ("name", &card.name),
@@ -168,7 +170,8 @@ impl Card {
             ("idList", list_id),
         ];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .post(url)
             .form(&params)
             .send()?
@@ -176,12 +179,15 @@ impl Card {
             .json()?)
     }
 
-    pub fn open(client: &Client, card_id: &str) -> Result<Card> {
-        let url = client.get_trello_url(&format!("/1/cards/{}", &card_id), &[])?;
+    pub fn open(client: &TrelloClient, card_id: &str) -> Result<Card> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}", &card_id), &[])?;
 
         let params = [("closed", "false")];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .put(url)
             .form(&params)
             .send()?
@@ -189,8 +195,10 @@ impl Card {
             .json()?)
     }
 
-    pub fn update(client: &Client, card: &Card) -> Result<Card> {
-        let url = client.get_trello_url(&format!("/1/cards/{}/", &card.id), &[])?;
+    pub fn update(client: &TrelloClient, card: &Card) -> Result<Card> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}/", &card.id), &[])?;
 
         let params = [
             ("name", &card.name),
@@ -206,8 +214,8 @@ impl Card {
             .json()?)
     }
 
-    pub fn get_all(client: &Client, list_id: &str) -> Result<Vec<Card>> {
-        let url = client.get_trello_url(
+    pub fn get_all(client: &TrelloClient, list_id: &str) -> Result<Vec<Card>> {
+        let url = client.config.get_trello_url(
             &format!("/1/lists/{}/cards/", list_id),
             &[("fields", &Card::get_fields().join(","))],
         )?;
