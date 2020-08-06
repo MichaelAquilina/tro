@@ -1,5 +1,5 @@
 use crate::card::Card;
-use crate::client::Client;
+use crate::client::TrelloClient;
 use crate::formatting::header;
 use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
@@ -122,12 +122,13 @@ impl List {
         result
     }
 
-    pub fn create(client: &Client, board_id: &str, name: &str) -> Result<List> {
-        let url = client.get_trello_url("/1/lists/", &[])?;
+    pub fn create(client: &TrelloClient, board_id: &str, name: &str) -> Result<List> {
+        let url = client.config.get_trello_url("/1/lists/", &[])?;
 
         let params = [("name", name), ("idBoard", board_id)];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .post(url)
             .form(&params)
             .send()?
@@ -135,12 +136,15 @@ impl List {
             .json()?)
     }
 
-    pub fn open(client: &Client, list_id: &str) -> Result<List> {
-        let url = client.get_trello_url(&format!("/1/lists/{}", &list_id), &[])?;
+    pub fn open(client: &TrelloClient, list_id: &str) -> Result<List> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/lists/{}", &list_id), &[])?;
 
         let params = [("closed", "false")];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .put(url)
             .form(&params)
             .send()?
@@ -148,12 +152,15 @@ impl List {
             .json()?)
     }
 
-    pub fn update(client: &Client, list: &List) -> Result<List> {
-        let url = client.get_trello_url(&format!("/1/lists/{}/", &list.id), &[])?;
+    pub fn update(client: &TrelloClient, list: &List) -> Result<List> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/lists/{}/", &list.id), &[])?;
 
         let params = [("name", &list.name), ("closed", &list.closed.to_string())];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .put(url)
             .form(&params)
             .send()?
@@ -161,7 +168,7 @@ impl List {
             .json()?)
     }
 
-    pub fn get_all(client: &Client, board_id: &str, cards: bool) -> Result<Vec<List>> {
+    pub fn get_all(client: &TrelloClient, board_id: &str, cards: bool) -> Result<Vec<List>> {
         let fields = List::get_fields().join(",");
         let mut params = vec![("fields", fields.as_str())];
 
@@ -169,8 +176,10 @@ impl List {
             params.push(("cards", "open"));
         }
 
-        let url = client.get_trello_url(&format!("/1/boards/{}/lists", board_id), &params)?;
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/boards/{}/lists", board_id), &params)?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 }

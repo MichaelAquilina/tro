@@ -3,7 +3,8 @@ use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
 use trello::{
-    search, Attachment, Board, Card, Client, Label, List, Member, Renderable, SearchOptions,
+    search, Attachment, Board, Card, ClientConfig, Label, List, Member, Renderable, SearchOptions,
+    TrelloClient,
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -24,17 +25,19 @@ pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
     let key = cli::get_input("Enter Developer API Key: ")?;
     let token = cli::get_input("Enter Token: ")?;
 
-    let client = Client {
-        host: Client::default_host(),
+    let config = ClientConfig {
+        host: ClientConfig::default_host(),
         key,
         token,
     };
+
+    let client = TrelloClient::new(config);
 
     println!();
 
     match Member::me(&client) {
         Ok(member) => {
-            client.save_config()?;
+            client.config.save_config()?;
             println!(
                 "Successfully logged in as {} with tro!",
                 member.username.green()
@@ -51,7 +54,7 @@ pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn me_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn me_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running me subcommand with {:?}", matches);
 
     let detailed = matches.is_present("detailed");
@@ -69,7 +72,7 @@ pub fn me_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 
     let label_filter = matches.value_of("label_filter");
@@ -134,7 +137,7 @@ pub fn show_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn open_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running open subcommand with {:?}", matches);
 
     let id = matches.value_of("id").ok_or("Id not provided")?;
@@ -166,7 +169,7 @@ pub fn open_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 }
 
 // TODO: The three functions below can be generalised using traits
-fn close_board(client: &Client, board: &mut Board) -> Result<()> {
+fn close_board(client: &TrelloClient, board: &mut Board) -> Result<()> {
     board.closed = true;
     Board::update(client, board)?;
 
@@ -176,7 +179,7 @@ fn close_board(client: &Client, board: &mut Board) -> Result<()> {
     Ok(())
 }
 
-fn close_list(client: &Client, list: &mut List) -> Result<()> {
+fn close_list(client: &TrelloClient, list: &mut List) -> Result<()> {
     list.closed = true;
     List::update(client, list)?;
 
@@ -186,7 +189,7 @@ fn close_list(client: &Client, list: &mut List) -> Result<()> {
     Ok(())
 }
 
-fn close_card(client: &Client, card: &mut Card) -> Result<()> {
+fn close_card(client: &TrelloClient, card: &mut Card) -> Result<()> {
     card.closed = true;
     Card::update(client, card)?;
 
@@ -196,7 +199,7 @@ fn close_card(client: &Client, card: &mut Card) -> Result<()> {
     Ok(())
 }
 
-pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn close_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running close subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -239,7 +242,7 @@ pub fn close_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running create subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -296,7 +299,7 @@ pub fn create_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
 
     Ok(())
 }
-pub fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn attachments_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running attachments subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -313,7 +316,7 @@ pub fn attachments_subcommand(client: &Client, matches: &ArgMatches) -> Result<(
     Ok(())
 }
 
-pub fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn attach_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running attach subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -330,7 +333,7 @@ pub fn attach_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn url_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn url_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running url subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);
@@ -360,7 +363,7 @@ fn replace_negative_prefix(query: &str) -> String {
     }
 }
 
-pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn search_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running search subcommand with {:?}", matches);
 
     let query = matches
@@ -405,7 +408,7 @@ pub fn search_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn delete_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
+fn delete_label(client: &TrelloClient, card: &Card, label: &Label) -> Result<()> {
     Label::remove(client, &card.id, &label.id)?;
 
     eprintln!(
@@ -417,7 +420,7 @@ fn delete_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
     Ok(())
 }
 
-fn apply_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
+fn apply_label(client: &TrelloClient, card: &Card, label: &Label) -> Result<()> {
     Label::apply(client, &card.id, &label.id)?;
 
     eprintln!(
@@ -429,7 +432,7 @@ fn apply_label(client: &Client, card: &Card, label: &Label) -> Result<()> {
     Ok(())
 }
 
-pub fn label_subcommand(client: &Client, matches: &ArgMatches) -> Result<()> {
+pub fn label_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running label subcommand with {:?}", matches);
 
     let params = find::get_trello_params(matches);

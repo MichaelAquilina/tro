@@ -28,7 +28,9 @@ fn test_empty() -> Result<()> {
         partial: false,
     };
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = search(&client, "foo", &options)?;
 
     let expected = SearchResult {

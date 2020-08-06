@@ -117,7 +117,9 @@ fn test_create() -> Result<()> {
         )
         .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = Board::create(&client, "MYTESTBOARD")?;
     let expected = Board::new(
         "231dgfe4r343",
@@ -149,7 +151,8 @@ fn test_update() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
 
     let mut board = Board::new("MY-BOARD-ID", "TODO", None, "");
     board.closed = true;
@@ -176,7 +179,9 @@ fn test_get_all() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-secret-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-secret-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = Board::get_all(&client)?;
     let expected = vec![
         Board::new("abc-def", "TODO", None, "bit.ly/1"),
@@ -205,7 +210,9 @@ fn test_get() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "TOKEN", "KEY");
+    let config = ClientConfig::new(&mockito::server_url(), "TOKEN", "KEY");
+    let client = TrelloClient::new(config);
+
     let result = Board::get(&client, "some-board-id")?;
     let expected = Board::new(
         "some-board-id",

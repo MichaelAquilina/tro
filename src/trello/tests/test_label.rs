@@ -16,7 +16,9 @@ fn test_get_all() -> Result<()> {
     )
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
+
     let result = Label::get_all(&client, "123-456")?;
     let expected = vec![
         Label::new("1", "Tech", "purple"),
@@ -38,7 +40,8 @@ fn test_apply() -> Result<()> {
     .with_body(json!({}).to_string())
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
 
     Label::apply(&client, "SOME-CARD-ID", "MY-LABEL-ID")?;
 
@@ -54,7 +57,8 @@ fn test_remove() -> Result<()> {
     .with_status(200)
     .create();
 
-    let client = Client::new(&mockito::server_url(), "some-token", "some-key");
+    let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
+    let client = TrelloClient::new(config);
 
     Label::remove(&client, "FOO-CARD", "BAR-LABEL")?;
 

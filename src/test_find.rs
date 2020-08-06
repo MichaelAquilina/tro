@@ -1,6 +1,6 @@
 use crate::find::*;
 use std::error::Error;
-use trello::{Board, Card, Client, List};
+use trello::{Board, Card, ClientConfig, List, TrelloClient};
 
 type TestResult = Result<(), Box<dyn Error>>;
 
@@ -17,7 +17,8 @@ mod test_get_trello_object {
             card_name: None,
             ignore_case: false,
         };
-        let client = Client::new("", "", "");
+        let config = ClientConfig::new("", "", "");
+        let client = TrelloClient::new(config);
 
         let result = get_trello_object(&client, &params)?;
         let expected = TrelloResult {
@@ -64,7 +65,8 @@ mod test_get_trello_object {
             card_name: None,
             ignore_case: true,
         };
-        let client = Client::new(&mockito::server_url(), "token", "key");
+        let config = ClientConfig::new(&mockito::server_url(), "token", "key");
+        let client = TrelloClient::new(config);
 
         let result = get_trello_object(&client, &params)?;
         let expected = TrelloResult {

@@ -1,4 +1,4 @@
-use crate::client::Client;
+use crate::client::TrelloClient;
 use crate::trello_error::TrelloError;
 use crate::trello_object::{Renderable, TrelloObject};
 
@@ -52,10 +52,10 @@ impl Label {
         }
     }
 
-    pub fn get_all(client: &Client, board_id: &str) -> Result<Vec<Label>> {
+    pub fn get_all(client: &TrelloClient, board_id: &str) -> Result<Vec<Label>> {
         let fields = Label::get_fields().join(",");
 
-        let url = client.get_trello_url(
+        let url = client.config.get_trello_url(
             &format!("/1/boards/{}/labels", board_id),
             &[("fields", &fields)],
         )?;
@@ -63,24 +63,25 @@ impl Label {
         Ok(reqwest::get(url)?.error_for_status()?.json()?)
     }
 
-    pub fn remove(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
-        let url =
-            client.get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
+    pub fn remove(client: &TrelloClient, card_id: &str, label_id: &str) -> Result<()> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}/idLabels/{}", card_id, label_id), &[])?;
 
-        reqwest::Client::new()
-            .delete(url)
-            .send()?
-            .error_for_status()?;
+        client.client.delete(url).send()?.error_for_status()?;
 
         Ok(())
     }
 
-    pub fn apply(client: &Client, card_id: &str, label_id: &str) -> Result<()> {
-        let url = client.get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
+    pub fn apply(client: &TrelloClient, card_id: &str, label_id: &str) -> Result<()> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}/idLabels", card_id), &[])?;
 
         let params = [("value", label_id)];
 
-        reqwest::Client::new()
+        client
+            .client
             .post(url)
             .form(&params)
             .send()?

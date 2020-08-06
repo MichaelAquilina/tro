@@ -1,6 +1,6 @@
 use super::board::Board;
 use super::card::Card;
-use super::client::Client;
+use super::client::TrelloClient;
 use super::trello_error::TrelloError;
 use super::trello_object::TrelloObject;
 
@@ -35,7 +35,11 @@ pub struct SearchResult {
 
 /// Implements the Trello Search API
 /// https://developer.atlassian.com/cloud/trello/rest/api-group-search/#api-search-get
-pub fn search(client: &Client, search_term: &str, options: &SearchOptions) -> Result<SearchResult> {
+pub fn search(
+    client: &TrelloClient,
+    search_term: &str,
+    options: &SearchOptions,
+) -> Result<SearchResult> {
     let partial = options.partial.to_string();
     let card_fields = Card::get_fields().join(",");
     let board_fields = Board::get_fields().join(",");
@@ -60,7 +64,7 @@ pub fn search(client: &Client, search_term: &str, options: &SearchOptions) -> Re
         params.push(("boards_limit", &boards_limit));
     }
 
-    let url = client.get_trello_url("/1/search/", &params)?;
+    let url = client.config.get_trello_url("/1/search/", &params)?;
 
-    Ok(reqwest::get(url)?.error_for_status()?.json()?)
+    Ok(client.client.get(url).send()?.error_for_status()?.json()?)
 }
