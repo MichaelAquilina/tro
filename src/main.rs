@@ -155,6 +155,7 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
     // where the cursor is temporarily hidden
     ctrlc::set_handler(|| {
         println!("\x1b[?25h");
+        process::exit(2);
     })?;
 
     if let Some(matches) = matches.subcommand_matches("setup") {
