@@ -60,7 +60,7 @@ impl Label {
             &[("fields", &fields)],
         )?;
 
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 
     pub fn remove(client: &TrelloClient, card_id: &str, label_id: &str) -> Result<()> {

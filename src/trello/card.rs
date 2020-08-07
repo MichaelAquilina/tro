@@ -206,7 +206,8 @@ impl Card {
             ("closed", &card.closed.to_string()),
         ];
 
-        Ok(reqwest::Client::new()
+        Ok(client
+            .client
             .put(url)
             .form(&params)
             .send()?
@@ -219,6 +220,6 @@ impl Card {
             &format!("/1/lists/{}/cards/", list_id),
             &[("fields", &Card::get_fields().join(","))],
         )?;
-        Ok(reqwest::get(url)?.error_for_status()?.json()?)
+        Ok(client.client.get(url).send()?.error_for_status()?.json()?)
     }
 }
