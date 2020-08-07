@@ -1,6 +1,11 @@
 Changelog for tro
 =================
 
+2.5.1
+-----
+* Fix some cases where reqwest Client was not being re-used
+* Exit with code 2 when exiting with ctrl-c
+
 2.5.0
 -----
 * Improve performance for all subcommands by re-using reqwest Client
