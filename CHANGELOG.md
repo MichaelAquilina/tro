@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.6.1
+-----
+* Fix minor issue in Cargo.toml which prevented upload to crates.io
+
 2.6.0
 -----
 * Remove extra call to trello API in show subcommand for better performance

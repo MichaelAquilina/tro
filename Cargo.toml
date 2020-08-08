@@ -1,6 +1,6 @@
 [package]
 name = "tro"
-version = "2.6.0"
+version = "2.6.1"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
 edition = "2018"
 description = "A Trello API client for the command line"
@@ -24,7 +24,7 @@ path = "src/main.rs"
 dirs = "2.0.2"
 toml = "0.5.5"
 reqwest = { version = "0.10.7", features = ["json", "blocking"] }
-url = "*"
+url = "2.1.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 clap = "2.33.0"
