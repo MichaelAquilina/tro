@@ -1,6 +1,11 @@
 Changelog for tro
 =================
 
+2.6.0
+-----
+* Remove extra call to trello API in show subcommand for better performance
+* Upgrade underlying reqwests library to 0.10.7
+
 2.5.1
 -----
 * Fix some cases where reqwest Client was not being re-used
