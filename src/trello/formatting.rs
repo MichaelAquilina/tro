@@ -1,12 +1,11 @@
 use unicode_width::UnicodeWidthStr;
 
 pub fn title(text: &str) -> String {
-    let border = "═".repeat(UnicodeWidthStr::width(text));
+    let border = "=".repeat(UnicodeWidthStr::width(text));
 
     [
-        format!("╔═{}═╗", border),
-        format!("║ {} ║", text),
-        format!("╚═{}═╝", border),
+        format!(" {} ", text),
+        format!("={}=", border),
     ]
     .join("\n")
 }

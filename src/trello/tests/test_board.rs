@@ -20,9 +20,8 @@ fn test_render_no_lists() {
     let board = Board::new("", "Knights", None, "");
     #[rustfmt::skip]
     let expected = [
-        "╔═════════╗",
-        "║ Knights ║",
-        "╚═════════╝",
+        " Knights ",
+        "=========",
     ].join("\n").bold().to_string();
     assert_eq!(board.render(), expected);
 }
@@ -41,9 +40,8 @@ fn test_render_lists() {
     #[rustfmt::skip]
     let expected = [
         [
-            "╔═════════╗",
-            "║ Knights ║",
-            "╚═════════╝",
+            " Knights ",
+            "=========",
         ].join("\n").bold().to_string(),
         String::from(""),
         [
@@ -81,9 +79,8 @@ fn test_render_lists_and_cards() {
     #[rustfmt::skip]
     let expected = [
         [
-            "╔═════════╗",
-            "║ Knights ║",
-            "╚═════════╝",
+            " Knights ",
+            "=========",
         ].join("\n").bold().to_string(),
         String::from(""),
         [
