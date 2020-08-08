@@ -78,8 +78,12 @@ impl Board {
     /// will be mutated to include all its associated lists. The lists will also in turn
     /// contain the associated card resources.
     pub fn retrieve_nested(&mut self, client: &TrelloClient) -> Result<()> {
-        self.lists = Some(List::get_all(client, &self.id, true)?);
-
+        if self.lists.is_none() {
+            debug!("Retrieving nested data for board: {}", self.id);
+            self.lists = Some(List::get_all(client, &self.id, true)?);
+        } else {
+            debug!("No need to retrieve nested data");
+        }
         Ok(())
     }
 

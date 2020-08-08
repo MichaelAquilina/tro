@@ -116,8 +116,8 @@ pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
             None => list,
         };
         println!("{}", list.render());
-    } else if let Some(mut board) = result.board {
-        board.retrieve_nested(client)?;
+    } else if let Some(board) = result.board {
+        debug!("Board pattern detected");
         let board = match label_filter {
             Some(label_filter) => board.filter(label_filter),
             None => board,
