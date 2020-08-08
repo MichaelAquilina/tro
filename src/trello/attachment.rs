@@ -30,7 +30,7 @@ impl Attachment {
             .config
             .get_trello_url(&format!("/1/cards/{}/attachments", card_id), &[])?;
 
-        let form = reqwest::multipart::Form::new().file("file", file)?;
+        let form = reqwest::blocking::multipart::Form::new().file("file", file)?;
 
         Ok(client
             .client
