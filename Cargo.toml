@@ -23,7 +23,8 @@ path = "src/main.rs"
 [dependencies]
 dirs = "2.0.2"
 toml = "0.5.5"
-reqwest = "0.9.24"
+reqwest = { version = "0.10.7", features = ["json", "blocking"] }
+url = "*"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 clap = "2.33.0"

@@ -1,4 +1,3 @@
-use reqwest::{Url, UrlError};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
@@ -15,14 +14,14 @@ pub struct ClientConfig {
 #[derive(Debug)]
 pub struct TrelloClient {
     pub config: ClientConfig,
-    pub client: reqwest::Client,
+    pub client: reqwest::blocking::Client,
 }
 
 impl TrelloClient {
     pub fn new(config: ClientConfig) -> Self {
         TrelloClient {
             config,
-            client: reqwest::Client::new(),
+            client: reqwest::blocking::Client::new(),
         }
     }
 }
@@ -77,8 +76,7 @@ impl ClientConfig {
     /// parameters. The authentication credentials provided will be included as part
     /// of the generated URL
     /// ```
-    /// # use reqwest::UrlError;
-    /// # fn main() -> Result<(), UrlError> {
+    /// # fn main() -> Result<(), url::ParseError> {
     /// let config = trello::ClientConfig {
     ///     host: String::from("https://api.trello.com"),
     ///     token: String::from("some-token"),
@@ -97,10 +95,14 @@ impl ClientConfig {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get_trello_url(&self, path: &str, params: &[(&str, &str)]) -> Result<Url, UrlError> {
+    pub fn get_trello_url(
+        &self,
+        path: &str,
+        params: &[(&str, &str)],
+    ) -> Result<url::Url, url::ParseError> {
         let auth_params: &[(&str, &str)] = &[("key", &self.key), ("token", &self.token)];
 
-        Ok(Url::parse_with_params(
+        Ok(url::Url::parse_with_params(
             &format!("{}{}", self.host, path),
             &[auth_params, params].concat(),
         )?)
