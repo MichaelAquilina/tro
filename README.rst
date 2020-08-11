@@ -8,6 +8,9 @@ TRO
 .. image:: assets/tro_show_board.png
    :width: 400
 
+> NOTE that tro is still considered to be in development. Expect things to change suddenly and without warning
+> until this notice is removed!
+
 Installation
 ------------
 
