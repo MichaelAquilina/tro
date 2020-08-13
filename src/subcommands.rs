@@ -253,6 +253,26 @@ pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
     trace!("result: {:?}", result);
 
     if let Some(list) = result.list {
+        let labels_to_apply = if let Some(label_names) = matches.values_of("label") {
+            let mut target_labels = vec![];
+            let labels =
+                Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
+
+            for name in label_names {
+                match find::get_object_by_name(&labels, name, true) {
+                    // TODO: Cloning below is not great. The entire thing feels quite messy
+                    Ok(l) => target_labels.push(l.clone()),
+                    Err(e) => {
+                        eprintln!("{}", e);
+                        return Ok(());
+                    }
+                };
+            }
+            target_labels
+        } else {
+            vec![]
+        };
+
         let name = match matches.value_of("name") {
             Some(n) => String::from(n),
             None => cli::get_input("Card name: ")?,
@@ -260,22 +280,11 @@ pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
 
         let card = Card::create(client, &list.id, &Card::new("", &name, "", None, "", None))?;
 
-        if let Some(label_names) = matches.values_of("label") {
-            let labels =
-                Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
-            for name in label_names {
-                let label = match find::get_object_by_name(&labels, name, true) {
-                    Ok(l) => l,
-                    Err(e) => {
-                        eprintln!("{}", e);
-                        continue;
-                    }
-                };
-                match Label::apply(client, &card.id, &label.id) {
-                    Ok(_) => eprintln!("Applied {} label", &label.simple_render(),),
-                    Err(e) => eprintln!("Unable to apply {} label: {}", &label.simple_render(), e),
-                };
-            }
+        for label in labels_to_apply {
+            match Label::apply(client, &card.id, &label.id) {
+                Ok(_) => eprintln!("Applied {} label", &label.simple_render(),),
+                Err(e) => eprintln!("Unable to apply {} label: {}", &label.simple_render(), e),
+            };
         }
 
         if show {
