@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.7.0
+-----
+* Fail create subcommand earlier if labels specified are not found
+
 2.6.1
 -----
 * Fix minor issue in Cargo.toml which prevented upload to crates.io
