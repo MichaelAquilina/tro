@@ -34,12 +34,14 @@ Available Subcommands
 * show: Show an object (Board, List or Card)
 * search: Search for Trello cards
 * create: Create an object
+* move: Move a card from one list to another
 * open: Open an object that has been closed
 * close: Close an object
 * label: Apply or remove a label on a card
 * url: Display the url of an object
 * attach: Attach a file to a Card
 * attachments: View attachments on a Card
+* me: display currently logged in user
 
 How it works
 ------------
@@ -50,9 +52,9 @@ Most of the subcommands in this tool work by specifying one or more patterns in 
 
     <board pattern> <list pattern> <card pattern>
 
-Patterns are simple regex pattern matches. You can specify simple patterns such as substrings too.
+A pattern is any valid regex pattern. You can specify simple patterns such as just specifying a substring too.
 
-``tro`` then attempts to find the object(s) you requested using this process:
+``tro`` then attempts to match the pattern you supplied with the available object(s):
 
 * If ``tro`` does not manage to find a match for one or more if the items specified, then it will display an appropriate error.
 
@@ -60,10 +62,8 @@ Patterns are simple regex pattern matches. You can specify simple patterns such 
 
 * If ``tro`` finds any of the patterns are matched with multiple possible items, then the tool will be unable to precisely determine which object you were referring to and do its best to explain why.
 
-Usage Examples
---------------
-
-Here are some examples of how patterns can be used in subcommands.
+Usage Example
+-------------
 
 Say we have a board named "TODO" with two lists named "today" and "done".
 
@@ -93,12 +93,47 @@ A card which has contents can be easily spotted by the ``[...]`` marker when vie
 .. image:: assets/tro_card_contents.png
    :width: 400
 
+Subcommands
+===========
+
+This section will explain some of the more useful subcommands in detail
+
+Search Command
+``````````````
+
+You can perform a search for cards using Trello's `search syntax`_
+
+For example:
+
+::
+
+    $ tro search dog bones is:open
+    Dig up some dog bones [...] id: 5ed78889acdaf970289ac894
+    walk the dog id: 5da72eed111e6a56d3407e0b
+
+All operators in the standard Trello search syntax are supported. For example if we want cards which
+only have descriptions:
+
+::
+
+    $ tro search dog bones is:open has:description
+    Dig up some dog bones [...] id: 5ed78889acdaf970289ac894
+
+If you wish to use the negative operator, use ``~`` instead of ``-``.
+
+::
+
+    $ tro search dog bones is:open ~has:description
+    walk the dog id: 5da72eed111e6a56d3407e0b
+
 Interactive Mode
 ----------------
 
 Most subcommands have an interactive mode that can be enabled by passing the ``--interactive`` or ``-i`` flag.
 
 Interactive mode provides a simple keyboard interface to choose relative items when possible.
+
+.. _`search syntax`: https://help.trello.com/article/808-searching-for-cards-all-boards
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/tro.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/tro
