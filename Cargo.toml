@@ -1,6 +1,6 @@
 [package]
 name = "tro"
-version = "2.7.0"
+version = "2.8.0"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
 edition = "2018"
 description = "A Trello API client for the command line"

@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.8.0
+-----
+* Add the move subcommand for moving to a different list in the same board
+
 2.7.0
 -----
 * Fail create subcommand earlier if labels specified are not found
