@@ -60,6 +60,13 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg label_filter: -f --filter +takes_value "Filter by label")
             (@arg interactive: -i --interactive "Enables interactive mode")
         )
+        (@subcommand move =>
+            (about: "Move a card to a different list")
+            (@arg board_name: +required "Board Name")
+            (@arg list_name: +required "List Name")
+            (@arg card_name: +required "Card Name")
+            (@arg new_list_name: +required "New List Name")
+        )
         (@subcommand search =>
             (about: "Search Trello cards")
             (long_about: "
@@ -181,6 +188,8 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         subcommands::me_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("show") {
         subcommands::show_subcommand(&client, &matches)?;
+    } else if let Some(matches) = matches.subcommand_matches("move") {
+        subcommands::move_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("search") {
         subcommands::search_subcommand(&client, &matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attach") {

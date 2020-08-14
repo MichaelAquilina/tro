@@ -137,6 +137,38 @@ pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
     Ok(())
 }
 
+pub fn move_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
+    debug!("Running move subcommand with {:?}", matches);
+
+    let params = find::get_trello_params(matches);
+    let result = find::get_trello_object(client, &params)?;
+
+    let new_list_name = matches
+        .value_of("new_list_name")
+        .ok_or("Missing new list name")?;
+
+    let board = result.board.ok_or("Unable to retrieve board")?;
+    let card = result.card.ok_or("Unable to retrieve card")?;
+    let list = result
+        .list
+        .ok_or("Unable to retrieve list. Wildcards are currently unsupported with move")?;
+
+    let board_lists = board.lists.as_ref().ok_or("Missing target board lists")?;
+
+    let new_list = find::get_object_by_name(board_lists, new_list_name, true)?;
+
+    Card::change_list(client, &card.id, &new_list.id)?;
+
+    println!(
+        "Moved '{}' from '{}' to '{}'",
+        card.name.green(),
+        list.name.green(),
+        new_list.name.green()
+    );
+
+    Ok(())
+}
+
 pub fn open_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running open subcommand with {:?}", matches);
 

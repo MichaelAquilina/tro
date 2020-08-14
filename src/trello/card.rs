@@ -215,6 +215,24 @@ impl Card {
             .json()?)
     }
 
+    // Moves a card to the list with the specified id
+    pub fn change_list(client: &TrelloClient, card_id: &str, list_id: &str) -> Result<()> {
+        let url = client
+            .config
+            .get_trello_url(&format!("/1/cards/{}/", card_id), &[])?;
+
+        let params = [("idList", list_id)];
+
+        client
+            .client
+            .put(url)
+            .form(&params)
+            .send()?
+            .error_for_status()?;
+
+        Ok(())
+    }
+
     pub fn get_all(client: &TrelloClient, list_id: &str) -> Result<Vec<Card>> {
         let url = client.config.get_trello_url(
             &format!("/1/lists/{}/cards/", list_id),
