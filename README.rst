@@ -1,3 +1,4 @@
+===
 TRO
 ===
 
@@ -12,7 +13,7 @@ TRO
 > until this notice is removed!
 
 Installation
-------------
+============
 
 Currently, the only way to install is through cargo
 
@@ -21,14 +22,14 @@ Currently, the only way to install is through cargo
    cargo install tro
 
 Setup
------
+=====
 
 Run ``tro setup`` to setup tro for the first time.
 
 Take a look at ``tro --help`` for a list of all available subcommands after that.
 
 Available Subcommands
----------------------
+=====================
 
 * setup: Setup tro for the first time
 * show: Show an object (Board, List or Card)
@@ -44,7 +45,7 @@ Available Subcommands
 * me: display currently logged in user
 
 How it works
-------------
+============
 
 Most of the subcommands in this tool work by specifying one or more patterns in the form of:
 
@@ -63,7 +64,7 @@ A pattern is any valid regex pattern. You can specify simple patterns such as ju
 * If ``tro`` finds any of the patterns are matched with multiple possible items, then the tool will be unable to precisely determine which object you were referring to and do its best to explain why.
 
 Usage Example
--------------
+=============
 
 Say we have a board named "TODO" with two lists named "today" and "done".
 
@@ -99,7 +100,7 @@ Subcommands
 This section will explain some of the more useful subcommands in detail
 
 Search Command
-``````````````
+--------------
 
 You can perform a search for cards using Trello's Search_ syntax
 
@@ -127,7 +128,7 @@ If you wish to use the negative operator, use ``~`` instead of ``-``.
     walk the dog id: 5da72eed111e6a56d3407e0b
 
 Interactive Mode
-----------------
+================
 
 Most subcommands have an interactive mode that can be enabled by passing the ``--interactive`` or ``-i`` flag.
 
