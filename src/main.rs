@@ -133,6 +133,7 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
             (@arg name: +takes_value --name -n "Specify the name of the object being created without a prompt")
         )
     )
+    .global_setting(clap::AppSettings::ColoredHelp)
     .get_matches();
 
     let log_level = match matches
