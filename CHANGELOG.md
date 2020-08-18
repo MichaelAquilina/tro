@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.9.0
+-----
+* Enable colour output for command help
+
 2.8.0
 -----
 * Add the move subcommand for moving to a different list in the same board
