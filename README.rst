@@ -101,7 +101,7 @@ This section will explain some of the more useful subcommands in detail
 Search Command
 ``````````````
 
-You can perform a search for cards using Trello's `search syntax`_
+You can perform a search for cards using Trello's Search_ syntax
 
 For example:
 
@@ -133,7 +133,7 @@ Most subcommands have an interactive mode that can be enabled by passing the ``-
 
 Interactive mode provides a simple keyboard interface to choose relative items when possible.
 
-.. _`search syntax`: https://help.trello.com/article/808-searching-for-cards-all-boards
+.. _Search: https://help.trello.com/article/808-searching-for-cards-all-boards
 
 .. |CircleCI| image:: https://circleci.com/gh/MichaelAquilina/tro.svg?style=svg
    :target: https://circleci.com/gh/MichaelAquilina/tro
