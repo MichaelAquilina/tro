@@ -503,7 +503,8 @@ pub fn label_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<(
         }
     } else {
         let board = result.board.ok_or("Unable to retrieve board")?;
-        let labels = Label::get_all(&client, &board.id)?;
+        let mut labels = Label::get_all(&client, &board.id)?;
+        labels.sort_by_cached_key(|l| l.name.clone());
 
         if interactive {
             let selected_labels = cli::multiselect_trello_object(&labels, card_labels)?
