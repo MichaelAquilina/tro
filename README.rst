@@ -99,6 +99,44 @@ Subcommands
 
 This section will explain some of the more useful subcommands in detail
 
+Create Command
+--------------
+
+Create a Board, List or Card.
+
+To create a new board, specify no patterns with ``create``.
+
+::
+
+    $ tro create
+    Board name: TODO
+
+To create a new list within a board, specify the board which the list will belong to as a pattern.
+
+::
+
+    $ tro create TODO
+    List name: Today
+
+To create a new card within a list, specify the board and the list
+which the card will belong to as the two patterns:
+
+::
+
+    $ tro create TODO today
+    Card name: Walk the dog
+
+When creating a card, you can specify the ``--show`` flag to immediately edit the card once it has been created.
+
+You can also specify one or more labels to assign to a card with
+the ``--label`` flag.
+
+::
+
+     $ tro create TODO today --label fun
+     Card name: Walk the dog
+     Applied  Fun Times  label
+
 Search Command
 --------------
 
