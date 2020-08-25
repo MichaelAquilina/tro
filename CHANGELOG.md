@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.9.1
+-----
+* Fix correct label color for "Sky" label
+
 2.9.0
 -----
 * Enable colour output for command help
