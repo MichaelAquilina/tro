@@ -98,7 +98,7 @@ fn map_color(color: &str) -> Color {
         "sky" => Color::TrueColor {
             r: 0x00,
             g: 0xc2,
-            b: 0x0e,
+            b: 0xe0,
         },
         "lime" => Color::TrueColor {
             r: 0x51,
