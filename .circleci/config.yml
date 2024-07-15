@@ -3,7 +3,7 @@ version: 2
 jobs:
   rustfmt:
     docker:
-      - image: "circleci/rust:1.79"
+      - image: "rust:1.79"
     steps:
       - checkout
       - run:
@@ -16,7 +16,7 @@ jobs:
 
   clippy:
     docker:
-      - image: "circleci/rust:1.79"
+      - image: "rust:1.79"
     steps:
       - checkout
       - restore_cache:
@@ -36,7 +36,7 @@ jobs:
 
   test:
     docker:
-      - image: "circleci/rust:1.79"
+      - image: "rust:1.79"
     steps:
       - checkout
       - restore_cache:
