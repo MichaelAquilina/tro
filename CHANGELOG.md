@@ -1,6 +1,10 @@
 Changelog for tro
 =================
 
+2.10.0
+------
+    * Add --no-headers flag to show subcommand
+
 2.9.1
 -----
 * Fix correct label color for "Sky" label
