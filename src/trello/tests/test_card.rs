@@ -244,7 +244,7 @@ fn test_get_all() -> Result<()> {
             "",
             None,
             "",
-            Some(Utc.ymd(2020, 6, 28).and_hms(6, 6, 27)),
+            Utc.with_ymd_and_hms(2020, 6, 28, 6, 6, 27).single(),
         ),
         Card::new(
             "123-456",
@@ -252,7 +252,7 @@ fn test_get_all() -> Result<()> {
             "for a good boy",
             None,
             "",
-            Some(Utc.ymd(2020, 6, 28).and_hms(6, 6, 27)),
+            Utc.with_ymd_and_hms(2020, 6, 28, 6, 6, 27).single(),
         ),
     ];
 
