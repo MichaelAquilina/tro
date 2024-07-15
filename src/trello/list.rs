@@ -35,9 +35,12 @@ impl TrelloObject for List {
 }
 
 impl Renderable for List {
-    fn render(&self) -> String {
+    fn render(&self, headers: bool) -> String {
         let title = header(&self.name, "-").bold().to_string();
-        let mut result: Vec<String> = vec![title];
+        let mut result: Vec<String> = match headers {
+            true => vec![title],
+            false => vec![],
+        };
         if let Some(cards) = &self.cards {
             for c in cards {
                 result.push(format!("* {}", c.simple_render()));

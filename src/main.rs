@@ -58,6 +58,7 @@ fn start() -> Result<(), Box<dyn Error>> {
             (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
             (@arg label_filter: -f --filter +takes_value "Filter by label")
             (@arg interactive: -i --interactive "Enables interactive mode")
+            (@arg no_headers: --("no-headers") "Disables displaying headers")
         )
         (@subcommand move =>
             (about: "Move a card to a different list")

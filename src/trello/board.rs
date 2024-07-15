@@ -35,12 +35,15 @@ impl TrelloObject for Board {
 }
 
 impl Renderable for Board {
-    fn render(&self) -> String {
-        let mut result = vec![title(&self.name).bold().to_string()];
+    fn render(&self, headers: bool) -> String {
+        let mut result = match headers {
+            true => vec![title(&self.name).bold().to_string()],
+            false => vec![],
+        };
         if let Some(lists) = &self.lists {
             for list in lists {
                 result.push(String::from(""));
-                result.push(list.render());
+                result.push(list.render(true));
             }
         }
         result.join("\n")

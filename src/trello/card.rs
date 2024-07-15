@@ -39,8 +39,11 @@ impl TrelloObject for Card {
 }
 
 impl Renderable for Card {
-    fn render(&self) -> String {
-        [header(&self.name, "=").as_str(), &self.desc].join("\n")
+    fn render(&self, headers: bool) -> String {
+        match headers {
+            true => [header(&self.name, "=").as_str(), &self.desc].join("\n"),
+            false => self.desc.clone(),
+        }
     }
 
     fn simple_render(&self) -> String {

@@ -77,6 +77,7 @@ pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
 
     let label_filter = matches.value_of("label_filter");
     let interactive = matches.is_present("interactive");
+    let headers = !matches.is_present("no_headers");
 
     let params = find::get_trello_params(matches);
     debug!("Trello Params: {:?}", params);
@@ -98,14 +99,14 @@ pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
 
             if let Some(index) = cli::select_trello_object(&lists)? {
                 // TODO: Allow label filtering
-                println!("{}", &lists[index].render());
+                println!("{}", &lists[index].render(headers));
             }
         } else {
             let mut boards = Board::get_all(client)?;
 
             if let Some(index) = cli::select_trello_object(&boards)? {
                 boards[index].retrieve_nested(client)?;
-                println!("{}", &boards[index].render());
+                println!("{}", &boards[index].render(headers));
             }
         }
     } else if let Some(card) = result.card {
@@ -115,18 +116,20 @@ pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
             Some(label_filter) => list.filter(label_filter),
             None => list,
         };
-        println!("{}", list.render());
+        println!("{}", list.render(headers));
     } else if let Some(board) = result.board {
         debug!("Board pattern detected");
         let board = match label_filter {
             Some(label_filter) => board.filter(label_filter),
             None => board,
         };
-        println!("{}", board.render());
+        println!("{}", board.render(headers));
     } else {
-        println!("Open Boards");
-        println!("===========");
-        println!();
+        if headers {
+            println!("Open Boards");
+            println!("===========");
+            println!();
+        }
 
         let boards = Board::get_all(client)?;
         for b in boards {
@@ -369,7 +372,7 @@ pub fn attach_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
 
     let attachment = Attachment::apply(client, &card.id, path)?;
 
-    println!("{}", attachment.render());
+    println!("{}", attachment.render(true));
 
     Ok(())
 }

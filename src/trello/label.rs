@@ -31,7 +31,7 @@ impl TrelloObject for Label {
 }
 
 impl Renderable for Label {
-    fn render(&self) -> String {
+    fn render(&self, _: bool) -> String {
         self.simple_render()
     }
 

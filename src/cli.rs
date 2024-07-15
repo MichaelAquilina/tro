@@ -69,7 +69,7 @@ pub fn edit_card(client: &TrelloClient, card: &Card) -> Result<(), Box<dyn Error
     debug!("Using editor: {}", editor_env);
     debug!("Editing card: {:?}", card);
 
-    writeln!(file, "{}", card.render())?;
+    writeln!(file, "{}", card.render(true))?;
 
     let mut new_card = card.clone();
 

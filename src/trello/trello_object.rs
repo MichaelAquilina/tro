@@ -13,7 +13,7 @@ pub trait TrelloObject: Debug {
 pub trait Renderable {
     /// Render aims to render as much detail as possible and
     /// can render to multiple lines
-    fn render(&self) -> String;
+    fn render(&self, headers: bool) -> String;
 
     /// Simple render aims to output to a single line
     fn simple_render(&self) -> String;

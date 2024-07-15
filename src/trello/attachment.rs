@@ -57,8 +57,11 @@ impl TrelloObject for Attachment {
 }
 
 impl Renderable for Attachment {
-    fn render(&self) -> String {
-        [header(&self.name, "-").as_str(), &self.url].join("\n")
+    fn render(&self, headers: bool) -> String {
+        match headers {
+            true => [header(&self.name, "-").as_str(), &self.url].join("\n"),
+            false => self.url.clone(),
+        }
     }
 
     fn simple_render(&self) -> String {
