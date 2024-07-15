@@ -43,7 +43,7 @@ impl Renderable for Board {
         if let Some(lists) = &self.lists {
             for list in lists {
                 result.push(String::from(""));
-                result.push(list.render(true));
+                result.push(list.render(headers));
             }
         }
         result.join("\n")
