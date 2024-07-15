@@ -102,9 +102,9 @@ impl ClientConfig {
     ) -> Result<url::Url, url::ParseError> {
         let auth_params: &[(&str, &str)] = &[("key", &self.key), ("token", &self.token)];
 
-        Ok(url::Url::parse_with_params(
+        url::Url::parse_with_params(
             &format!("{}{}", self.host, path),
             &[auth_params, params].concat(),
-        )?)
+        )
     }
 }

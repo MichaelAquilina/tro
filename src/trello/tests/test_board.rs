@@ -23,7 +23,7 @@ fn test_render_no_lists() {
         " Knights ",
         "=========",
     ].join("\n").bold().to_string();
-    assert_eq!(board.render(), expected);
+    assert_eq!(board.render(true), expected);
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn test_render_lists() {
             "------",
         ].join("\n").bold().to_string(),
     ].join("\n");
-    assert_eq!(board.render(), expected);
+    assert_eq!(board.render(true), expected);
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn test_render_lists_and_cards() {
         ].join("\n").bold().to_string(),
         format!("* Flare Wand {}", "[...]".dimmed()),
     ].join("\n");
-    assert_eq!(board.render(), expected);
+    assert_eq!(board.render(true), expected);
 }
 
 #[test]

@@ -28,7 +28,7 @@ fn test_filter_none_cards() {
 fn test_render_no_cards() {
     let list = List::new("aaaaa", "King Knight", None);
     let expected = "King Knight\n-----------".bold().to_string();
-    assert_eq!(list.render(), expected);
+    assert_eq!(list.render(true), expected);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn test_render_with_cards() {
         "King Knight\n-----------".bold(),
         "* hello\n* world"
     );
-    assert_eq!(list.render(), expected);
+    assert_eq!(list.render(true), expected);
 }
 
 #[test]

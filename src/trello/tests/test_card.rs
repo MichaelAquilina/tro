@@ -28,7 +28,7 @@ fn test_render() {
     );
 
     let expected = "My Fav Card\n===========\nthis is a nice card";
-    assert_eq!(card.render(), expected);
+    assert_eq!(card.render(true), expected);
 }
 
 #[test]

@@ -112,8 +112,7 @@ pub fn get_trello_object(
 
             let cards = lists
                 .into_iter()
-                .map(|l| l.cards.unwrap())
-                .flatten()
+                .flat_map(|l| l.cards.unwrap())
                 .collect::<Vec<Card>>();
             let card = get_object_by_name(&cards, &card_name, params.ignore_case)?;
 

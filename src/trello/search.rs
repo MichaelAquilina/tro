@@ -8,20 +8,11 @@ use serde::Deserialize;
 
 type Result<T> = std::result::Result<T, TrelloError>;
 
+#[derive(Default)]
 pub struct SearchOptions {
     pub partial: bool,
     pub cards_limit: Option<i32>,
     pub boards_limit: Option<i32>,
-}
-
-impl Default for SearchOptions {
-    fn default() -> Self {
-        SearchOptions {
-            partial: false,
-            cards_limit: None,
-            boards_limit: None,
-        }
-    }
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq, Clone)]

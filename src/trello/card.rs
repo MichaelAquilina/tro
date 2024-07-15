@@ -55,7 +55,7 @@ impl Renderable for Card {
 
         lformat.push(String::from(&self.name));
 
-        if self.desc != "" {
+        if !self.desc.is_empty() {
             lformat.push("[...]".dimmed().to_string());
         }
 
