@@ -150,12 +150,9 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         unknown => panic!("Unknown log level '{}'", unknown),
     };
 
-    CombinedLogger::init(vec![TermLogger::new(
-        log_level,
-        Config::default(),
-        TerminalMode::Mixed,
-    )
-    .unwrap()])
+    CombinedLogger::init(vec![
+        TermLogger::new(log_level, Config::default(), TerminalMode::Mixed).unwrap(),
+    ])
     .unwrap();
 
     // Escape code to re-show the cursor in case
@@ -186,27 +183,27 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
     if matches.subcommand_matches("version").is_some() {
         eprintln!(env!("CARGO_PKG_VERSION"));
     } else if let Some(matches) = matches.subcommand_matches("me") {
-        subcommands::me_subcommand(&client, &matches)?;
+        subcommands::me_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("show") {
-        subcommands::show_subcommand(&client, &matches)?;
+        subcommands::show_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("move") {
-        subcommands::move_subcommand(&client, &matches)?;
+        subcommands::move_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("search") {
-        subcommands::search_subcommand(&client, &matches)?;
+        subcommands::search_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attach") {
-        subcommands::attach_subcommand(&client, &matches)?;
+        subcommands::attach_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("attachments") {
-        subcommands::attachments_subcommand(&client, &matches)?;
+        subcommands::attachments_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("label") {
-        subcommands::label_subcommand(&client, &matches)?;
+        subcommands::label_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("url") {
-        subcommands::url_subcommand(&client, &matches)?;
+        subcommands::url_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("close") {
-        subcommands::close_subcommand(&client, &matches)?;
+        subcommands::close_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("open") {
-        subcommands::open_subcommand(&client, &matches)?;
+        subcommands::open_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("create") {
-        subcommands::create_subcommand(&client, &matches)?;
+        subcommands::create_subcommand(&client, matches)?;
     } else {
         println!("{}", matches.usage());
     }

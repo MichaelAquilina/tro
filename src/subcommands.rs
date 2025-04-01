@@ -3,8 +3,8 @@ use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
 use trello::{
-    search, Attachment, Board, Card, ClientConfig, Label, List, Member, Renderable, SearchOptions,
-    TrelloClient,
+    Attachment, Board, Card, ClientConfig, Label, List, Member, Renderable, SearchOptions,
+    TrelloClient, search,
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -180,19 +180,19 @@ pub fn open_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
 
     if object_type == "board" {
         debug!("Re-opening board with id {}", &id);
-        let board = Board::open(client, &id)?;
+        let board = Board::open(client, id)?;
 
         eprintln!("Opened board: {}", &board.name.green());
         eprintln!("id: {}", &board.id);
     } else if object_type == "list" {
         debug!("Re-opening list with id {}", &id);
-        let list = List::open(client, &id)?;
+        let list = List::open(client, id)?;
 
         eprintln!("Opened list: {}", &list.name.green());
         eprintln!("id: {}", &list.id);
     } else if object_type == "card" {
         debug!("Re-openning card with id {}", &id);
-        let card = Card::open(client, &id)?;
+        let card = Card::open(client, id)?;
 
         eprintln!("Opened card: {}", &card.name.green());
         eprintln!("id: {}", &card.id);
@@ -291,7 +291,7 @@ pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
         let labels_to_apply = if let Some(label_names) = matches.values_of("label") {
             let mut target_labels = vec![];
             let labels =
-                Label::get_all(&client, &result.board.ok_or("Unable to retrieve board")?.id)?;
+                Label::get_all(client, &result.board.ok_or("Unable to retrieve board")?.id)?;
 
             for name in label_names {
                 match find::get_object_by_name(&labels, name, true) {
@@ -413,7 +413,7 @@ pub fn search_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
     let query = matches
         .values_of("query")
         .ok_or("Missing query value")?
-        .map(|s| replace_negative_prefix(s))
+        .map(replace_negative_prefix)
         .collect::<Vec<String>>()
         .join(" ");
     let partial = matches.is_present("partial");
@@ -494,7 +494,7 @@ pub fn label_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<(
         let label_names = label_names.ok_or("Label names must be specified")?;
 
         for name in label_names {
-            let label = match find::get_object_by_name(&labels, name, true) {
+            let label = match find::get_object_by_name(labels, name, true) {
                 Ok(l) => l,
                 Err(e) => {
                     eprintln!("{}", e);
@@ -502,11 +502,11 @@ pub fn label_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<(
                 }
             };
 
-            delete_label(client, &card, &label)?;
+            delete_label(client, &card, label)?;
         }
     } else {
         let board = result.board.ok_or("Unable to retrieve board")?;
-        let mut labels = Label::get_all(&client, &board.id)?;
+        let mut labels = Label::get_all(client, &board.id)?;
         labels.sort_by_cached_key(|l| l.name.clone());
 
         if interactive {
@@ -542,7 +542,7 @@ pub fn label_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<(
                     }
                 };
 
-                apply_label(client, &card, &label)?;
+                apply_label(client, &card, label)?;
             }
         }
     }

@@ -2,7 +2,7 @@
 name = "tro"
 version = "2.10.0"
 authors = ["Michael Aquilina <michaelaquilina@gmail.com>"]
-edition = "2018"
+edition = "2024"
 description = "A Trello API client for the command line"
 keywords = ["trello"]
 categories = ["command-line-utilities"]

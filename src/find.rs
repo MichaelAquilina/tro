@@ -32,7 +32,7 @@ pub fn get_object_by_name<'a, T: TrelloObject>(
 
     let mut objects = objects
         .iter()
-        .filter(|o| re.is_match(&o.get_name()))
+        .filter(|o| re.is_match(o.get_name()))
         .collect::<Vec<&T>>();
 
     match objects.len().cmp(&1) {
@@ -47,14 +47,14 @@ pub fn get_object_by_name<'a, T: TrelloObject>(
                     .map(|t| format!("'{}'", t.get_name()))
                     .collect::<Vec<String>>()
                     .join(", ")
-            )))
+            )));
         }
         Ordering::Less => {
             return Err(FindError::NotFound(format!(
                 "{} not found. Specify a more precise filter than '{}'",
                 T::get_type(),
                 name
-            )))
+            )));
         }
     }
 }
@@ -94,11 +94,11 @@ pub fn get_trello_object(
                 board: None,
                 list: None,
                 card: None,
-            })
+            });
         }
     };
-    let boards = Board::get_all(&client)?;
-    let mut board = get_object_by_name(&boards, &board_name, params.ignore_case)?.clone();
+    let boards = Board::get_all(client)?;
+    let mut board = get_object_by_name(&boards, board_name, params.ignore_case)?.clone();
 
     // This should retrieve everything at once
     // This means better performance as it's less HTTP requests. But it does
@@ -114,7 +114,7 @@ pub fn get_trello_object(
                 .into_iter()
                 .flat_map(|l| l.cards.unwrap())
                 .collect::<Vec<Card>>();
-            let card = get_object_by_name(&cards, &card_name, params.ignore_case)?;
+            let card = get_object_by_name(&cards, card_name, params.ignore_case)?;
 
             return Ok(TrelloResult {
                 board: Some(board_out),
@@ -128,12 +128,12 @@ pub fn get_trello_object(
         }
     } else if let Some(list_name) = params.list_name {
         let lists = &board.lists.as_ref().unwrap();
-        let list = get_object_by_name(lists, &list_name, params.ignore_case)?.clone();
+        let list = get_object_by_name(lists, list_name, params.ignore_case)?.clone();
 
         if let Some(card_name) = params.card_name {
             let cards = &list.cards.as_ref().unwrap();
 
-            let card = get_object_by_name(&cards, &card_name, params.ignore_case)?.clone();
+            let card = get_object_by_name(cards, card_name, params.ignore_case)?.clone();
             return Ok(TrelloResult {
                 board: Some(board),
                 list: Some(list),
