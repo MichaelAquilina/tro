@@ -24,6 +24,6 @@ pub use formatting::{header, title};
 pub use label::Label;
 pub use list::List;
 pub use member::Member;
-pub use search::{search, SearchOptions, SearchResult};
+pub use search::{SearchOptions, SearchResult, search};
 pub use trello_error::TrelloError;
 pub use trello_object::{Renderable, TrelloObject};

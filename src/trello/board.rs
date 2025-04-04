@@ -68,11 +68,9 @@ impl Board {
     pub fn filter(&self, filter_name: &str) -> Board {
         let mut result = self.clone();
 
-        result.lists = if let Some(lists) = result.lists {
-            Some(lists.into_iter().map(|l| l.filter(filter_name)).collect())
-        } else {
-            None
-        };
+        result.lists = result
+            .lists
+            .map(|lists| lists.into_iter().map(|l| l.filter(filter_name)).collect());
         result
     }
 

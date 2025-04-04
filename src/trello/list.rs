@@ -117,11 +117,9 @@ impl List {
         };
 
         let mut result = self.clone();
-        result.cards = if let Some(cards) = result.cards {
-            Some(cards.into_iter().filter(closure).collect())
-        } else {
-            None
-        };
+        result.cards = result
+            .cards
+            .map(|cards| cards.into_iter().filter(closure).collect());
         result
     }
 
