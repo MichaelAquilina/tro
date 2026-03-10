@@ -2034,7 +2034,7 @@ dependencies = [
 
 [[package]]
 name = "tro"
-version = "2.11.0"
+version = "2.12.0"
 dependencies = [
  "chrono",
  "clap",

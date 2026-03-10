@@ -1,7 +1,11 @@
 Changelog for tro
 =================
 
-2.11.1
+2.12.0
+------
+* Update reqwest to 0.13 and clap to 3.0
+
+2.11.0
 ------
 * Use authorization headers instead of query string params
 
