@@ -36,7 +36,7 @@ pub fn get_object_by_name<'a, T: TrelloObject>(
         .collect::<Vec<&T>>();
 
     match objects.len().cmp(&1) {
-        Ordering::Equal => Ok(objects.pop().unwrap()),
+        Ordering::Equal => Ok(objects.remove(0)),
         Ordering::Greater => {
             return Err(FindError::Multiple(format!(
                 "More than one {} found. Specify a more precise filter than '{}' (Found {})",
@@ -108,11 +108,11 @@ pub fn get_trello_object(
     if let Some("-") = params.list_name {
         if let Some(card_name) = params.card_name {
             let board_out = board.clone();
-            let lists = board.lists.unwrap();
+            let lists = board.lists.ok_or("Board lists not populated after retrieve_nested")?;
 
             let cards = lists
                 .into_iter()
-                .flat_map(|l| l.cards.unwrap())
+                .flat_map(|l| l.cards.unwrap_or_default())
                 .collect::<Vec<Card>>();
             let card = get_object_by_name(&cards, card_name, params.ignore_case)?;
 
@@ -127,11 +127,11 @@ pub fn get_trello_object(
             )))
         }
     } else if let Some(list_name) = params.list_name {
-        let lists = &board.lists.as_ref().unwrap();
+        let lists = board.lists.as_ref().ok_or("Board lists not populated after retrieve_nested")?;
         let list = get_object_by_name(lists, list_name, params.ignore_case)?.clone();
 
         if let Some(card_name) = params.card_name {
-            let cards = &list.cards.as_ref().unwrap();
+            let cards = list.cards.as_ref().ok_or("List cards not populated after retrieve_nested")?;
 
             let card = get_object_by_name(cards, card_name, params.ignore_case)?.clone();
             return Ok(TrelloResult {

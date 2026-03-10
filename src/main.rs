@@ -147,13 +147,12 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         "INFO" => LevelFilter::Info,
         "WARN" => LevelFilter::Warn,
         "ERROR" => LevelFilter::Error,
-        unknown => panic!("Unknown log level '{}'", unknown),
+        unknown => unreachable!("Unknown log level '{}' (this is a clap bug)", unknown),
     };
 
-    CombinedLogger::init(vec![
-        TermLogger::new(log_level, Config::default(), TerminalMode::Mixed).unwrap(),
-    ])
-    .unwrap();
+    let term_logger = TermLogger::new(log_level, Config::default(), TerminalMode::Mixed)
+        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "Failed to initialize terminal logger"))?;
+    CombinedLogger::init(vec![term_logger])?;
 
     // Escape code to re-show the cursor in case
     // ctrl-c was pressed during an interactive prompt

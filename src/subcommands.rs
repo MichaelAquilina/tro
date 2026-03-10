@@ -197,7 +197,7 @@ pub fn open_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
         eprintln!("Opened card: {}", &card.name.green());
         eprintln!("id: {}", &card.id);
     } else {
-        panic!("Unknown object_type {}", object_type);
+        unreachable!("Unknown object_type '{}' (this is a clap bug)", object_type);
     }
 
     Ok(())
@@ -366,7 +366,7 @@ pub fn attach_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let path = matches.value_of("path").unwrap();
+    let path = matches.value_of("path").ok_or("Missing path argument")?;
 
     let card = result.card.ok_or("Unable to find card")?;
 
@@ -388,7 +388,7 @@ pub fn url_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()>
     } else if result.list.is_some() {
         // Lists do not have a target url
         // We can display the parent board url instead
-        println!("{}", result.board.unwrap().url);
+        println!("{}", result.board.ok_or("Unable to retrieve board")?.url);
     } else if let Some(board) = result.board {
         println!("{}", board.url);
     }

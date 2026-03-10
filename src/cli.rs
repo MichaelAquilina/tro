@@ -109,7 +109,7 @@ pub fn edit_card(client: &TrelloClient, card: &Card) -> Result<(), Box<dyn Error
             // if previous loop had a failure
             // if card in memory is different to card in file
             if result.is_none()
-                || result.as_ref().unwrap().is_err()
+                || matches!(result, Some(Err(_)))
                 || new_card.name != contents.name
                 || new_card.desc != contents.desc
             {
@@ -122,7 +122,7 @@ pub fn edit_card(client: &TrelloClient, card: &Card) -> Result<(), Box<dyn Error
                 match &result {
                     Some(Ok(_)) => debug!("Updated card"),
                     Some(Err(e)) => debug!("Error updating card {:?}", e),
-                    None => panic!("This should be impossible"),
+                    None => unreachable!(),
                 };
             }
 
