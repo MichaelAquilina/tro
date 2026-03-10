@@ -5,11 +5,10 @@ use mockito::Matcher;
 #[test]
 fn test_empty() -> Result<()> {
     let _m = mockito::mock("GET", "/1/search/")
+        .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"")
         .match_query(Matcher::AllOf(vec![
             Matcher::UrlEncoded("query".into(), "foo".into()),
             Matcher::UrlEncoded("partial".into(), "false".into()),
-            Matcher::UrlEncoded("key".into(), "some-key".into()),
-            Matcher::UrlEncoded("token".into(), "some-token".into()),
             Matcher::UrlEncoded("cards_limit".into(), "20".into()),
         ]))
         .with_status(200)

@@ -34,8 +34,9 @@ mod test_get_trello_object {
     fn test_correct_output() -> TestResult {
         let _m1 = mockito::mock(
             "GET",
-            "/1/members/me/boards/?key=key&token=token&filter=open&fields=id%2Cname%2Cclosed%2Curl",
+            "/1/members/me/boards/?filter=open&fields=id%2Cname%2Cclosed%2Curl",
         )
+        .match_header("authorization", "OAuth oauth_consumer_key=\"key\", oauth_token=\"token\"")
         .with_status(200)
         .with_body(
             json!([
@@ -48,8 +49,9 @@ mod test_get_trello_object {
 
         let _m2 = mockito::mock(
             "GET",
-            "/1/boards/abc-def/lists?key=key&token=token&fields=id%2Cname%2Cclosed&cards=open",
+            "/1/boards/abc-def/lists?fields=id%2Cname%2Cclosed&cards=open",
         )
+        .match_header("authorization", "OAuth oauth_consumer_key=\"key\", oauth_token=\"token\"")
         .with_status(200)
         .with_body(
             json!([

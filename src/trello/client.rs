@@ -1,3 +1,4 @@
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
@@ -19,9 +20,21 @@ pub struct TrelloClient {
 
 impl TrelloClient {
     pub fn new(config: ClientConfig) -> Self {
+        let auth_value = HeaderValue::from_str(&format!(
+            "OAuth oauth_consumer_key=\"{}\", oauth_token=\"{}\"",
+            config.key, config.token
+        ))
+        .expect("API key and token must contain only visible ASCII characters");
+
+        let mut headers = HeaderMap::new();
+        headers.insert(AUTHORIZATION, auth_value);
+
         TrelloClient {
             config,
-            client: reqwest::blocking::Client::new(),
+            client: reqwest::blocking::Client::builder()
+                .default_headers(headers)
+                .build()
+                .expect("Failed to build HTTP client"),
         }
     }
 }
@@ -73,8 +86,8 @@ impl ClientConfig {
     }
 
     /// Gets the resultant URL of the Trello Config given some path and additional
-    /// parameters. The authentication credentials provided will be included as part
-    /// of the generated URL
+    /// parameters. Authentication is handled via the `Authorization` header on the
+    /// HTTP client, not as query parameters.
     /// ```
     /// # fn main() -> Result<(), url::ParseError> {
     /// let config = trello::ClientConfig {
@@ -85,12 +98,12 @@ impl ClientConfig {
     /// let url = config.get_trello_url("/1/me/boards/", &[])?;
     /// assert_eq!(
     ///     url.to_string(),
-    ///     "https://api.trello.com/1/me/boards/?key=some-key&token=some-token"
+    ///     "https://api.trello.com/1/me/boards/"
     /// );
     /// let url = config.get_trello_url("/1/boards/some-id/", &[("lists", "open")])?;
     /// assert_eq!(
     ///     url.to_string(),
-    ///     "https://api.trello.com/1/boards/some-id/?key=some-key&token=some-token&lists=open",
+    ///     "https://api.trello.com/1/boards/some-id/?lists=open",
     /// );
     /// # Ok(())
     /// # }
@@ -100,11 +113,10 @@ impl ClientConfig {
         path: &str,
         params: &[(&str, &str)],
     ) -> Result<url::Url, url::ParseError> {
-        let auth_params: &[(&str, &str)] = &[("key", &self.key), ("token", &self.token)];
-
-        url::Url::parse_with_params(
-            &format!("{}{}", self.host, path),
-            &[auth_params, params].concat(),
-        )
+        if params.is_empty() {
+            url::Url::parse(&format!("{}{}", self.host, path))
+        } else {
+            url::Url::parse_with_params(&format!("{}{}", self.host, path), params)
+        }
     }
 }
