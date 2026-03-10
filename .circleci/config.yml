@@ -16,7 +16,7 @@ jobs:
 
   clippy:
     docker:
-      - image: "rust:1.85"
+      - image: "rust:1.93"
     steps:
       - checkout
       - restore_cache:
