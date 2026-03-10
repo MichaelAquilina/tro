@@ -132,9 +132,7 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
             (@arg label: --label -l +takes_value +multiple "Apply labels to card on creation")
             (@arg name: +takes_value --name -n "Specify the name of the object being created without a prompt")
         )
-    )
-    .global_setting(clap::AppSettings::ColoredHelp)
-    .get_matches();
+    ).arg_required_else_help(true).global_setting(clap::AppSettings::ColoredHelp).get_matches();
 
     let log_level = match matches
         .value_of("log_level")
@@ -203,8 +201,6 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         subcommands::open_subcommand(&client, matches)?;
     } else if let Some(matches) = matches.subcommand_matches("create") {
         subcommands::create_subcommand(&client, matches)?;
-    } else {
-        println!("{}", matches.usage());
     }
     Ok(())
 }
