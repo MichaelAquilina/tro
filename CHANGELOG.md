@@ -1,9 +1,13 @@
 Changelog for tro
 =================
 
+2.11.1
+------
+* Use authorization headers instead of query string params
+
 2.10.0
 ------
-    * Add --no-headers flag to show subcommand
+* Add --no-headers flag to show subcommand
 
 2.9.1
 -----
