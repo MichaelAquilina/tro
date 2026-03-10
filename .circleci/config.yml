@@ -3,7 +3,7 @@ version: 2
 jobs:
   rustfmt:
     docker:
-      - image: "rust:1.85"
+      - image: "rust:1.93"
     steps:
       - checkout
       - run:
@@ -36,7 +36,7 @@ jobs:
 
   test:
     docker:
-      - image: "rust:1.85"
+      - image: "rust:1.93"
     steps:
       - checkout
       - restore_cache:
