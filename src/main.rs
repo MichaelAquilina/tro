@@ -149,7 +149,12 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
     };
 
     let term_logger = TermLogger::new(log_level, Config::default(), TerminalMode::Mixed)
-        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "Failed to initialize terminal logger"))?;
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Failed to initialize terminal logger",
+            )
+        })?;
     CombinedLogger::init(vec![term_logger])?;
 
     // Escape code to re-show the cursor in case

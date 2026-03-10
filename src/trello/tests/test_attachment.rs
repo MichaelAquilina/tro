@@ -6,7 +6,10 @@ fn test_get_all() -> Result<()> {
         "GET",
         "/1/cards/FOO-CARD/attachments?fields=id%2Cname%2Curl",
     )
-    .match_header("authorization", "OAuth oauth_consumer_key=\"sekret\", oauth_token=\"my-token\"")
+    .match_header(
+        "authorization",
+        "OAuth oauth_consumer_key=\"sekret\", oauth_token=\"my-token\"",
+    )
     .with_status(200)
     .with_body(
         json!([{
@@ -37,7 +40,10 @@ fn test_get_all() -> Result<()> {
 #[test]
 fn test_apply() -> Result<()> {
     let _m = mockito::mock("POST", "/1/cards/CARD-23/attachments")
-        .match_header("authorization", "OAuth oauth_consumer_key=\"KEY\", oauth_token=\"TOKEN\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"KEY\", oauth_token=\"TOKEN\"",
+        )
         .with_status(200)
         .with_body(
             json!({

@@ -108,7 +108,9 @@ pub fn get_trello_object(
     if let Some("-") = params.list_name {
         if let Some(card_name) = params.card_name {
             let board_out = board.clone();
-            let lists = board.lists.ok_or("Board lists not populated after retrieve_nested")?;
+            let lists = board
+                .lists
+                .ok_or("Board lists not populated after retrieve_nested")?;
 
             let cards = lists
                 .into_iter()
@@ -127,11 +129,17 @@ pub fn get_trello_object(
             )))
         }
     } else if let Some(list_name) = params.list_name {
-        let lists = board.lists.as_ref().ok_or("Board lists not populated after retrieve_nested")?;
+        let lists = board
+            .lists
+            .as_ref()
+            .ok_or("Board lists not populated after retrieve_nested")?;
         let list = get_object_by_name(lists, list_name, params.ignore_case)?.clone();
 
         if let Some(card_name) = params.card_name {
-            let cards = list.cards.as_ref().ok_or("List cards not populated after retrieve_nested")?;
+            let cards = list
+                .cards
+                .as_ref()
+                .ok_or("List cards not populated after retrieve_nested")?;
 
             let card = get_object_by_name(cards, card_name, params.ignore_case)?.clone();
             return Ok(TrelloResult {

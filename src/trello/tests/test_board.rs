@@ -101,7 +101,10 @@ fn test_render_lists_and_cards() {
 #[test]
 fn test_create() -> Result<()> {
     let _m = mockito::mock("POST", "/1/boards/")
-        .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"",
+        )
         .match_body("name=MYTESTBOARD")
         .with_status(200)
         .with_body(
@@ -133,19 +136,22 @@ fn test_create() -> Result<()> {
 #[test]
 fn test_update() -> Result<()> {
     let _m = mockito::mock("PUT", "/1/boards/MY-BOARD-ID/")
-        .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"",
+        )
         .match_body("name=TODO&closed=true")
-    .with_status(200)
-    .with_body(
-        json!({
-            "name": "TODO",
-            "id": "MY-BOARD-ID",
-            "closed": true,
-            "url": "",
-        })
-        .to_string(),
-    )
-    .create();
+        .with_status(200)
+        .with_body(
+            json!({
+                "name": "TODO",
+                "id": "MY-BOARD-ID",
+                "closed": true,
+                "url": "",
+            })
+            .to_string(),
+        )
+        .create();
 
     let config = ClientConfig::new(&mockito::server_url(), "some-token", "some-key");
     let client = TrelloClient::new(config);
@@ -165,7 +171,10 @@ fn test_get_all() -> Result<()> {
         "GET",
         "/1/members/me/boards/?filter=open&fields=id%2Cname%2Cclosed%2Curl",
     )
-    .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-secret-token\"")
+    .match_header(
+        "authorization",
+        "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-secret-token\"",
+    )
     .with_status(200)
     .with_body(
         json!([
@@ -195,7 +204,10 @@ fn test_get() -> Result<()> {
         "GET",
         "/1/boards/some-board-id?fields=id%2Cname%2Cclosed%2Curl",
     )
-    .match_header("authorization", "OAuth oauth_consumer_key=\"KEY\", oauth_token=\"TOKEN\"")
+    .match_header(
+        "authorization",
+        "OAuth oauth_consumer_key=\"KEY\", oauth_token=\"TOKEN\"",
+    )
     .with_status(200)
     .with_body(
         json!({

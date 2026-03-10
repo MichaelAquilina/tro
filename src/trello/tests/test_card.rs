@@ -107,7 +107,10 @@ fn test_simple_render_closed() {
 #[test]
 fn test_get() -> Result<()> {
     let _m = mockito::mock("GET", "/1/cards/CARD-FOO")
-        .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"",
+        )
         .with_status(200)
         .with_body(
             json!({
@@ -143,7 +146,10 @@ fn test_get() -> Result<()> {
 #[test]
 fn test_create() -> Result<()> {
     let _m = mockito::mock("POST", "/1/cards/")
-        .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"",
+        )
         .match_body("name=Laundry&desc=Desky&idList=FOOBAR")
         .with_status(200)
         .with_body(
@@ -182,7 +188,10 @@ fn test_create() -> Result<()> {
 #[test]
 fn test_update() -> Result<()> {
     let _m = mockito::mock("PUT", "/1/cards/MY-CARD-ID/")
-        .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-token\"",
+        )
         .match_body("name=Laundry&desc=hello&closed=true")
         .with_status(200)
         .with_body(
@@ -221,7 +230,10 @@ fn test_get_all() -> Result<()> {
         "GET",
         "/1/lists/DEADBEEF/cards/?fields=id%2Cname%2Cdesc%2Clabels%2Cclosed%2Cdue%2Curl",
     )
-    .match_header("authorization", "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-secret-token\"")
+    .match_header(
+        "authorization",
+        "OAuth oauth_consumer_key=\"some-key\", oauth_token=\"some-secret-token\"",
+    )
     .with_status(200)
     .with_body(
         json!([

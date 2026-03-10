@@ -36,7 +36,10 @@ mod test_get_trello_object {
             "GET",
             "/1/members/me/boards/?filter=open&fields=id%2Cname%2Cclosed%2Curl",
         )
-        .match_header("authorization", "OAuth oauth_consumer_key=\"key\", oauth_token=\"token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"key\", oauth_token=\"token\"",
+        )
         .with_status(200)
         .with_body(
             json!([
@@ -51,7 +54,10 @@ mod test_get_trello_object {
             "GET",
             "/1/boards/abc-def/lists?fields=id%2Cname%2Cclosed&cards=open",
         )
-        .match_header("authorization", "OAuth oauth_consumer_key=\"key\", oauth_token=\"token\"")
+        .match_header(
+            "authorization",
+            "OAuth oauth_consumer_key=\"key\", oauth_token=\"token\"",
+        )
         .with_status(200)
         .with_body(
             json!([
