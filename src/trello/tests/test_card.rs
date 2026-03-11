@@ -49,9 +49,6 @@ fn test_simple_render() {
 
 #[test]
 fn test_simple_render_with_description() {
-    // Force color output - the `colored` crate disables ANSI codes when stdout is not a TTY,
-    // which is the case in test environments.
-    colored::control::set_override(true);
     let card = Card {
         id: String::from("1234"),
         name: String::from("Ice Snail"),
@@ -68,9 +65,6 @@ fn test_simple_render_with_description() {
 
 #[test]
 fn test_simple_render_with_labels() {
-    // Force color output - the `colored` crate disables ANSI codes when stdout is not a TTY,
-    // which is the case in test environments.
-    colored::control::set_override(true);
     let card = Card {
         id: String::from("1234"),
         name: String::from("Lightning Goat"),
@@ -87,9 +81,6 @@ fn test_simple_render_with_labels() {
 
 #[test]
 fn test_simple_render_closed() {
-    // Force color output - the `colored` crate disables ANSI codes when stdout is not a TTY,
-    // which is the case in test environments.
-    colored::control::set_override(true);
     let card = Card {
         id: String::from("1234"),
         name: String::from("Earth Seagull"),
