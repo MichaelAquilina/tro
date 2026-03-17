@@ -1,3 +1,4 @@
+use log::debug;
 use std::env;
 use std::error::Error;
 use std::io::{Read, Write};

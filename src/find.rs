@@ -76,10 +76,10 @@ pub struct TrelloParams<'a> {
 
 pub fn get_trello_params<'a>(matches: &'a ArgMatches) -> TrelloParams<'a> {
     TrelloParams {
-        board_name: matches.value_of("board_name"),
-        list_name: matches.value_of("list_name"),
-        card_name: matches.value_of("card_name"),
-        ignore_case: !matches.is_present("case_sensitive"),
+        board_name: matches.get_one::<String>("board_name").map(|s| s.as_str()),
+        list_name: matches.get_one::<String>("list_name").map(|s| s.as_str()),
+        card_name: matches.get_one::<String>("card_name").map(|s| s.as_str()),
+        ignore_case: !matches.get_flag("case_sensitive"),
     }
 }
 
