@@ -1,11 +1,14 @@
-// I personally find the return syntax a lot more visually obvious
-// when scanning code
-#![allow(clippy::needless_return)]
-
-#[macro_use]
-extern crate clap;
+use clap::{builder::PossibleValuesParser, Arg, Command};
 #[macro_use]
 extern crate log;
+use log::debug;
+use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
+use std::env;
+use std::error::Error;
+use std::process;
+use trello::{ClientConfig, TrelloClient};
+
+use colored::*;
 
 #[cfg(test)]
 mod test_find;
@@ -13,13 +16,6 @@ mod test_find;
 mod cli;
 mod find;
 mod subcommands;
-
-use colored::*;
-use simplelog::{CombinedLogger, Config, LevelFilter, TermLogger, TerminalMode};
-use std::env;
-use std::error::Error;
-use std::process;
-use trello::{ClientConfig, TrelloClient};
 
 fn main() {
     if let Err(error) = start() {
@@ -36,106 +32,119 @@ fn main() {
 }
 
 fn start() -> Result<(), Box<dyn Error>> {
-    let matches = clap_app!(tro =>
-        (version: env!("CARGO_PKG_VERSION"))
-        (about: env!("CARGO_PKG_DESCRIPTION"))
-        (@arg log_level: -l --("log-level") +takes_value possible_values(&["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]) default_value[ERROR] "Specify the log level")
-        (@subcommand version =>
-            (about: "Print tro version")
+    let matches = Command::new("tro")
+        .version(env!("CARGO_PKG_VERSION"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(
+            Arg::new("log-level")
+                .short('l')
+                .long("log-level")
+                .value_parser(PossibleValuesParser::new(["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]))
+                .default_value("ERROR")
+                .help("Specify the log level"),
         )
-        (@subcommand setup =>
-            (about: "Setup tro")
+        .subcommand(Command::new("version").about("Print tro version"))
+        .subcommand(Command::new("setup").about("Setup tro"))
+        .subcommand(
+            Command::new("me")
+                .about("Show currently logged in user")
+                .arg(Arg::new("detailed").short('d').long("detailed").help("Display detailed information")),
         )
-        (@subcommand me =>
-            (about: "Show currently logged in user")
-            (@arg detailed: -d --detailed "Display detailed information")
+        .subcommand(
+            Command::new("show")
+                .about("Show object contents")
+                .arg(Arg::new("board_name").help("Board Name to retrieve"))
+                .arg(Arg::new("list_name").help("List Name to retrieve"))
+                .arg(Arg::new("card_name").help("Card Name to retrieve"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching"))
+                .arg(Arg::new("label_filter").short('f').long("filter").value_name("LABEL").help("Filter by label"))
+                .arg(Arg::new("interactive").short('i').long("interactive").help("Enables interactive mode"))
+                .arg(Arg::new("no_headers").long("no-headers").help("Disables displaying headers")),
         )
-        (@subcommand show =>
-            (about: "Show object contents")
-            (@arg board_name: !required "Board Name to retrieve")
-            (@arg list_name: !required "List Name to retrieve")
-            (@arg card_name: !required "Card Name to retrieve")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
-            (@arg label_filter: -f --filter +takes_value "Filter by label")
-            (@arg interactive: -i --interactive "Enables interactive mode")
-            (@arg no_headers: --("no-headers") "Disables displaying headers")
+        .subcommand(
+            Command::new("move")
+                .about("Move a card to a different list")
+                .arg(Arg::new("board_name").required(true).help("Board Name"))
+                .arg(Arg::new("list_name").required(true).help("List Name"))
+                .arg(Arg::new("card_name").required(true).help("Card Name"))
+                .arg(Arg::new("new_list_name").required(true).help("New List Name")),
         )
-        (@subcommand move =>
-            (about: "Move a card to a different list")
-            (@arg board_name: +required "Board Name")
-            (@arg list_name: +required "List Name")
-            (@arg card_name: +required "Card Name")
-            (@arg new_list_name: +required "New List Name")
+        .subcommand(
+            Command::new("search")
+                .about("Search Trello cards")
+                .long_about("Searches Trello cards.\nSee the link below for details about how to write queries when searching with Trello.\nhttps://help.trello.com/article/808-searching-for-cards-all-boards")
+                .arg(Arg::new("query").required(true).num_args(1..).help("Trello Query String"))
+                .arg(Arg::new("partial").short('p').long("partial").help("Allow partial matches"))
+                .arg(Arg::new("cards_limit").long("limit").value_name("LIMIT").help("Specify the max number of cards to return"))
+                .arg(Arg::new("interactive").short('i').long("interactive").help("Enables interactive mode")),
         )
-        (@subcommand search =>
-            (about: "Search Trello cards")
-            (long_about: "
-Searches Trello cards.
-See the link below for details about how to write queries when searching with Trello.
-https://help.trello.com/article/808-searching-for-cards-all-boards")
-            (@arg query: +required +multiple "Trello Query String")
-            (@arg partial: -p --partial "Allow partial matches")
-            (@arg cards_limit: --limit +takes_value "Specify the max number of cards to return")
-            (@arg interactive: -i --interactive "Enables interactive mode")
+        .subcommand(
+            Command::new("attach")
+                .about("Attach a file to a card")
+                .arg(Arg::new("board_name").required(true).help("Board name to retrieve"))
+                .arg(Arg::new("list_name").required(true).help("List name to retrieve"))
+                .arg(Arg::new("card_name").required(true).help("Card name to retrieve"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching"))
+                .arg(Arg::new("path").required(true).help("Path of file to upload")),
         )
-        (@subcommand attach =>
-            (about: "Attach a file to a card")
-            (@arg board_name: +required "Board name to retrieve")
-            (@arg list_name: +required "List name to retrieve")
-            (@arg card_name: +required "Card name to retrieve")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
-            (@arg path: +required "Path of file to upload")
+        .subcommand(
+            Command::new("attachments")
+                .about("View attachments")
+                .arg(Arg::new("board_name").required(true).help("Board name to retrieve"))
+                .arg(Arg::new("list_name").required(true).help("List name to retrieve"))
+                .arg(Arg::new("card_name").required(true).help("Card name to retrieve"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching")),
         )
-        (@subcommand attachments =>
-            (about: "View attachments")
-            (@arg board_name: +required "Board name to retrieve")
-            (@arg list_name: +required "List name to retrieve")
-            (@arg card_name: +required "Card name to retrieve")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
+        .subcommand(
+            Command::new("label")
+                .about("Apply or remove a label on a card")
+                .arg(Arg::new("board_name").required(true).help("Board name to retrieve"))
+                .arg(Arg::new("list_name").required(true).help("List name to retrieve"))
+                .arg(Arg::new("card_name").required(true).help("Card name to retrieve"))
+                .arg(Arg::new("label_name").num_args(1..).help("Label name to apply"))
+                .arg(Arg::new("delete").short('d').long("delete").help("Delete specified label"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching"))
+                .arg(Arg::new("interactive").short('i').long("interactive").help("Enables interactive mode"))
+                .arg_required_else_help(true),
         )
-        (@subcommand label =>
-            (about: "Apply or remove a label on a card")
-            (@arg board_name: +required "Board name to retrieve")
-            (@arg list_name: +required "List name to retrieve")
-            (@arg card_name: +required "Card name to retrieve")
-            (@arg label_name: required_unless("interactive") +multiple "Label name to apply")
-            (@arg delete: -d --delete conflicts_with("interactive") "Delete specified label")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
-            (@arg interactive: -i --interactive "Enables interactive mode")
+        .subcommand(
+            Command::new("url")
+                .about("Display object url")
+                .arg(Arg::new("board_name").help("Board Name to retrieve"))
+                .arg(Arg::new("list_name").help("List Name to retrieve"))
+                .arg(Arg::new("card_name").help("Card Name to retrieve"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching")),
         )
-        (@subcommand url =>
-            (about: "Display object url")
-            (@arg board_name: !required "Board Name to retrieve")
-            (@arg list_name: !required "List Name to retrieve")
-            (@arg card_name: !required "Card Name to retrieve")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
+        .subcommand(
+            Command::new("open")
+                .about("Open objects that have been closed")
+                .arg(Arg::new("type").required(true).value_parser(PossibleValuesParser::new(["board", "list", "card"])).help("Type of object"))
+                .arg(Arg::new("id").required(true).help("Id of the object to re-open")),
         )
-        (@subcommand open =>
-            (about: "Open objects that have been closed")
-            (@arg type: +required possible_values(&["board", "list", "card"]) "Type of object")
-            (@arg id: +required "Id of the object to re-open")
+        .subcommand(
+            Command::new("close")
+                .about("Close objects")
+                .arg(Arg::new("board_name").help("Board Name to retrieve"))
+                .arg(Arg::new("list_name").help("List Name to retrieve"))
+                .arg(Arg::new("card_name").help("Card Name to retrieve"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching"))
+                .arg(Arg::new("interactive").short('i').long("interactive").help("Enables interactive mode")),
         )
-        (@subcommand close =>
-            (about: "Close objects")
-            (@arg board_name: required_unless("interactive") "Board Name to retrieve")
-            (@arg list_name: !required "List Name to retrieve")
-            (@arg card_name: !required "Card Name to retrieve")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
-            (@arg interactive: -i --interactive "Enables interactive mode")
+        .subcommand(
+            Command::new("create")
+                .about("Create objects")
+                .arg(Arg::new("board_name").help("Board Name to retrieve"))
+                .arg(Arg::new("list_name").help("List Name to retrieve"))
+                .arg(Arg::new("case_sensitive").short('c').long("case-sensitive").help("Use case sensitive names when searching"))
+                .arg(Arg::new("show").long("show").short('s').help("Show the item once created"))
+                .arg(Arg::new("label").long("label").short('l').num_args(1..).help("Apply labels to card on creation"))
+                .arg(Arg::new("name").long("name").short('n').num_args(1..).help("Specify the name of the object being created without a prompt")),
         )
-        (@subcommand create =>
-            (about: "Create objects")
-            (@arg board_name: !required "Board Name to retrieve")
-            (@arg list_name: !required "List Name to retrieve")
-            (@arg case_sensitive: -c --("case-sensitive") "Use case sensitive names when searching")
-            (@arg show: --show -s "Show the item once created")
-            (@arg label: --label -l +takes_value +multiple "Apply labels to card on creation")
-            (@arg name: +takes_value --name -n "Specify the name of the object being created without a prompt")
-        )
-    ).arg_required_else_help(true).global_setting(clap::AppSettings::ColoredHelp).get_matches();
+        .arg_required_else_help(true)
+        .get_matches();
 
     let log_level = match matches
-        .value_of("log_level")
+        .get_one::<String>("log-level")
         .unwrap()
         .to_uppercase()
         .as_str()
@@ -152,9 +161,6 @@ https://help.trello.com/article/808-searching-for-cards-all-boards")
         .ok_or_else(|| std::io::Error::other("Failed to initialize terminal logger"))?;
     CombinedLogger::init(vec![term_logger])?;
 
-    // Escape code to re-show the cursor in case
-    // ctrl-c was pressed during an interactive prompt
-    // where the cursor is temporarily hidden
     ctrlc::set_handler(|| {
         println!("\x1b[?25h");
         process::exit(2);

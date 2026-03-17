@@ -3,8 +3,8 @@ use clap::ArgMatches;
 use colored::*;
 use std::error::Error;
 use trello::{
-    Attachment, Board, Card, ClientConfig, Label, List, Member, Renderable, SearchOptions,
-    TrelloClient, search,
+    search, Attachment, Board, Card, ClientConfig, Label, List, Member, Renderable, SearchOptions,
+    TrelloClient,
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -57,7 +57,7 @@ pub fn setup_subcommand(matches: &ArgMatches) -> Result<()> {
 pub fn me_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running me subcommand with {:?}", matches);
 
-    let detailed = matches.is_present("detailed");
+    let detailed = matches.get_flag("detailed");
 
     let member = Member::me(client)?;
 
@@ -75,9 +75,11 @@ pub fn me_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> 
 pub fn show_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running show subcommand with {:?}", matches);
 
-    let label_filter = matches.value_of("label_filter");
-    let interactive = matches.is_present("interactive");
-    let headers = !matches.is_present("no_headers");
+    let label_filter = matches
+        .get_one::<String>("label_filter")
+        .map(|s| s.as_str());
+    let interactive = matches.get_flag("interactive");
+    let headers = !matches.get_flag("no_headers");
 
     let params = find::get_trello_params(matches);
     debug!("Trello Params: {:?}", params);
@@ -146,28 +148,39 @@ pub fn move_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let new_list_name = matches
-        .value_of("new_list_name")
-        .ok_or("Missing new list name")?;
+    let interactive = matches.get_flag("interactive");
 
-    let board = result.board.ok_or("Unable to retrieve board")?;
-    let card = result.card.ok_or("Unable to retrieve card")?;
-    let list = result
-        .list
-        .ok_or("Unable to retrieve list. Wildcards are currently unsupported with move")?;
+    trace!("result: {:?}", result);
 
-    let board_lists = board.lists.as_ref().ok_or("Missing target board lists")?;
+    if interactive {
+        if result.card.is_some() {
+            eprintln!("Cannot run interactive mode if you specify a card pattern");
+        } else if let Some(list) = result.list {
+            let mut cards = Card::get_all(client, &list.id)?;
 
-    let new_list = find::get_object_by_name(board_lists, new_list_name, true)?;
+            for index in cli::multiselect_trello_object(&cards, &[])? {
+                close_card(client, &mut cards[index])?;
+            }
+        } else if let Some(board) = result.board {
+            let mut lists = List::get_all(client, &board.id, false)?;
 
-    Card::change_list(client, &card.id, &new_list.id)?;
+            for index in cli::multiselect_trello_object(&lists, &[])? {
+                close_list(client, &mut lists[index])?;
+            }
+        } else {
+            let mut boards = Board::get_all(client)?;
 
-    println!(
-        "Moved '{}' from '{}' to '{}'",
-        card.name.green(),
-        list.name.green(),
-        new_list.name.green()
-    );
+            for index in cli::multiselect_trello_object(&boards, &[])? {
+                close_board(client, &mut boards[index])?;
+            }
+        }
+    } else if let Some(mut card) = result.card {
+        close_card(client, &mut card)?;
+    } else if let Some(mut list) = result.list {
+        close_list(client, &mut list)?;
+    } else if let Some(mut board) = result.board {
+        close_board(client, &mut board)?;
+    }
 
     Ok(())
 }
@@ -175,8 +188,14 @@ pub fn move_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
 pub fn open_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()> {
     debug!("Running open subcommand with {:?}", matches);
 
-    let id = matches.value_of("id").ok_or("Id not provided")?;
-    let object_type = matches.value_of("type").ok_or("type not provided")?;
+    let id = matches
+        .get_one::<String>("id")
+        .map(|s| s.as_str())
+        .ok_or("Id not provided")?;
+    let object_type = matches
+        .get_one::<String>("type")
+        .map(|s| s.as_str())
+        .ok_or("type not provided")?;
 
     if object_type == "board" {
         debug!("Re-opening board with id {}", &id);
@@ -203,7 +222,6 @@ pub fn open_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<()
     Ok(())
 }
 
-// TODO: The three functions below can be generalised using traits
 fn close_board(client: &TrelloClient, board: &mut Board) -> Result<()> {
     board.closed = true;
     Board::update(client, board)?;
@@ -240,7 +258,7 @@ pub fn close_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<(
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let interactive = matches.is_present("interactive");
+    let interactive = matches.get_flag("interactive");
 
     trace!("result: {:?}", result);
 
@@ -283,12 +301,12 @@ pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let show = matches.is_present("show");
+    let show = matches.get_flag("show");
 
     trace!("result: {:?}", result);
 
     if let Some(list) = result.list {
-        let labels_to_apply = if let Some(label_names) = matches.values_of("label") {
+        let labels_to_apply = if let Some(label_names) = matches.get_many::<String>("label") {
             let mut target_labels = vec![];
             let labels =
                 Label::get_all(client, &result.board.ok_or("Unable to retrieve board")?.id)?;
@@ -308,8 +326,8 @@ pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
             vec![]
         };
 
-        let name = match matches.value_of("name") {
-            Some(n) => String::from(n),
+        let name = match matches.get_one::<String>("name") {
+            Some(n) => n.clone(),
             None => cli::get_input("Card name: ")?,
         };
 
@@ -326,15 +344,15 @@ pub fn create_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
             cli::edit_card(client, &card)?;
         }
     } else if let Some(board) = result.board {
-        let name = match matches.value_of("name") {
-            Some(n) => String::from(n),
+        let name = match matches.get_one::<String>("name") {
+            Some(n) => n.clone(),
             None => cli::get_input("List name: ")?,
         };
 
         List::create(client, &board.id, &name)?;
     } else {
-        let name = match matches.value_of("name") {
-            Some(n) => String::from(n),
+        let name = match matches.get_one::<String>("name") {
+            Some(n) => n.clone(),
             None => cli::get_input("Board name: ")?,
         };
 
@@ -366,7 +384,10 @@ pub fn attach_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let path = matches.value_of("path").ok_or("Missing path argument")?;
+    let path = matches
+        .get_one::<String>("path")
+        .map(|s| s.as_str())
+        .ok_or("Missing path argument")?;
 
     let card = result.card.ok_or("Unable to find card")?;
 
@@ -411,15 +432,15 @@ pub fn search_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<
     debug!("Running search subcommand with {:?}", matches);
 
     let query = matches
-        .values_of("query")
+        .get_many::<String>("query")
         .ok_or("Missing query value")?
-        .map(replace_negative_prefix)
+        .map(|s| replace_negative_prefix(s))
         .collect::<Vec<String>>()
         .join(" ");
-    let partial = matches.is_present("partial");
-    let interactive = matches.is_present("interactive");
+    let partial = matches.get_flag("partial");
+    let interactive = matches.get_flag("interactive");
 
-    let cards_limit = if let Some(v) = matches.value_of("limit") {
+    let cards_limit = if let Some(v) = matches.get_one::<String>("limit") {
         Some(v.parse()?)
     } else {
         None
@@ -482,9 +503,9 @@ pub fn label_subcommand(client: &TrelloClient, matches: &ArgMatches) -> Result<(
     let params = find::get_trello_params(matches);
     let result = find::get_trello_object(client, &params)?;
 
-    let interactive = matches.is_present("interactive");
-    let delete = matches.is_present("delete");
-    let label_names = matches.values_of("label_name");
+    let interactive = matches.get_flag("interactive");
+    let delete = matches.get_flag("delete");
+    let label_names = matches.get_many::<String>("label_name");
 
     let card = result.card.ok_or("Unable to find card")?;
     let card_labels = card.labels.as_ref().ok_or("Unable to get card labels")?;
